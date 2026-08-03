@@ -28,6 +28,7 @@ Die konkrete Abhängigkeitsversion wird erst im Bootstrap-Issue festgelegt und d
 
 ## Dokumentation
 
+- [GitHub-Backlog und Meilensteine](https://github.com/Mauriceklein0611/PersonalOS/issues)
 - [Produkt und Scope](docs/PRODUCT.md)
 - [Schritt-für-Schritt-Roadmap](docs/ROADMAP.md)
 - [Architektur](docs/ARCHITECTURE.md)
@@ -62,4 +63,3 @@ Bis ein `package.json` existiert, besteht die Arbeit ausschließlich aus Planung
 ## Datenschutz
 
 Dieses Repository enthält Quellcode und synthetische Testdaten. Keine echten Journaltexte, Finanzwerte, Gesundheitsdaten, Dokumente, Seriennummern, Fotos, Backups oder `.env`-Dateien committen. Für lokale Beispiele ausschließlich offensichtlich fiktive Daten verwenden.
-
