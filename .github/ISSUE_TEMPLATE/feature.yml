@@ -1,0 +1,61 @@
+name: Feature
+description: Eine klar abgegrenzte Produktfunktion planen.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: Bitte pro Issue genau einen überprüfbaren Nutzerwert beschreiben.
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Nutzerergebnis
+      description: Was kann der Nutzer danach konkret tun?
+      placeholder: Als Nutzer kann ich ...
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Umfang
+      description: Was gehört ausdrücklich dazu und was nicht?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Akzeptanzkriterien
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Abhängigkeiten
+      description: Andere Issues, Datenmodell- oder Designentscheidungen.
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risiken und Datenschutz
+      description: Offlineverhalten, sensible Daten, Migrationen und Fehlerfälle.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Betroffene Oberfläche
+      options:
+        - Datenmodell/Persistenz
+        - App-Shell/Designsystem
+        - Heute
+        - Aufgaben
+        - Habits
+        - Journal
+        - Ziele
+        - Finanzen/Sparen
+        - Life Score/Insights
+        - Einstellungen/Backup
+    validations:
+      required: true
+

@@ -1,0 +1,44 @@
+name: Bug
+description: Ein reproduzierbares Fehlverhalten melden.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Fehlerbild
+      description: Was passiert und was wurde erwartet?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduktion
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Umgebung
+      description: Browser, Betriebssystem, App-Version und Online-/Offlinezustand. Keine persönlichen Daten einfügen.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Auswirkung und Datenrisiko
+      description: Sind Daten verloren, falsch dargestellt oder nicht exportierbar?
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Datenschutz
+      options:
+        - label: Logs und Screenshots wurden auf persönliche Daten und Secrets geprüft.
+          required: true

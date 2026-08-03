@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Produkt- und Architekturentscheidungen
+    url: https://github.com/Mauriceklein0611/PersonalOS/discussions
+    about: Größere Scope- oder Architekturfragen vor der Umsetzung diskutieren.
+

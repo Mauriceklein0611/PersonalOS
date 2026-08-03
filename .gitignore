@@ -1,0 +1,40 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.vite/
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+*.local
+
+# PersonalOS user data and exports
+data/
+backups/
+exports/
+uploads/
+receipts/
+documents/
+*.personalos.json
+*.personalos.zip
+*.sqlite
+*.sqlite3
+*.db
+
+# Editors and operating systems
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
