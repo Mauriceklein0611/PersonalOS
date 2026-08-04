@@ -34,6 +34,15 @@ export function getIsoWeekBounds(
   return [start, addCalendarDays(start, 6)];
 }
 
+export function differenceInCalendarDays(
+  from: CalendarDay,
+  to: CalendarDay,
+): number {
+  const milliseconds =
+    parseCalendarDayAsUtc(to).getTime() - parseCalendarDayAsUtc(from).getTime();
+  return Math.round(milliseconds / 86_400_000);
+}
+
 export function enumerateCalendarDays(
   from: CalendarDay,
   to: CalendarDay,
