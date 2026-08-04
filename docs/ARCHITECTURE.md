@@ -175,12 +175,17 @@ Im ersten MVP unterstützt der Import nur „bestehende lokale Daten vollständi
 
 ## 8. Schema-Migrationen
 
+- Versionen werden zentral in `src/db/migrations/index.ts` registriert; jede Datenänderung liegt in `v<version>-<slug>.ts`.
 - Jede Schemaänderung erhöht die Dexie-Version.
 - Migrationen sind vorwärtsgerichtet und deterministisch.
+- Eingabe und Ergebnis einer Migration werden mit Zod validiert; ein Fehler bricht die Upgrade-Transaktion vollständig ab.
 - Vor einer Migration wird kein automatischer Upload ausgelöst.
 - Fixtures mindestens der vorherigen unterstützten Version werden in Tests migriert.
 - Bei einem Fehler bleibt die vorherige Datenbank nach Möglichkeit unverändert; die UI erklärt Recovery-Schritte.
+- Der Router wird erst nach erfolgreichem Öffnen der aktuellen Datenbank angezeigt. Ein Reset erfolgt nie automatisch und benötigt eine ausdrückliche Bestätigung.
 - Exportformate und interne Datenbankversionen sind getrennt versioniert.
+
+Die Entscheidung und ihre Konsequenzen sind in [ADR 0003](decisions/0003-forward-database-migrations-and-recovery.md) festgehalten.
 
 ## 9. Zeit, Tage und Zeitzonen
 

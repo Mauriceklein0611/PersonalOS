@@ -1,10 +1,7 @@
 import Dexie, { type Table } from "dexie";
 
-import {
-  personalOsSchemaV1,
-  personalOsSchemaVersion,
-  type PersonalOsTableName,
-} from "./schema";
+import { registerDatabaseMigrations } from "./migrations";
+import type { PersonalOsTableName } from "./schema";
 import type { EntityMeta, StoredEntity } from "./types";
 
 export const personalOsDatabaseName = "personalos";
@@ -12,7 +9,7 @@ export const personalOsDatabaseName = "personalos";
 export class PersonalOsDatabase extends Dexie {
   constructor(name = personalOsDatabaseName) {
     super(name);
-    this.version(personalOsSchemaVersion).stores(personalOsSchemaV1);
+    registerDatabaseMigrations(this);
   }
 
   tableFor<TEntity extends EntityMeta>(

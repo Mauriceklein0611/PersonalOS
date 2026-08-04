@@ -1,4 +1,4 @@
-export const personalOsSchemaVersion = 1;
+export const personalOsSchemaVersion = 2;
 
 export const personalOsTableNames = [
   "settings",
@@ -40,4 +40,8 @@ export const personalOsSchemaV1 = {
   scoreSettings: "id, updatedAt",
   scoreSnapshots:
     "id, &[localDate+engineVersion], localDate, engineVersion, archivedAt, updatedAt",
+} satisfies Record<PersonalOsTableName, string>;
+
+export const personalOsSchemaV2 = {
+  ...personalOsSchemaV1,
 } satisfies Record<PersonalOsTableName, string>;
