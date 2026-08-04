@@ -7,9 +7,15 @@ import {
   settingsV1Fixture,
 } from "../../test/fixtures/database-v1";
 import { PersonalOsDatabase } from "../database";
-import { personalOsSchemaV1, personalOsSchemaVersion } from "../schema";
+import {
+  personalOsSchemaV1,
+  personalOsSchemaV2,
+  personalOsSchemaVersion,
+} from "../schema";
+import { habitSchema } from "../schemas/domain-records";
 import { settingsSchema } from "../schemas/settings";
 import { migrateSettingsRecordToV2 } from "./v2-add-week-start";
+import { migrateHabitRecordToV3 } from "./v3-normalize-habit-schedules";
 
 const databaseNames: string[] = [];
 
@@ -68,6 +74,36 @@ describe("database migrations", () => {
     const migrated = migrateSettingsRecordToV2(settingsV1Fixture);
 
     expect(migrateSettingsRecordToV2(migrated)).toEqual(migrated);
+  });
+
+  it("normalizes legacy habit schedules and invalid end dates from v2", async () => {
+    const name = createDatabaseName();
+    const legacyHabit = {
+      id: "00000000-0000-4000-8000-000000001301",
+      createdAt: "2026-08-03T08:00:00.000Z",
+      updatedAt: "2026-08-03T08:00:00.000Z",
+      endDate: "2026-08-02",
+      name: "Synthetische Gewohnheit",
+      schedule: { kind: "weekdays", days: [5, 1, 5] },
+      startDate: "2026-08-03",
+    };
+    const legacyDatabase = new Dexie(name);
+    legacyDatabase.version(2).stores(personalOsSchemaV2);
+    await legacyDatabase.open();
+    await legacyDatabase.table("habits").add(legacyHabit);
+    legacyDatabase.close();
+
+    const currentDatabase = new PersonalOsDatabase(name);
+    await currentDatabase.open();
+    const migrated = habitSchema.parse(
+      await currentDatabase.table("habits").get(legacyHabit.id),
+    );
+
+    expect(currentDatabase.verno).toBe(personalOsSchemaVersion);
+    expect(migrated.endDate).toBeUndefined();
+    expect(migrated.schedule).toEqual({ kind: "weekdays", days: [1, 5] });
+    expect(migrateHabitRecordToV3(migrated)).toEqual(migrated);
+    currentDatabase.close();
   });
 });
 

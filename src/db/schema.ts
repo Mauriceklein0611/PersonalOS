@@ -1,4 +1,4 @@
-export const personalOsSchemaVersion = 2;
+export const personalOsSchemaVersion = 3;
 
 export const personalOsTableNames = [
   "settings",
@@ -44,4 +44,8 @@ export const personalOsSchemaV1 = {
 
 export const personalOsSchemaV2 = {
   ...personalOsSchemaV1,
+} satisfies Record<PersonalOsTableName, string>;
+
+export const personalOsSchemaV3 = {
+  ...personalOsSchemaV2,
 } satisfies Record<PersonalOsTableName, string>;
