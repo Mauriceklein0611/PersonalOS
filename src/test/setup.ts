@@ -1,7 +1,15 @@
 import "@testing-library/jest-dom/vitest";
 import "fake-indexeddb/auto";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterEach } from "vitest";
+
+/**
+ * Routen laden ihre Daten über fake-indexeddb. Unter paralleler Testlast
+ * überschreitet allein das Laden die Standardwartezeit von einer Sekunde,
+ * ohne dass eine Zusicherung verletzt wäre. Die Erwartungen bleiben streng;
+ * nur die Geduld beim Warten auf das Ergebnis wächst.
+ */
+configure({ asyncUtilTimeout: 5000 });
 
 afterEach(() => cleanup());
 
