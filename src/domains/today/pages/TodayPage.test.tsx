@@ -109,6 +109,40 @@ describe("TodayPage", () => {
     );
   });
 
+  it("offers undo for a completed task and for a habit check-in", async () => {
+    const user = userEvent.setup();
+    const services = createServices({
+      habits: [createHabit("h1")],
+      tasks: [createTask("t1", { plannedDate: "2026-08-04" })],
+    });
+    renderPage(services);
+
+    await user.click(
+      await screen.findByRole("button", { name: "„Aufgabe t1“ abschließen" }),
+    );
+    await user.click(await screen.findByRole("button", { name: "Rückgängig" }));
+
+    expect(
+      await screen.findByRole("heading", { level: 3, name: "Aufgabe t1" }),
+    ).toBeInTheDocument();
+    expect(services.taskService.reopen).toHaveBeenCalledWith("t1");
+
+    await user.click(
+      screen.getByRole("button", { name: "„Gewohnheit h1“ heute erledigen" }),
+    );
+    await user.click(await screen.findByRole("button", { name: "Rückgängig" }));
+
+    expect(
+      await screen.findByRole("button", {
+        name: "„Gewohnheit h1“ heute erledigen",
+      }),
+    ).toBeInTheDocument();
+    expect(services.habitService.reopenCheckIn).toHaveBeenCalledWith(
+      "h1",
+      "2026-08-04",
+    );
+  });
+
   it("presents an older mood as a past entry", async () => {
     renderPage(
       createServices({
@@ -236,7 +270,14 @@ function createServices(
     listEntries: vi.fn(async (habitId: string) =>
       habitEntries.filter((entry) => entry.habitId === habitId),
     ),
-    reopenCheckIn: vi.fn(notImplemented),
+    reopenCheckIn: vi.fn(async (habitId: string, localDate: string) => {
+      const remaining = habitEntries.filter(
+        (entry) => entry.habitId !== habitId || entry.localDate !== localDate,
+      );
+      const removed = remaining.length !== habitEntries.length;
+      habitEntries = remaining;
+      return removed;
+    }),
     restore: vi.fn(notImplemented),
     updateDetails: vi.fn(notImplemented),
   } as unknown as HabitService;

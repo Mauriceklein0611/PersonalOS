@@ -1,15 +1,30 @@
 import { calendarDaySchema, type CalendarDay } from "./date-values";
 
-export function calendarDayForInstant(
-  instant: Date,
-  timeZone: string,
-): CalendarDay {
-  const parts = new Intl.DateTimeFormat("en-CA", {
+/**
+ * Ein `Intl.DateTimeFormat` ist teuer im Bau und je Zeitzone unveränderlich.
+ * Ohne diesen Zwischenspeicher dominiert die Erzeugung jede Auswertung, die
+ * viele Datensätze auf lokale Tage abbildet.
+ */
+const dayFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function getDayFormatter(timeZone: string): Intl.DateTimeFormat {
+  const cached = dayFormatters.get(timeZone);
+  if (cached) return cached;
+  const formatter = new Intl.DateTimeFormat("en-CA", {
     day: "2-digit",
     month: "2-digit",
     timeZone,
     year: "numeric",
-  }).formatToParts(instant);
+  });
+  dayFormatters.set(timeZone, formatter);
+  return formatter;
+}
+
+export function calendarDayForInstant(
+  instant: Date,
+  timeZone: string,
+): CalendarDay {
+  const parts = getDayFormatter(timeZone).formatToParts(instant);
   const value = Object.fromEntries(
     parts.map((part) => [part.type, part.value]),
   );

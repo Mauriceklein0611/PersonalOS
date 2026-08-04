@@ -162,6 +162,48 @@ describe("HabitsPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("restores a removed check-in including its note through undo", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryHabitService(
+      [createDailyHabit()],
+      [
+        {
+          ...createEntry("2026-08-04", "done"),
+          note: "Kurz notiert",
+        },
+      ],
+    );
+    renderPage(service);
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "„Morgenroutine“ heute wieder öffnen",
+      }),
+    );
+    expect(
+      await screen.findByText(
+        "Der Tag ist wieder offen. Der Check-in wurde entfernt.",
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Rückgängig" }));
+
+    expect(
+      await screen.findByText("Der Check-in wurde wiederhergestellt."),
+    ).toBeInTheDocument();
+    expect(service.checkIn).toHaveBeenCalledWith(
+      dailyHabitId,
+      "2026-08-04",
+      "done",
+      "Kurz notiert",
+    );
+    expect(
+      screen.getByRole("button", {
+        name: "„Morgenroutine“ heute wieder öffnen",
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("restores an archived habit through the undo action", async () => {
     const user = userEvent.setup();
     const service = createMemoryHabitService([createDailyHabit()]);

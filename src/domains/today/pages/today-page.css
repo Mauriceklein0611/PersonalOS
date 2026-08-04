@@ -154,6 +154,20 @@
   font-weight: var(--font-weight-bold);
 }
 
+.today-toast-region {
+  position: fixed;
+  z-index: 80;
+  right: 1rem;
+  bottom: calc(var(--mobile-nav-height) + 1rem + env(safe-area-inset-bottom));
+  width: min(38rem, calc(100vw - 2rem));
+}
+
+@media (min-width: 52rem) {
+  .today-toast-region {
+    bottom: 1rem;
+  }
+}
+
 @media (min-width: 40rem) {
   .today-metrics {
     grid-template-columns: repeat(3, minmax(0, 1fr));

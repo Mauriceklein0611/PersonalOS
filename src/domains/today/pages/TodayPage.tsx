@@ -7,7 +7,7 @@ import {
 } from "react";
 import { Link } from "react-router";
 
-import { Button, EmptyState, Input } from "../../../components/ui";
+import { Button, EmptyState, Input, Toast } from "../../../components/ui";
 import { getIsoWeekBounds } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import type { Habit, HabitEntryStatus } from "../../habits/model";
@@ -34,6 +34,12 @@ const greetings: Record<TodayGreeting, string> = {
   day: "Schön, dass du da bist.",
   evening: "Guten Abend.",
   morning: "Guten Morgen.",
+};
+
+type TodayUndoAction = {
+  id: string;
+  message: string;
+  run: () => Promise<unknown>;
 };
 
 const emptyInput: TodayInput = {
@@ -66,8 +72,10 @@ export function TodayPage({
   const [error, setError] = useState<string>();
   const [input, setInput] = useState<TodayInput>(emptyInput);
   const [isLoading, setIsLoading] = useState(true);
+  const [notice, setNotice] = useState<string>();
   const [quickError, setQuickError] = useState<string>();
   const [quickTitle, setQuickTitle] = useState("");
+  const [undo, setUndo] = useState<TodayUndoAction>();
 
   useEffect(() => {
     let isCurrent = true;
@@ -100,31 +108,82 @@ export function TodayPage({
     );
   }, [context.today, habitService, journalService, taskService]);
 
-  const overview = buildTodayOverview(input, context);
+  // Die Verdichtung läuft über alle Aufgaben, Habits und Journaleinträge und
+  // darf nicht bei jedem Tastendruck im Schnellerfassen-Feld neu rechnen.
+  const overview = useMemo(
+    () => buildTodayOverview(input, context),
+    [context, input],
+  );
 
   async function runAction(
     id: string,
     action: () => Promise<unknown>,
+    successMessage: string,
     failureMessage: string,
   ) {
     setBusyId(id);
     setError(undefined);
+    setUndo(undefined);
     try {
       await action();
       await reload();
+      setNotice(successMessage);
+      return true;
     } catch {
       setError(failureMessage);
+      return false;
     } finally {
       setBusyId(undefined);
     }
   }
 
-  function checkInHabit(habit: Habit, status: HabitEntryStatus) {
-    return runAction(
+  async function runUndo(action: TodayUndoAction) {
+    setBusyId(action.id);
+    setError(undefined);
+    setUndo(undefined);
+    try {
+      await action.run();
+      await reload();
+      setNotice(action.message);
+    } catch {
+      setError("Die Aktion konnte nicht rückgängig gemacht werden.");
+    } finally {
+      setBusyId(undefined);
+    }
+  }
+
+  async function completeTask(task: Task) {
+    const completed = await runAction(
+      task.id,
+      () => taskService.complete(task.id),
+      "Die Aufgabe wurde abgeschlossen.",
+      "Die Aufgabe konnte nicht abgeschlossen werden.",
+    );
+    if (completed) {
+      setUndo({
+        id: task.id,
+        message: "Die Aufgabe ist wieder offen.",
+        run: () => taskService.reopen(task.id),
+      });
+    }
+  }
+
+  async function checkInHabit(habit: Habit, status: HabitEntryStatus) {
+    const saved = await runAction(
       habit.id,
       () => habitService.checkIn(habit.id, context.today, status),
+      status === "done"
+        ? "Der Check-in wurde gespeichert."
+        : "Der Tag wurde als übersprungen gespeichert.",
       "Der Check-in konnte nicht gespeichert werden.",
     );
+    if (saved) {
+      setUndo({
+        id: habit.id,
+        message: "Der Check-in wurde entfernt.",
+        run: () => habitService.reopenCheckIn(habit.id, context.today),
+      });
+    }
   }
 
   async function quickCreateTask(event: FormEvent<HTMLFormElement>) {
@@ -245,13 +304,7 @@ export function TodayPage({
                   <Button
                     aria-label={`„${task.title}“ abschließen`}
                     disabled={busyId === task.id}
-                    onClick={() =>
-                      void runAction(
-                        task.id,
-                        () => taskService.complete(task.id),
-                        "Die Aufgabe konnte nicht abgeschlossen werden.",
-                      )
-                    }
+                    onClick={() => void completeTask(task)}
                   >
                     Erledigt
                   </Button>
@@ -321,6 +374,23 @@ export function TodayPage({
           </div>
         </>
       )}
+
+      {notice ? (
+        <div className="today-toast-region">
+          <Toast
+            action={
+              undo
+                ? { label: "Rückgängig", onClick: () => void runUndo(undo) }
+                : undefined
+            }
+            message={notice}
+            onDismiss={() => {
+              setNotice(undefined);
+              setUndo(undefined);
+            }}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }
