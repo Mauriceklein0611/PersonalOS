@@ -211,6 +211,9 @@ Invarianten:
 - `amountMinor` und Budgetlimits sind nicht negativ; Richtung kommt aus `kind`.
 - Alle in einer Aggregation enthaltenen Werte besitzen dieselbe Währung.
 - Kategorien mit verwendeten Transaktionen werden archiviert statt hart gelöscht.
+- Beträge werden ausschließlich als ganzzahlige Minor Units gerechnet. Die Anzahl der Nachkommastellen wird aus der Währung abgeleitet, nicht auf zwei festgelegt. Ein Saldo ist die ganzzahlige Differenz zweier Summen und niemals ein Gleitkommawert.
+- `financeCategories` und `transactions` existieren seit Schema v1. Der erste Umsetzungsstand in #17 brauchte deshalb keine Migration.
+- Ohne vorhandene Kategorie legt die Oberfläche einen synthetischen, vollständig editierbaren Startsatz an. Diese Namen sind Beispiele und keine Annahme über die Lebensumstände.
 - Sparbeiträge sind eigene Datensätze und keine normalen Ausgaben, sofern der Nutzer dies nicht ausdrücklich anders modelliert.
 
 ## Score-Konfiguration und Snapshots

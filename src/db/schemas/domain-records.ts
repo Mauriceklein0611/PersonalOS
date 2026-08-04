@@ -143,19 +143,35 @@ export const goalMilestoneSchema = entityMetaSchema.safeExtend({
   order: z.int().nonnegative(),
 });
 
-export const financeCategorySchema = entityMetaSchema.safeExtend({
+const financeCategoryFields = {
   name: shortText,
   kind: z.enum(["income", "expense"]),
   color: z.string().max(100).optional(),
-});
+};
 
-export const transactionSchema = entityMetaSchema.safeExtend({
+export const financeCategoryDetailsSchema = z
+  .object(financeCategoryFields)
+  .strict();
+
+export const financeCategorySchema = entityMetaSchema.safeExtend(
+  financeCategoryFields,
+);
+
+/**
+ * Die Richtung steckt in `kind`. Der Betrag bleibt deshalb immer eine
+ * nicht negative Zahl in Minor Units.
+ */
+const transactionFields = {
   kind: z.enum(["income", "expense"]),
   money: moneySchema,
   categoryId: entityIdSchema,
   bookedOn: calendarDaySchema,
   description: longText.optional(),
-});
+};
+
+export const transactionDetailsSchema = z.object(transactionFields).strict();
+
+export const transactionSchema = entityMetaSchema.safeExtend(transactionFields);
 
 export const monthlyBudgetSchema = entityMetaSchema.safeExtend({
   month: calendarMonthSchema,
