@@ -32,6 +32,12 @@ import "./habits-page.css";
 
 type HabitsView = "archive" | "progress" | "today" | "week";
 
+type HabitUndoAction = {
+  habitId: string;
+  message: string;
+  run: () => Promise<unknown>;
+};
+
 const habitViews: Array<{ id: HabitsView; label: string }> = [
   { id: "today", label: "Heute" },
   { id: "week", label: "Woche" },
@@ -69,7 +75,7 @@ export function HabitsPage({
   const [notice, setNotice] = useState<string>();
   const [progressPeriod, setProgressPeriod] =
     useState<HabitProgressPeriod>("last28Days");
-  const [undoHabit, setUndoHabit] = useState<Habit>();
+  const [undo, setUndo] = useState<HabitUndoAction>();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const today = useMemo(
@@ -161,7 +167,7 @@ export function HabitsPage({
   ) {
     setBusyHabitId(habit.id);
     setError(undefined);
-    setUndoHabit(undefined);
+    setUndo(undefined);
     try {
       await action();
       await load();
@@ -186,13 +192,28 @@ export function HabitsPage({
     );
   }
 
-  function reopen(habit: Habit, day: CalendarDay) {
-    return runHabitAction(
+  /**
+   * „Wieder öffnen“ löscht den Tageseintrag samt Notiz. Der vorherige Stand
+   * wird deshalb festgehalten und über „Rückgängig“ wieder eingetragen.
+   */
+  async function reopen(habit: Habit, day: CalendarDay) {
+    const previous = entriesFor(habit).find(
+      (entry) => entry.archivedAt === undefined && entry.localDate === day,
+    );
+    const reopened = await runHabitAction(
       habit,
       () => service.reopenCheckIn(habit.id, day),
-      "Der Tag ist wieder offen.",
+      "Der Tag ist wieder offen. Der Check-in wurde entfernt.",
       "Der Tag konnte nicht wieder geöffnet werden.",
     );
+    if (reopened && previous) {
+      setUndo({
+        habitId: habit.id,
+        message: "Der Check-in wurde wiederhergestellt.",
+        run: () =>
+          service.checkIn(habit.id, day, previous.status, previous.note),
+      });
+    }
   }
 
   async function archiveHabit(habit: Habit) {
@@ -202,7 +223,28 @@ export function HabitsPage({
       "Die Gewohnheit wurde archiviert. Die Check-ins bleiben erhalten.",
       "Die Gewohnheit konnte nicht archiviert werden.",
     );
-    if (archived) setUndoHabit(habit);
+    if (archived) {
+      setUndo({
+        habitId: habit.id,
+        message: "Die Archivierung wurde rückgängig gemacht.",
+        run: () => service.restore(habit.id),
+      });
+    }
+  }
+
+  async function runUndo(action: HabitUndoAction) {
+    setBusyHabitId(action.habitId);
+    setError(undefined);
+    setUndo(undefined);
+    try {
+      await action.run();
+      await load();
+      setNotice(action.message);
+    } catch {
+      setError("Die Aktion konnte nicht rückgängig gemacht werden.");
+    } finally {
+      setBusyHabitId(undefined);
+    }
   }
 
   async function restoreHabit(habit: Habit) {
@@ -227,7 +269,7 @@ export function HabitsPage({
         );
       }
       setError(undefined);
-      setUndoHabit(undefined);
+      setUndo(undefined);
       await service.create(details);
       await load();
       setNotice("Die Gewohnheit wurde angelegt.");
@@ -509,17 +551,14 @@ export function HabitsPage({
         <div className="habit-toast-region">
           <Toast
             action={
-              undoHabit
-                ? {
-                    label: "Rückgängig",
-                    onClick: () => void restoreHabit(undoHabit),
-                  }
+              undo
+                ? { label: "Rückgängig", onClick: () => void runUndo(undo) }
                 : undefined
             }
             message={notice}
             onDismiss={() => {
               setNotice(undefined);
-              setUndoHabit(undefined);
+              setUndo(undefined);
             }}
           />
         </div>
