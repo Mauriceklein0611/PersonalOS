@@ -40,6 +40,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Theme-Bootstrap-Spiegel](docs/decisions/0002-theme-bootstrap-mirror.md)
 - [Datenbankmigrationen und Recovery](docs/decisions/0003-forward-database-migrations-and-recovery.md)
 - [Domänenspezifische Aufgabenkategorien](docs/decisions/0004-domain-specific-task-categories.md)
+- [Habits ohne Schedule-Historie](docs/decisions/0005-habit-schedule-without-history.md)
 
 ## Mit Codex und Claude Code arbeiten
 
