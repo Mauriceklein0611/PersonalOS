@@ -2,9 +2,53 @@
 
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: "prompt",
+      injectRegister: false,
+      manifest: {
+        name: "PersonalOS – Privater Alltagsbegleiter",
+        short_name: "PersonalOS",
+        description:
+          "Deine private, lokale Übersicht für Aufgaben, Gewohnheiten und Alltag.",
+        lang: "de",
+        start_url: "/",
+        scope: "/",
+        display: "standalone",
+        background_color: "#eef2ee",
+        theme_color: "#285c3a",
+        categories: ["productivity", "lifestyle"],
+        icons: [
+          {
+            src: "pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+      workbox: {
+        cleanupOutdatedCaches: true,
+        globPatterns: ["**/*.{css,html,ico,js,png,svg,webmanifest}"],
+        navigateFallback: "index.html",
+        runtimeCaching: [],
+      },
+    }),
+  ],
   test: {
     environment: "jsdom",
     globals: false,

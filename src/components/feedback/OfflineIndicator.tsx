@@ -1,25 +1,36 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
-function subscribeToOnlineStatus(onStoreChange: () => void) {
-  window.addEventListener("online", onStoreChange);
-  window.addEventListener("offline", onStoreChange);
-
-  return () => {
-    window.removeEventListener("online", onStoreChange);
-    window.removeEventListener("offline", onStoreChange);
-  };
-}
-
-function getOnlineSnapshot() {
-  return navigator.onLine;
-}
+import { canReachOrigin } from "./online-status";
 
 export function OfflineIndicator() {
-  const isOnline = useSyncExternalStore(
-    subscribeToOnlineStatus,
-    getOnlineSnapshot,
-    () => true,
-  );
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+
+  useEffect(() => {
+    let isMounted = true;
+    const checkConnection = async () => {
+      const nextStatus = import.meta.env.PROD
+        ? await canReachOrigin()
+        : navigator.onLine;
+      if (isMounted) {
+        setIsOnline(nextStatus);
+      }
+    };
+
+    const markOffline = () => setIsOnline(false);
+    const checkOnline = () => void checkConnection();
+
+    void checkConnection();
+    window.addEventListener("offline", markOffline);
+    window.addEventListener("online", checkOnline);
+    document.addEventListener("visibilitychange", checkOnline);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("offline", markOffline);
+      window.removeEventListener("online", checkOnline);
+      document.removeEventListener("visibilitychange", checkOnline);
+    };
+  }, []);
 
   if (isOnline) {
     return null;

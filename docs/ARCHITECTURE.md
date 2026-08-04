@@ -130,6 +130,11 @@ View Models dürfen formatierte Texte und aggregierte Werte enthalten. Persistie
 - Nach dem ersten Laden müssen alle MVP-Kernflüsse ohne Netzwerk funktionieren.
 - Die App zeigt keine irreführende Cloud-Synchronisation an.
 - Aktualisierungen des Service Workers werden kontrolliert aktiviert, damit eine laufende Eingabe nicht verloren geht.
+- Der Build erzeugt Manifest und Service Worker. In den Precache gelangen ausschließlich die App-Shell, gehashte JavaScript-/CSS-Bundles sowie statische Icons; Runtime-Caching ist deaktiviert.
+- IndexedDB-Datensätze, Journalinhalte, JSON-Exporte, Imports und mögliche spätere API-Antworten werden niemals in den Service-Worker-Cache geschrieben.
+- Ein Navigations-Fallback auf die gecachte `index.html` macht auch lazy geladene Routen nach dem ersten vollständigen Laden offline startbar.
+- Eine wartende Version übernimmt erst nach „Jetzt aktualisieren“ per `SKIP_WAITING` und anschließendem Neuladen. „Später“ lässt die laufende Version und ungespeicherte Eingaben unangetastet.
+- Der sichtbare Netzwerkstatus kombiniert Browserereignisse mit einem inhaltsfreien, nicht gecachten Same-Origin-HEAD-Check. Sein Ergebnis beeinflusst keine lokale Aktion und überträgt keine Nutzerdaten.
 - Persistente Änderungen werden bestätigt, nachdem die lokale Transaktion erfolgreich war.
 - Bei Quota- oder IndexedDB-Fehlern erhält der Nutzer eine klare, nicht beschönigende Meldung mit Export-/Recovery-Hinweis.
 - Private/Inkognito-Modi und Browser-Speicherlöschung werden in der Hilfe als Datenrisiko erklärt.
