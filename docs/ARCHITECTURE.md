@@ -141,21 +141,26 @@ Ein Export ist ein UTF-8-JSON-Dokument mit:
 ```ts
 type PersonalOsExport = {
   format: 'personalos';
-  formatVersion: number;
+  formatVersion: 1;
+  schemaVersion: number;
   exportedAt: string;
   appVersion: string;
-  checksum?: string;
+  counts: Record<string, number>;
   data: {
-    settings: unknown[];
-    tasks: unknown[];
-    habits: unknown[];
-    habitEntries: unknown[];
-    journalEntries: unknown[];
-    goals: unknown[];
-    milestones: unknown[];
-    transactions: unknown[];
-    budgets: unknown[];
-    savingsGoals: unknown[];
+    settings: Settings[];
+    tasks: Task[];
+    habits: Habit[];
+    habitEntries: HabitEntry[];
+    journalEntries: JournalEntry[];
+    goals: Goal[];
+    goalMilestones: GoalMilestone[];
+    financeCategories: FinanceCategory[];
+    transactions: Transaction[];
+    monthlyBudgets: MonthlyBudget[];
+    savingsGoals: SavingsGoal[];
+    savingsContributions: SavingsContribution[];
+    scoreSettings: ScoreSettings[];
+    scoreSnapshots: ScoreSnapshot[];
   };
 };
 ```
@@ -167,11 +172,13 @@ Importablauf:
 3. `format`, Version und alle Records mit Zod validieren.
 4. Vorschau mit Anzahl, Zeitraum und Konflikten anzeigen.
 5. Nutzer wählt Ersetzen oder – erst wenn implementiert – Zusammenführen.
-6. Vor Ersetzen optional automatischen Sicherungsexport anbieten.
+6. Nach der Bestätigung und vor dem Ersetzen automatisch einen Sicherungsexport herunterladen.
 7. In einer Transaktion importieren.
 8. Counts und referenzielle Integrität erneut prüfen.
 
 Im ersten MVP unterstützt der Import nur „bestehende lokale Daten vollständig ersetzen“. Merge wird nicht nebenbei implementiert, da Konfliktsemantik pro Domain festgelegt werden muss.
+
+Formatversion `1` wird vollständig mit Zod validiert und ist auf 10 MB begrenzt. Counts, eindeutige Schlüssel und bekannte Referenzen müssen vor und nach dem Restore übereinstimmen. Der Dateiname folgt `personalos-backup-<UTC-Zeitstempel>.json` und enthält keine Record-Inhalte.
 
 ## 8. Schema-Migrationen
 

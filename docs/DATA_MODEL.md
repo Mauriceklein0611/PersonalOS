@@ -37,6 +37,8 @@ Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Qu
 
 Alle Stores verwenden die clientseitig erzeugte UUID `id` als Primärschlüssel. Fachlich eindeutige Kombinationen wie Habit/Tag, Journal/Tag und Budgetmonat/Kategorie besitzen zusätzlich einen eindeutigen Index. Domain-Repositories erweitern den gemeinsamen Metadatenvertrag um ihr eigenes Zod-Schema; rohe Dexie-Zugriffe bleiben auf `src/db/` beschränkt.
 
+Der Voll-Export bildet alle Stores unter ihren unveränderten Namen ab. Die Record-Schemas stehen in `src/db/schemas/domain-records.ts`; Format, Counts und Metadaten in `src/db/backup/format.ts`. Ein Restore prüft IDs, eindeutige Kombinationen sowie Goal-, Habit-, Finanzkategorie- und Sparziel-Referenzen, bevor lokale Daten ersetzt werden.
+
 ## Settings
 
 ```ts

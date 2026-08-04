@@ -4,6 +4,19 @@ export {
   personalOsDatabaseName,
 } from "./database";
 export {
+  backupFormatVersion,
+  createBackupFilename,
+  maximumBackupBytes,
+  personalOsBackupSchema,
+  type PersonalOsBackup,
+} from "./backup/format";
+export {
+  createBackupService,
+  personalOsBackupService,
+  type BackupPreview,
+  type BackupService,
+} from "./backup/service";
+export {
   PersistenceError,
   toPersistenceError,
   type PersistenceErrorCode,

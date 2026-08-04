@@ -36,6 +36,8 @@ pnpm build
 
 Persistenztests erhalten mit `createTestDatabase()` jeweils einen zufälligen Datenbanknamen und räumen ihn nach dem Test vollständig auf. `fake-indexeddb` stellt dafür ausschließlich in Vitest die IndexedDB-Web-API bereit. Fixtures bleiben klein, deterministisch und synthetisch.
 
+Backup-Tests verwenden ausschließlich die synthetische Fixture unter `src/test/fixtures/backup.ts`. Exportdateien werden weder committed noch als CI-Artefakt gespeichert. Ein Formatwechsel benötigt eine neue Exportformat-Version und Roundtrip-Tests; die interne Dexie-Version wird dadurch nicht automatisch erhöht.
+
 ## Von einem Issue zum Pull Request
 
 1. Ein `status:ready`-Issue wählen und Abhängigkeiten prüfen.
@@ -148,7 +150,7 @@ Die Begründung gehört in den PR. Lockfile und Paketmanager-Metadaten werden im
 ### Aktuelle Abhängigkeiten
 
 - React, React DOM und React Router bilden UI sowie clientseitiges Lazy-Routing.
-- Dexie (Apache-2.0) kapselt die browserseitige IndexedDB-API; Zod (MIT) validiert IDs, Datums-/Geldwerte und persistierte Records an den Repository-Grenzen. Beide arbeiten vollständig lokal und übertragen keine Daten. Weil die App die Datenbank vor dem Router öffnet, umfasst der aktuelle Startup-Build inklusive App-Code und Persistenzschicht rund 144 kB gzip.
+- Dexie (Apache-2.0) kapselt die browserseitige IndexedDB-API; Zod (MIT) validiert IDs, Datums-/Geldwerte und persistierte Records an den Repository-Grenzen. Beide arbeiten vollständig lokal und übertragen keine Daten. Weil die App die Datenbank vor dem Router öffnet, umfasst der aktuelle Startup-Build inklusive App-Code und Persistenzschicht rund 145 kB gzip.
 - Vite und das React-Plugin übernehmen Entwicklung und Build; TypeScript erzwingt den strikten Typvertrag.
 - ESLint, typescript-eslint und die React-Regeln prüfen Codefehler; Prettier stellt ein konsistentes Format sicher.
 - Vitest, Testing Library und jsdom decken Unit- und Komponententests ab; `fake-indexeddb` (Apache-2.0) isoliert die Datenbanktests; Playwright stellt den echten Browser-Smoke-Test bereit.
