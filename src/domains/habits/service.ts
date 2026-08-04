@@ -1,4 +1,5 @@
 import { PersistenceError } from "../../db/errors";
+import type { ListOptions } from "../../db/repositories/contracts";
 import {
   calendarDaySchema,
   type CalendarDay,
@@ -26,7 +27,7 @@ export interface HabitService {
     note?: string,
   ): Promise<HabitEntry>;
   create(details: HabitDetails): Promise<Habit>;
-  list(): Promise<Habit[]>;
+  list(options?: ListOptions): Promise<Habit[]>;
   listEntries(
     habitId: string,
     range?: { from?: CalendarDay; to?: CalendarDay },
@@ -77,7 +78,7 @@ export function createHabitService(
       });
     },
     create: (details) => habits.create(normalizeDetails(details)),
-    list: () => habits.list(),
+    list: (options) => habits.list(options),
     listEntries: (habitId, range) => entries.listForHabit(habitId, range),
     async reopenCheckIn(habitId, localDate) {
       const { validDate } = await requireCheckableHabit(habitId, localDate);

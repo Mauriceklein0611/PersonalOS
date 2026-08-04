@@ -111,6 +111,7 @@ Invarianten:
 - „Wieder offen“ entfernt den vorhandenen Tages-Entry; ein dritter persistierter Status entsteht nicht.
 - Erfüllungsquoten zählen `done` gegen die geplanten Tages- oder Wocheneinheiten und weisen `skipped` separat aus. Tages-Streaks folgen den geplanten Tagen, `timesPerWeek` verwendet Wochen-Streaks.
 - Archivieren verändert weder bestehende HabitEntries noch rückblickend berechnete Kennzahlen.
+- Ein Habit speichert genau einen Rhythmus ohne Historie. Eine Änderung lässt erfasste Entries unverändert, verschiebt aber die berechnete Fälligkeit vergangener Tage. Siehe [ADR 0005](decisions/0005-habit-schedule-without-history.md).
 
 ## Journal
 
