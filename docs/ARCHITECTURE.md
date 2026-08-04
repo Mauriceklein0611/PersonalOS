@@ -243,13 +243,17 @@ type ScoreResult = {
 ## 12. Sicherheit und Datenschutz
 
 - Keine Analytics, Telemetrie oder externen Fonts im MVP.
-- Strenge Content Security Policy soweit mit der PWA vereinbar.
+- Eine früh im Dokument gesetzte CSP erlaubt Skripte, Worker, Manifest, Bilder und Verbindungen nur vom eigenen Origin. Frames, Medien und Objekte sind gesperrt. Inline-Skripte sind nicht erlaubt; `style-src 'unsafe-inline'` bleibt vorerst die eng begrenzte Ausnahme für dynamische UI-Maße und die Vite-Entwicklung.
 - Keine unbereinigte HTML-Ausgabe aus Notizen oder Importen.
+- Nutzertext wird ausschließlich als React-Text gerendert. `dangerouslySetInnerHTML` und rohe Konsolenausgaben unter `src/` werden vom Repository-Check abgewiesen.
+- Externe Links verwenden ausschließlich HTTPS ohne eingebettete Zugangsdaten sowie `noopener`, `noreferrer` und `no-referrer` über die gemeinsame `ExternalLink`-Komponente.
 - Importdateien gelten als nicht vertrauenswürdig.
 - Externe Links nutzen sichere Attribute und verständliche Ziele.
 - Secrets gehören nicht in einen rein clientseitigen Build.
 - Beispieldaten sind synthetisch und deutlich als solche erkennbar.
 - Dokumente und Belege werden im MVP nicht gespeichert.
+
+Verhalten, Grenzen und Löschablauf sind in [Datenschutz und Sicherheit](PRIVACY_AND_SECURITY.md) dokumentiert.
 
 ## 13. Teststrategie
 

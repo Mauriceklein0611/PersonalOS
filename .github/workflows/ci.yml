@@ -32,6 +32,9 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      - name: Check repository privacy and secrets
+        run: pnpm check:privacy
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 

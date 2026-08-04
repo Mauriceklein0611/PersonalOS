@@ -47,3 +47,9 @@ Formfehler sind über `aria-describedby` mit dem Feld verbunden und setzen `aria
 ## Komponentenübersicht
 
 Die lokale Route `/komponenten` zeigt Normal-, simulierte Hover-/Fokus-, Fehler-, Disabled- und Loading-Zustände. Sie enthält ausschließlich synthetische Texte und verändert keine persistierten Daten.
+
+## Datenschutz in der Oberfläche
+
+- Datenschutztexte versprechen nicht „vollständig sicher“, sondern erklären lokale Speicherung und Grenzen.
+- Nutzertexte bleiben Text und werden nicht als HTML oder Markdown interpretiert. Eine spätere formatierte Darstellung benötigt einen eigenen, geprüften Sanitizing-Vertrag.
+- Externe Ziele werden nur über die gemeinsame `ExternalLink`-Komponente geöffnet; sie akzeptiert ausschließlich HTTPS ohne URL-Zugangsdaten und unterdrückt Opener sowie Referrer.

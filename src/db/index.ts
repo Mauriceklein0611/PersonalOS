@@ -28,6 +28,11 @@ export {
   type DatabaseLifecycle,
 } from "./lifecycle";
 export {
+  createLocalDataService,
+  personalOsLocalDataService,
+  type LocalDataService,
+} from "./local-data/service";
+export {
   personalOsSchemaV1,
   personalOsSchemaV2,
   personalOsSchemaVersion,

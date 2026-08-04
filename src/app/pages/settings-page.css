@@ -1,0 +1,9 @@
+.settings-grid {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: clamp(2rem, 8vw, 5rem);
+}
+
+.settings-grid .empty-state {
+  margin-top: 0;
+}
