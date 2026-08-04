@@ -2,27 +2,29 @@
 
 ## Voraussetzungen
 
-Nach dem Bootstrap-Issue werden benötigt:
+Benötigt werden:
 
-- eine aktuelle Node.js-LTS-Version;
-- Corepack und die im Repository festgelegte pnpm-Version;
+- Node.js 24 LTS (`>=24 <25`);
+- Corepack und pnpm 11.20.0 aus dem `packageManager`-Eintrag;
 - Git;
-- ein aktueller Chromium-, Firefox- oder WebKit-basierter Browser;
+- Chromium für den browserbasierten Smoke-Test;
 - optional GitHub CLI für Issue- und PR-Arbeit.
 
-Die tatsächlich unterstützten Versionen stehen anschließend in `package.json`, Lockfile und CI. Keine global installierte Abhängigkeitsversion als implizite Voraussetzung verwenden.
+Die unterstützten Versionen stehen in `.nvmrc`, `package.json`, Lockfile und CI. Keine global installierte Abhängigkeitsversion als implizite Voraussetzung verwenden.
 
-## Lokales Setup nach dem Bootstrap
+## Lokales Setup
 
 ```bash
 corepack enable
 pnpm install
+pnpm exec playwright install chromium
 pnpm dev
 ```
 
-Geplante Qualitätsbefehle:
+Qualitätsbefehle:
 
 ```bash
+pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
@@ -30,7 +32,7 @@ pnpm test:e2e
 pnpm build
 ```
 
-Bis das Bootstrap-Issue umgesetzt ist, existieren diese Befehle absichtlich noch nicht.
+`pnpm test` führt Unit- und Komponententests mit Vitest und Testing Library aus. `pnpm test:e2e` startet die App automatisch und prüft den Kern-Smoke-Test in Chromium. Die GitHub-Action führt Formatprüfung, Lint, Typecheck, Tests, Build und E2E-Smoke auf Pull Requests sowie auf `main` aus.
 
 ## Von einem Issue zum Pull Request
 
@@ -137,6 +139,14 @@ Vor einer neuen Laufzeitabhängigkeit prüfen:
 
 Die Begründung gehört in den PR. Lockfile und Paketmanager-Metadaten werden immer gemeinsam committed.
 
+### Bootstrap-Abhängigkeiten
+
+- React und React DOM sind die einzigen Laufzeitabhängigkeiten. Beide sind MIT-lizenziert, aktiv gepflegt und bilden die UI-Laufzeit; der aktuelle Bootstrap-Build umfasst rund 61 kB gzip inklusive App-Code.
+- Vite und das React-Plugin übernehmen Entwicklung und Build; TypeScript erzwingt den strikten Typvertrag.
+- ESLint, typescript-eslint und die React-Regeln prüfen Codefehler; Prettier stellt ein konsistentes Format sicher.
+- Vitest, Testing Library und jsdom decken Unit- und Komponententests ab; Playwright stellt den echten Browser-Smoke-Test bereit.
+- Alle Werkzeuge außer React und React DOM sind reine Entwicklungsabhängigkeiten und erhöhen das ausgelieferte Browser-Bundle nicht. Die Toolchain überträgt zur Laufzeit keine Nutzerdaten und fügt keine Telemetrie hinzu.
+
 ## Release-Checkliste
 
 - CI auf dem Release-Commit ist grün.
@@ -147,4 +157,3 @@ Die Begründung gehört in den PR. Lockfile und Paketmanager-Metadaten werden im
 - Keine P0/P1-Bugs offen.
 - Tag und Version stimmen überein.
 - Ein aktueller Export wurde vor dem Upgrade empfohlen.
-

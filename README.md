@@ -2,7 +2,7 @@
 
 PersonalOS ist eine private, local-first Progressive Web App für den eigenen Alltag. Sie bündelt Aufgaben, Gewohnheiten, Journal, Ziele und Finanzen in einem schnellen Tagesablauf und macht Zusammenhänge nachvollziehbar – ohne Konto und ohne verpflichtende Cloud.
 
-> Status: Planung und Repository-Bootstrap. Die Anwendungsimplementierung beginnt mit dem Milestone `v0.1 – Foundation`.
+> Status: `v0.1 – Foundation`. Die reproduzierbare Toolchain und CI bilden das Fundament für die nächsten Issues.
 
 ## Produktversprechen
 
@@ -24,7 +24,7 @@ Die App bleibt offline nutzbar, speichert Daten standardmäßig nur lokal und bi
 - Vitest, Testing Library und Playwright für Unit-, Komponenten- und End-to-End-Tests
 - pnpm als Paketmanager
 
-Die konkrete Abhängigkeitsversion wird erst im Bootstrap-Issue festgelegt und danach per Lockfile reproduzierbar gehalten.
+Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhängigkeiten werden über `package.json` und `pnpm-lock.yaml` reproduzierbar gehalten.
 
 ## Dokumentation
 
@@ -44,21 +44,27 @@ Die konkrete Abhängigkeitsversion wird erst im Bootstrap-Issue festgelegt und d
 - Kleine, überprüfbare Pull Requests sind der Standard; Scope-Änderungen werden zuerst im Issue festgehalten.
 - Entscheidungen mit langfristiger Wirkung werden als ADR unter `docs/decisions/` dokumentiert.
 
-## Geplanter Entwicklungsstart
+## Entwicklungsstart
 
-Nach Umsetzung des Bootstrap-Issues gelten diese Standardbefehle:
+Vorausgesetzt werden Node.js 24 LTS und Corepack. Für den ersten browserbasierten Test wird Chromium einmalig über Playwright installiert:
 
 ```bash
 corepack enable
 pnpm install
+pnpm exec playwright install chromium
 pnpm dev
+```
+
+Die vollständigen Qualitätsprüfungen sind:
+
+```bash
+pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm test:e2e
+pnpm build
 ```
-
-Bis ein `package.json` existiert, besteht die Arbeit ausschließlich aus Planung, Dokumentation und Repository-Konfiguration.
 
 ## Datenschutz
 
