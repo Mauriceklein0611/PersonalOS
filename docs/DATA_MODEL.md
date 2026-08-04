@@ -74,6 +74,8 @@ Invarianten:
 - `estimatedMinutes` ist positiv und begrenzt.
 - Löschen eines Ziels löscht keine Aufgabe; die Referenz wird nach Bestätigung entfernt.
 
+Im ersten Task-MVP verweist `categoryId` optional auf den kleinen, domänenspezifischen Standardkatalog „Privat“, „Arbeit“ und „Erledigungen“. Die UUIDs sind stabil; Labels werden nicht in Tasks kopiert. Anpassbare Aufgabenkategorien benötigen später einen eigenen Store und eine Migration. Siehe [ADR 0004](decisions/0004-domain-specific-task-categories.md).
+
 ## Habits
 
 ```ts
@@ -256,7 +258,5 @@ Insights können überwiegend zur Laufzeit berechnet werden. Nur Nutzeraktionen 
 | SavingsContribution | SavingsGoal | zusammen exportieren; Hard-Delete nur bewusst kaskadierend |
 
 ## Offene Entscheidungen
-
-- Ob „Kategorie“ domänenübergreifend oder pro Domain geführt wird. Empfehlung für den MVP: pro Domain, um unpassende Kopplung zu vermeiden.
 - Ob ScoreSnapshots täglich persistiert oder bei Bedarf reproduziert werden. Entscheidung vor `v0.4`.
 - Ob Exporte später als verschlüsseltes Archiv angeboten werden. Nicht Teil von `v1.0` ohne separates Bedrohungsmodell.
