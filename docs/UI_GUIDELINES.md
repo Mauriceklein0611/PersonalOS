@@ -59,6 +59,12 @@ Konkret bedeutet das: „Wieder öffnen“ löscht den Tageseintrag samt Notiz u
 
 Ein Hinweis mit „Rückgängig“ verschwindet erst, wenn er geschlossen wird oder die nächste Aktion folgt. Er blockiert die Oberfläche nicht.
 
+## Gemeinsame Bausteine sind verbindlich
+
+Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker- oder Diagramm-Bausteine. Sie verwenden `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell`, `Sparkline` und `ChartFrame` aus `src/components/ui`.
+
+Fehlt eine Variante, wird der gemeinsame Baustein erweitert. Ein lokaler Nachbau wirkt zunächst kleiner, entkoppelt die Seite aber von Tokens, Kontrasttests und Leerzuständen und muss später erneut angefasst werden.
+
 ## Dashboard-Visualisierung
 
 Dashboard-, Fortschritts- und Tracker-Ansichten folgen einer gemeinsamen, dunkel geprägten Sprache. Sie ergänzt die bestehenden Tokens und ersetzt keine Accessibility-Regel.
