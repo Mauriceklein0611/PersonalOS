@@ -41,30 +41,69 @@ export const taskSchema = entityMetaSchema
     }
   });
 
-export const habitSchema = entityMetaSchema.safeExtend({
+const weekdayValuesSchema = z
+  .array(z.int().min(1).max(7))
+  .min(1)
+  .max(7)
+  .refine((days) => new Set(days).size === days.length, {
+    message: "weekday schedule must not contain duplicates",
+  });
+
+export const habitScheduleSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("daily") }).strict(),
+  z
+    .object({
+      kind: z.literal("weekdays"),
+      days: weekdayValuesSchema,
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal("timesPerWeek"),
+      count: z.int().min(1).max(7),
+    })
+    .strict(),
+]);
+
+const habitFields = {
   name: shortText,
   description: longText.optional(),
-  schedule: z.discriminatedUnion("kind", [
-    z.object({ kind: z.literal("daily") }).strict(),
-    z
-      .object({
-        kind: z.literal("weekdays"),
-        days: z.array(z.int().min(1).max(7)).min(1).max(7),
-      })
-      .strict(),
-    z
-      .object({
-        kind: z.literal("timesPerWeek"),
-        count: z.int().min(1).max(7),
-      })
-      .strict(),
-  ]),
+  schedule: habitScheduleSchema,
   startDate: calendarDaySchema,
   endDate: calendarDaySchema.optional(),
   categoryId: optionalEntityId,
   goalId: optionalEntityId,
   color: z.string().max(100).optional(),
-});
+};
+
+const hasValidHabitDateRange = (habit: {
+  endDate?: string;
+  startDate: string;
+}) => habit.endDate === undefined || habit.endDate >= habit.startDate;
+
+export const habitDetailsSchema = z
+  .object(habitFields)
+  .strict()
+  .refine(hasValidHabitDateRange, {
+    message: "endDate must not be earlier than startDate",
+    path: ["endDate"],
+  });
+
+export const habitSchema = entityMetaSchema
+  .safeExtend(habitFields)
+  .refine(hasValidHabitDateRange, {
+    message: "endDate must not be earlier than startDate",
+    path: ["endDate"],
+  });
+
+export const habitEntryDetailsSchema = z
+  .object({
+    habitId: entityIdSchema,
+    localDate: calendarDaySchema,
+    status: z.enum(["done", "skipped"]),
+    note: longText.optional(),
+  })
+  .strict();
 
 export const habitEntrySchema = entityMetaSchema.safeExtend({
   habitId: entityIdSchema,

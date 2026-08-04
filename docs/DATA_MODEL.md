@@ -20,9 +20,9 @@ type EntityMeta = {
 
 Die gemeinsamen Werte werden in `src/db/types.ts` und `src/lib/` mit Zod validiert. UUIDs sind Version 4, Zeitpunkte besitzen UTC- und Millisekundenpräzision (`YYYY-MM-DDTHH:mm:ss.sssZ`), und reine Kalendertage werden niemals implizit in eine Zeitzone umgerechnet.
 
-## Persistenzvertrag v2
+## Persistenzvertrag v3
 
-Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`; die Store- und Indexstruktur bleibt dabei unverändert. Die Versionsnummer der Datenbank ist unabhängig von der späteren Exportformat-Version.
+Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`. Version `3` dedupliziert und sortiert bestehende Wochentagpläne; ein historisch akzeptiertes `endDate` vor `startDate` wird entfernt. Die Store- und Indexstruktur bleibt dabei unverändert. Die Versionsnummer der Datenbank ist unabhängig von der späteren Exportformat-Version.
 
 | Store | Datensätze |
 |---|---|
@@ -106,6 +106,11 @@ Invarianten:
 - Pro Habit und lokalem Tag existiert höchstens ein Entry.
 - `skipped` wird nicht automatisch als erfüllt gewertet.
 - Streaks werden aus Schedule und Entries berechnet, nicht dauerhaft gespeichert.
+- `endDate` liegt nicht vor `startDate`; Wochentage sind eindeutige ISO-Wochentage von Montag (`1`) bis Sonntag (`7`).
+- Bei `timesPerWeek` ist jeder aktive Tag für einen Check-in geeignet. Die Gewohnheit bleibt innerhalb der ISO-Woche fällig, bis die Zahl der `done`-Entries erreicht ist.
+- „Wieder offen“ entfernt den vorhandenen Tages-Entry; ein dritter persistierter Status entsteht nicht.
+- Erfüllungsquoten zählen `done` gegen die geplanten Tages- oder Wocheneinheiten und weisen `skipped` separat aus. Tages-Streaks folgen den geplanten Tagen, `timesPerWeek` verwendet Wochen-Streaks.
+- Archivieren verändert weder bestehende HabitEntries noch rückblickend berechnete Kennzahlen.
 
 ## Journal
 

@@ -35,6 +35,7 @@ export {
 export {
   personalOsSchemaV1,
   personalOsSchemaV2,
+  personalOsSchemaV3,
   personalOsSchemaVersion,
   personalOsTableNames,
   type PersonalOsTableName,

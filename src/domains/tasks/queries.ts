@@ -1,7 +1,10 @@
+import { type CalendarDay } from "../../lib/dates/date-values";
 import {
-  calendarDaySchema,
-  type CalendarDay,
-} from "../../lib/dates/date-values";
+  calendarDayForInstant,
+  getIsoWeekBounds,
+} from "../../lib/dates/calendar-days";
+
+export { calendarDayForInstant as formatCalendarDay };
 import type { Task } from "./model";
 
 export type TaskView = "inbox" | "today" | "week" | "completed";
@@ -21,7 +24,7 @@ export function createTaskQueryContext(
   now = new Date(),
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 ): TaskQueryContext {
-  return { timeZone, today: formatCalendarDay(now, timeZone) };
+  return { timeZone, today: calendarDayForInstant(now, timeZone) };
 }
 
 export function queryTasks(
@@ -43,7 +46,7 @@ export function queryTasks(
   }
 
   const open = visible.filter((task) => task.status === "open");
-  const [weekStart, weekEnd] = getWeekBounds(context.today);
+  const [weekStart, weekEnd] = getIsoWeekBounds(context.today);
   const matching = open.filter((task) => {
     const dates = getTaskCalendarDays(task, context.timeZone);
     if (view === "inbox") return dates.length === 0;
@@ -65,26 +68,15 @@ export function isTaskOverdue(task: Task, context: TaskQueryContext): boolean {
   );
 }
 
-export function formatCalendarDay(date: Date, timeZone: string): CalendarDay {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    day: "2-digit",
-    month: "2-digit",
-    timeZone,
-    year: "numeric",
-  }).formatToParts(date);
-  const value = Object.fromEntries(
-    parts.map((part) => [part.type, part.value]),
-  );
-  return calendarDaySchema.parse(`${value.year}-${value.month}-${value.day}`);
-}
-
 export function getTaskCalendarDays(
   task: Task,
   timeZone: string,
 ): CalendarDay[] {
   const dates = [
     task.plannedDate,
-    task.dueAt ? formatCalendarDay(new Date(task.dueAt), timeZone) : undefined,
+    task.dueAt
+      ? calendarDayForInstant(new Date(task.dueAt), timeZone)
+      : undefined,
   ].filter((value): value is CalendarDay => value !== undefined);
   return [...new Set(dates)].sort();
 }
@@ -112,21 +104,4 @@ function comparePlanningTasks(
     left.createdAt.localeCompare(right.createdAt) ||
     left.id.localeCompare(right.id)
   );
-}
-
-function getWeekBounds(today: CalendarDay): [CalendarDay, CalendarDay] {
-  const date = parseCalendarDayAsUtc(today);
-  const offsetFromMonday = (date.getUTCDay() + 6) % 7;
-  const weekStart = addCalendarDays(today, -offsetFromMonday);
-  return [weekStart, addCalendarDays(weekStart, 6)];
-}
-
-function addCalendarDays(value: CalendarDay, days: number): CalendarDay {
-  const date = parseCalendarDayAsUtc(value);
-  date.setUTCDate(date.getUTCDate() + days);
-  return calendarDaySchema.parse(date.toISOString().slice(0, 10));
-}
-
-function parseCalendarDayAsUtc(value: CalendarDay): Date {
-  return new Date(`${value}T00:00:00.000Z`);
 }
