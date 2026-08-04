@@ -14,18 +14,32 @@ const shortText = z.string().min(1).max(500);
 const longText = z.string().max(50_000);
 const optionalEntityId = entityIdSchema.optional();
 
-export const taskSchema = entityMetaSchema.safeExtend({
-  title: shortText,
-  notes: longText.optional(),
-  status: z.enum(["open", "completed", "cancelled"]),
-  priority: z.enum(["low", "normal", "high"]),
-  dueAt: isoInstantSchema.optional(),
-  plannedDate: calendarDaySchema.optional(),
-  estimatedMinutes: z.int().positive().max(100_000).optional(),
-  categoryId: optionalEntityId,
-  goalId: optionalEntityId,
-  completedAt: isoInstantSchema.optional(),
-});
+export const taskSchema = entityMetaSchema
+  .safeExtend({
+    title: shortText,
+    notes: longText.optional(),
+    status: z.enum(["open", "completed", "cancelled"]),
+    priority: z.enum(["low", "normal", "high"]),
+    dueAt: isoInstantSchema.optional(),
+    plannedDate: calendarDaySchema.optional(),
+    estimatedMinutes: z.int().positive().max(100_000).optional(),
+    categoryId: optionalEntityId,
+    goalId: optionalEntityId,
+    completedAt: isoInstantSchema.optional(),
+  })
+  .superRefine((task, context) => {
+    const completionMatchesStatus =
+      task.status === "completed"
+        ? task.completedAt !== undefined
+        : task.completedAt === undefined;
+    if (!completionMatchesStatus) {
+      context.addIssue({
+        code: "custom",
+        message: "completedAt must match completed status",
+        path: ["completedAt"],
+      });
+    }
+  });
 
 export const habitSchema = entityMetaSchema.safeExtend({
   name: shortText,
