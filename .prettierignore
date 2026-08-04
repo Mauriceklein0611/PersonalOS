@@ -1,0 +1,9 @@
+coverage/
+dist/
+node_modules/
+playwright-report/
+pnpm-lock.yaml
+test-results/
+docs/
+*.md
+.github/ISSUE_TEMPLATE/
