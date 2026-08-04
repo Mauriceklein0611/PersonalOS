@@ -69,7 +69,7 @@ export function RankedBarList({
           ))}
         </ul>
       ) : null}
-      {error === undefined && caption ? (
+      {error === undefined && caption && visibleItems.length > 0 ? (
         <p className="ui-ranked-bar-list-caption">{caption}</p>
       ) : null}
     </div>

@@ -520,6 +520,13 @@ button.ui-tracker-cell:disabled {
   border-spacing: var(--space-1);
 }
 
+/* Im Raster sind alle Zellen gleich groß, unabhängig davon, ob der Tag
+   anklickbar ist. Sonst springt die Spaltenbreite je Zeile. */
+.ui-tracker-grid .ui-tracker-cell {
+  width: var(--control-height);
+  height: var(--control-height);
+}
+
 .ui-tracker-grid th {
   color: var(--text-muted);
   font-size: var(--font-size-xs);
