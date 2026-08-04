@@ -1,0 +1,168 @@
+.journal-page h2 {
+  margin: var(--space-8) 0 var(--space-3);
+  font-size: var(--font-size-lg);
+}
+
+.journal-day-picker {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+  margin-top: clamp(2rem, 7vw, 4rem);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}
+
+.journal-day-picker .ui-button {
+  align-self: end;
+}
+
+.journal-day-hint,
+.journal-status {
+  margin: var(--space-2) 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.journal-page-error {
+  margin: var(--space-3) 0 0;
+  color: var(--danger);
+  font-weight: var(--font-weight-medium);
+}
+
+.journal-form {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.journal-scale-grid {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+}
+
+.journal-scale-field {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.journal-scale-field legend {
+  padding: 0 var(--space-1);
+  font-weight: var(--font-weight-bold);
+}
+
+.journal-scale-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.journal-scale-option {
+  position: relative;
+  display: inline-flex;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.journal-scale-option-empty {
+  flex: 1 1 auto;
+}
+
+.journal-scale-option:has(input:checked) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: var(--font-weight-bold);
+}
+
+.journal-scale-option:has(input:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/**
+ * Das Radio bleibt fokussierbar und deckt die gesamte Fläche ab. Dadurch ist
+ * das Ziel mindestens 44 x 44 CSS-Pixel groß, obwohl der Zustand über die
+ * umgebende Beschriftung dargestellt wird.
+ */
+.journal-scale-option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.journal-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.journal-history {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.journal-history li {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.journal-history-copy {
+  min-width: 0;
+}
+
+.journal-history h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-md);
+}
+
+.journal-history-summary {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 40rem) {
+  .journal-day-picker {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .journal-scale-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
