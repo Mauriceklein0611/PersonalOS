@@ -32,7 +32,9 @@ pnpm test:e2e
 pnpm build
 ```
 
-`pnpm test` führt Unit- und Komponententests mit Vitest und Testing Library aus. `pnpm test:e2e` startet die App automatisch und prüft den Kern-Smoke-Test in Chromium. Die GitHub-Action führt Formatprüfung, Lint, Typecheck, Tests, Build und E2E-Smoke auf Pull Requests sowie auf `main` aus.
+`pnpm test` führt Unit- und Komponententests mit Vitest und Testing Library aus. `pnpm test:e2e` erstellt immer einen Produktions-Build, startet `vite preview` und prüft den Kern-Smoke-Test in Chromium. Nur so sind Manifest, Service Worker, Precache und der echte Offline-Start aktiv. Die GitHub-Action führt Formatprüfung, Lint, Typecheck, Tests, Build und E2E-Smoke auf Pull Requests sowie auf `main` aus.
+
+Der PWA-Smoke lädt die App zunächst online, wartet auf den aktiven Service Worker und schaltet den Browser danach vollständig offline. Er prüft den erneuten Start, eine lokale Exportaktion und die Cache-Grenze. Ein Test darf deshalb keinen bereits laufenden Entwicklungsserver auf Port 4173 wiederverwenden.
 
 Persistenztests erhalten mit `createTestDatabase()` jeweils einen zufälligen Datenbanknamen und räumen ihn nach dem Test vollständig auf. `fake-indexeddb` stellt dafür ausschließlich in Vitest die IndexedDB-Web-API bereit. Fixtures bleiben klein, deterministisch und synthetisch.
 
@@ -152,6 +154,7 @@ Die Begründung gehört in den PR. Lockfile und Paketmanager-Metadaten werden im
 - React, React DOM und React Router bilden UI sowie clientseitiges Lazy-Routing.
 - Dexie (Apache-2.0) kapselt die browserseitige IndexedDB-API; Zod (MIT) validiert IDs, Datums-/Geldwerte und persistierte Records an den Repository-Grenzen. Beide arbeiten vollständig lokal und übertragen keine Daten. Weil die App die Datenbank vor dem Router öffnet, umfasst der aktuelle Startup-Build inklusive App-Code und Persistenzschicht rund 145 kB gzip.
 - Vite und das React-Plugin übernehmen Entwicklung und Build; TypeScript erzwingt den strikten Typvertrag.
+- `vite-plugin-pwa` und sein MIT-lizenziertes Workbox-Buildwerkzeug erzeugen ausschließlich beim Produktions-Build Manifest und Service Worker. Es gibt keine Laufzeit-Telemetrie und kein Cache-Routing für Nutzerdaten. Die statischen Icons unter `public/` werden bewusst ohne den optionalen, nativen Asset-Generator gepflegt.
 - ESLint, typescript-eslint und die React-Regeln prüfen Codefehler; Prettier stellt ein konsistentes Format sicher.
 - Vitest, Testing Library und jsdom decken Unit- und Komponententests ab; `fake-indexeddb` (Apache-2.0) isoliert die Datenbanktests; Playwright stellt den echten Browser-Smoke-Test bereit.
 - Alle übrigen Werkzeuge sind reine Entwicklungsabhängigkeiten und erhöhen das ausgelieferte Browser-Bundle nicht. Die Toolchain überträgt zur Laufzeit keine Nutzerdaten und fügt keine Telemetrie hinzu.

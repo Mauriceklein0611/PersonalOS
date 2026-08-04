@@ -136,6 +136,16 @@ a {
   font-weight: 800;
 }
 
+.pwa-toast-region {
+  position: fixed;
+  z-index: 90;
+  top: max(1rem, env(safe-area-inset-top));
+  right: 1rem;
+  display: grid;
+  width: min(38rem, calc(100vw - 2rem));
+  gap: var(--space-3);
+}
+
 .navigation-progress {
   position: fixed;
   z-index: 30;

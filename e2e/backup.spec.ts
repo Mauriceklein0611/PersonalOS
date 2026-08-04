@@ -70,9 +70,11 @@ test("previews a validated backup and downloads safety data before replace", asy
   expect(download.suggestedFilename()).toMatch(
     /^personalos-backup-\d{8}T\d{9}Z\.json$/,
   );
-  await expect(page.getByRole("status")).toContainText(
-    "vollständig wiederhergestellt",
-  );
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "vollständig wiederhergestellt" }),
+  ).toBeVisible();
 });
 
 test("rejects invalid backup files without offering replacement", async ({

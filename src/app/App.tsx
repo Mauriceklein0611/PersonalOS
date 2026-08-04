@@ -4,6 +4,7 @@ import { RouterProvider } from "react-router/dom";
 import { GlobalErrorBoundary } from "../components/feedback/GlobalErrorBoundary";
 import type { DatabaseLifecycle } from "../db/lifecycle";
 import { DatabaseGate } from "./providers/DatabaseGate";
+import { PwaStatus } from "./pwa/PwaStatus";
 import { appRouter } from "./router";
 import { ThemeProvider } from "./theme/ThemeProvider";
 
@@ -21,6 +22,7 @@ export function App({
   return (
     <GlobalErrorBoundary>
       <ThemeProvider>
+        <PwaStatus />
         <DatabaseGate
           lifecycle={databaseLifecycle}
           reloadAfterReset={reloadAfterDatabaseReset}
