@@ -131,6 +131,13 @@ type JournalEntry = EntityMeta & {
 
 Pro lokalem Tag existiert höchstens ein JournalEntry. Alle Skalen sind optional; ein ausgelassenes Feld ist kein negativer Wert.
 
+Invarianten:
+
+- `localDate` ist der fachliche Schlüssel und besitzt einen eindeutigen Index. Ein erneutes Speichern desselben Tages aktualisiert den vorhandenen Datensatz in einer Transaktion.
+- Ein entfernter Wert wird auf `undefined` gesetzt und nicht auf einem alten Stand belassen; leere oder nur aus Leerzeichen bestehende Texte werden nicht gespeichert.
+- Ein Eintrag ohne jeden Skalen- oder Textwert wird nicht angelegt.
+- Der Eintrag wird ausdrücklich gespeichert, nicht automatisch. Siehe [ADR 0006](decisions/0006-journal-saves-explicitly.md).
+
 ## Goals und Milestones
 
 ```ts
