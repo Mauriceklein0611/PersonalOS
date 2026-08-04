@@ -20,7 +20,7 @@ Die App bleibt offline nutzbar, speichert Daten standardmäßig nur lokal und bi
 - IndexedDB mit Dexie als lokale Datenbank
 - Zod an allen Import-, Persistenz- und Einstellungsgrenzen
 - Zustand für flüchtigen UI-Zustand; Domainlogik bleibt in Services und reinen Funktionen
-- Tailwind CSS und zugängliche Headless-Komponenten für das Designsystem
+- Semantische CSS-Tokens und zugängliche, typisierte Basiskomponenten für das Designsystem
 - Vitest, Testing Library und Playwright für Unit-, Komponenten- und End-to-End-Tests
 - pnpm als Paketmanager
 
@@ -33,6 +33,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Schritt-für-Schritt-Roadmap](docs/ROADMAP.md)
 - [Architektur](docs/ARCHITECTURE.md)
 - [Datenmodell](docs/DATA_MODEL.md)
+- [UI- und Textleitlinien](docs/UI_GUIDELINES.md)
 - [Entwicklungsablauf](docs/DEVELOPMENT.md)
 - [Local-first-Entscheidung](docs/decisions/0001-local-first-pwa.md)
 
