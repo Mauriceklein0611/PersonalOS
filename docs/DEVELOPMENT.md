@@ -141,11 +141,11 @@ Die Begründung gehört in den PR. Lockfile und Paketmanager-Metadaten werden im
 
 ### Bootstrap-Abhängigkeiten
 
-- React und React DOM sind die einzigen Laufzeitabhängigkeiten. Beide sind MIT-lizenziert, aktiv gepflegt und bilden die UI-Laufzeit; der aktuelle Bootstrap-Build umfasst rund 61 kB gzip inklusive App-Code.
+- React, React DOM und React Router sind die einzigen Laufzeitabhängigkeiten. Sie sind MIT-lizenziert, aktiv gepflegt und bilden UI sowie clientseitiges Lazy-Routing; der aktuelle App-Shell-Build umfasst rund 92 kB gzip inklusive App-Code.
 - Vite und das React-Plugin übernehmen Entwicklung und Build; TypeScript erzwingt den strikten Typvertrag.
 - ESLint, typescript-eslint und die React-Regeln prüfen Codefehler; Prettier stellt ein konsistentes Format sicher.
 - Vitest, Testing Library und jsdom decken Unit- und Komponententests ab; Playwright stellt den echten Browser-Smoke-Test bereit.
-- Alle Werkzeuge außer React und React DOM sind reine Entwicklungsabhängigkeiten und erhöhen das ausgelieferte Browser-Bundle nicht. Die Toolchain überträgt zur Laufzeit keine Nutzerdaten und fügt keine Telemetrie hinzu.
+- Alle übrigen Werkzeuge sind reine Entwicklungsabhängigkeiten und erhöhen das ausgelieferte Browser-Bundle nicht. Die Toolchain überträgt zur Laufzeit keine Nutzerdaten und fügt keine Telemetrie hinzu.
 
 ## Release-Checkliste
 

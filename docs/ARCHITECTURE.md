@@ -35,6 +35,8 @@ Es gibt im MVP keinen Anwendungsserver. Der Service Worker cached nur die App-Sh
 ### UI und App-Shell
 
 - Routing, responsives Layout, Theme und globale Fehlerbehandlung;
+- Top-Level-Seiten werden als unabhängige Route-Module lazy geladen;
+- die Theme-Präferenz nutzt vor der Settings-Repository-Schicht den begrenzten Bootstrap-Spiegel aus [ADR 0002](decisions/0002-theme-bootstrap-mirror.md);
 - Seiten und Formulare pro Domain;
 - keine direkte Dexie-Nutzung aus React-Komponenten;
 - UI-Zustand wie offene Dialoge kann in Zustand liegen, persistente Domainobjekte nicht.
@@ -262,4 +264,3 @@ type ScoreResult = {
 - Diagramme werden lazy geladen und besitzen textuelle Zusammenfassungen.
 - Keine Domain darf den gesamten Export direkt manipulieren.
 - Jede neue externe Abhängigkeit wird auf Wartung, Bundlegröße, Lizenz und Offlinewirkung geprüft.
-

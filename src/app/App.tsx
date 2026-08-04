@@ -1,16 +1,20 @@
-import { getAppTitle } from "../lib/get-app-title";
+import type { DataRouter } from "react-router";
+import { RouterProvider } from "react-router/dom";
 
-export function App() {
+import { GlobalErrorBoundary } from "../components/feedback/GlobalErrorBoundary";
+import { appRouter } from "./router";
+import { ThemeProvider } from "./theme/ThemeProvider";
+
+type AppProps = {
+  router?: DataRouter;
+};
+
+export function App({ router = appRouter }: AppProps) {
   return (
-    <main className="app-shell">
-      <section aria-labelledby="app-title" className="welcome-card">
-        <p className="eyebrow">Local-first. Privat. Nachvollziehbar.</p>
-        <h1 id="app-title">{getAppTitle()}</h1>
-        <p>
-          Das technische Fundament steht. Die persönlichen Alltagsfunktionen
-          folgen Schritt für Schritt.
-        </p>
-      </section>
-    </main>
+    <GlobalErrorBoundary>
+      <ThemeProvider>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </GlobalErrorBoundary>
   );
 }
