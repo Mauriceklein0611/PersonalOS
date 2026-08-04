@@ -44,6 +44,10 @@ export const appRoutes: RouteObject[] = [
         lazy: () => import("./pages/SettingsPage"),
       },
       {
+        path: "komponenten",
+        lazy: () => import("./pages/ComponentPreviewPage"),
+      },
+      {
         path: "*",
         lazy: () => import("./pages/NotFoundPage"),
       },

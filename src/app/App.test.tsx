@@ -16,6 +16,7 @@ const routeCases = [
   ["/finanzen", "Finanzen"],
   ["/insights", "Insights"],
   ["/einstellungen", "Einstellungen"],
+  ["/komponenten", "Komponenten"],
   ["/gibt-es-nicht", "Diese Seite gibt es nicht."],
 ] as const;
 
