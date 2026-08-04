@@ -1,46 +1,59 @@
 import { describe, expect, it } from "vitest";
 
 const textPairs = [
-  ["#1c241f", "#ffffff"],
-  ["#5b675f", "#ffffff"],
+  ["#16202e", "#ffffff"],
+  ["#4d5a6c", "#ffffff"],
   ["#ffffff", "#285c3a"],
   ["#ffffff", "#1f492e"],
   ["#8f3025", "#ffffff"],
   ["#ffffff", "#70241c"],
-  ["#e7eee9", "#18211b"],
-  ["#aab8ae", "#18211b"],
-  ["#102016", "#8bc89c"],
-  ["#102016", "#a4d8b1"],
-  ["#ffb1a5", "#18211b"],
+  ["#285c3a", "#dcebe0"],
+  ["#e7eef7", "#131a24"],
+  ["#9fb0c3", "#131a24"],
+  ["#06210f", "#8bc89c"],
+  ["#06210f", "#a4d8b1"],
+  ["#8bc89c", "#14301f"],
+  ["#ffb1a5", "#131a24"],
+  ["#ffb1a5", "#3d211d"],
   ["#24100d", "#ffb1a5"],
   ["#24100d", "#ffd0c8"],
 ] as const;
 
 const focusPairs = [
   ["#176b87", "#ffffff"],
-  ["#75d5f2", "#18211b"],
+  ["#176b87", "#e8ecf2"],
+  ["#75d5f2", "#131a24"],
+  ["#75d5f2", "#0b0f16"],
+] as const;
+
+/** Rahmen tragen UI-Grenzen und erreichen deshalb mindestens 3:1. */
+const borderPairs = [
+  ["#6e7c90", "#ffffff"],
+  ["#6e7c90", "#e8ecf2"],
+  ["#63728c", "#131a24"],
+  ["#63728c", "#0b0f16"],
 ] as const;
 
 /** Text, gedämpfter Text und Fehlertext auf allen Dashboard-Flächen. */
 const dashboardTextPairs = [
-  ["#1c241f", "#ffffff"],
-  ["#5b675f", "#ffffff"],
+  ["#16202e", "#ffffff"],
+  ["#4d5a6c", "#ffffff"],
   ["#8f3025", "#ffffff"],
-  ["#1c241f", "#f3f6fa"],
-  ["#5b675f", "#f3f6fa"],
-  ["#1c241f", "#e8ecf2"],
-  ["#5b675f", "#e8ecf2"],
-  ["#1c241f", "#d8f0e0"],
-  ["#1c241f", "#d7ecfb"],
-  ["#e7eee9", "#131a24"],
-  ["#aab8ae", "#131a24"],
+  ["#16202e", "#f3f6fa"],
+  ["#4d5a6c", "#f3f6fa"],
+  ["#16202e", "#e8ecf2"],
+  ["#4d5a6c", "#e8ecf2"],
+  ["#16202e", "#d8f0e0"],
+  ["#16202e", "#d7ecfb"],
+  ["#e7eef7", "#131a24"],
+  ["#9fb0c3", "#131a24"],
   ["#ffb1a5", "#131a24"],
-  ["#e7eee9", "#1c2531"],
-  ["#aab8ae", "#1c2531"],
-  ["#e7eee9", "#0b0f16"],
-  ["#aab8ae", "#0b0f16"],
-  ["#e7eee9", "#16283c"],
-  ["#e7eee9", "#241d3f"],
+  ["#e7eef7", "#1c2531"],
+  ["#9fb0c3", "#1c2531"],
+  ["#e7eef7", "#0b0f16"],
+  ["#9fb0c3", "#0b0f16"],
+  ["#e7eef7", "#16283c"],
+  ["#e7eef7", "#241d3f"],
 ] as const;
 
 /**
@@ -76,18 +89,18 @@ const dataPalettePairs = [
 
 /** Zeichen in Tracker-Zellen stehen auf den weichen Flächen der Palette. */
 const trackerCellPairs = [
-  ["#1c241f", "#d8f0e0"],
-  ["#1c241f", "#d7ecfb"],
-  ["#1c241f", "#e6dcfb"],
-  ["#1c241f", "#f8e7c8"],
-  ["#1c241f", "#d3eeed"],
-  ["#1c241f", "#fbdde9"],
-  ["#e7eee9", "#10291a"],
-  ["#e7eee9", "#0d2536"],
-  ["#e7eee9", "#221a3d"],
-  ["#e7eee9", "#33240a"],
-  ["#e7eee9", "#0c2b2a"],
-  ["#e7eee9", "#331327"],
+  ["#16202e", "#d8f0e0"],
+  ["#16202e", "#d7ecfb"],
+  ["#16202e", "#e6dcfb"],
+  ["#16202e", "#f8e7c8"],
+  ["#16202e", "#d3eeed"],
+  ["#16202e", "#fbdde9"],
+  ["#e7eef7", "#10291a"],
+  ["#e7eef7", "#0d2536"],
+  ["#e7eef7", "#221a3d"],
+  ["#e7eef7", "#33240a"],
+  ["#e7eef7", "#0c2b2a"],
+  ["#e7eef7", "#331327"],
 ] as const;
 
 /** Die farbige Zellkante trennt die weiche Fläche sichtbar vom Umfeld. */
@@ -107,6 +120,13 @@ describe("semantic color tokens", () => {
 
   it.each(focusPairs)(
     "keeps focus %s on %s above 3:1",
+    (foreground, background) => {
+      expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(3);
+    },
+  );
+
+  it.each(borderPairs)(
+    "keeps border %s on %s above 3:1",
     (foreground, background) => {
       expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(3);
     },

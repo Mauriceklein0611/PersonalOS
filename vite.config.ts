@@ -19,7 +19,7 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         display: "standalone",
-        background_color: "#eef2ee",
+        background_color: "#e8ecf2",
         theme_color: "#285c3a",
         categories: ["productivity", "lifestyle"],
         icons: [

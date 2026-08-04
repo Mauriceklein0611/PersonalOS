@@ -1,5 +1,4 @@
-import type { CSSProperties } from "react";
-
+import { ProgressBar } from "../../../components/ui";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import { calculateHabitFulfillment, calculateHabitStreak } from "../metrics";
 import type { Habit, HabitEntry } from "../model";
@@ -65,25 +64,13 @@ export function HabitProgressCard({
           <dt>Beste Serie</dt>
           <dd>{formatHabitStreak(streak.unit, streak.best)}</dd>
         </div>
-        <div>
-          <dt>Erfüllungsquote</dt>
-          <dd>{formatHabitRate(fulfillment.rate)}</dd>
-        </div>
       </dl>
 
-      {fulfillment.rate === null ? null : (
-        <div
-          aria-hidden="true"
-          className="habit-progress-bar"
-          style={
-            {
-              "--habit-progress": `${Math.round(fulfillment.rate * 100)}%`,
-            } as CSSProperties
-          }
-        >
-          <span />
-        </div>
-      )}
+      <ProgressBar
+        label="Erfüllungsquote"
+        value={fulfillment.rate}
+        valueText={formatHabitRate(fulfillment.rate)}
+      />
 
       <p className="habit-progress-period">
         Zeitraum: {formatCalendarDay(range.from)} bis{" "}

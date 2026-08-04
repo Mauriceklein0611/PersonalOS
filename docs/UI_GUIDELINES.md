@@ -97,6 +97,7 @@ Dashboard-, Fortschritts- und Tracker-Ansichten folgen einer gemeinsamen, dunkel
 - Zeilen sind Einträge, Spalten sind Tage. Jede Zelle trägt ein Zeichen und ein Textlabel; Farbe kommt zusätzlich dazu.
 - Eine Wochenfarbe aus der Datenpalette ist erlaubt. Die Wochengrenze bleibt zusätzlich über Abstand oder Spaltenkopf erkennbar.
 - Das Raster scrollt in `.ui-tracker-scroller` und erzeugt keinen Dokumentüberlauf. Der Container ist fokussierbar, damit er ohne Zeigegerät scrollbar bleibt.
+- Eine Zelle mit `onClick` wird zur Schaltfläche und hält als eigenständiges Ziel 44 × 44 CSS-Pixel. Ihr zugänglicher Name nennt Bezug, Zustand und Wirkung, zum Beispiel „Lesen am 3. August 2026: Offen. Als erledigt eintragen“.
 
 ### Diagramme
 

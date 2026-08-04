@@ -477,6 +477,26 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* Anklickbare Zellen sind eigenständige Ziele und halten 44 × 44 CSS-Pixel. */
+button.ui-tracker-cell {
+  width: var(--control-height);
+  height: var(--control-height);
+  padding: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+button.ui-tracker-cell:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button.ui-tracker-cell:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
 /* Das Raster scrollt in seinem eigenen Container und ist per Tastatur
    erreichbar, damit es ohne Zeigegerät bedienbar bleibt. */
 .ui-tracker-scroller {
@@ -582,7 +602,8 @@
   }
 
   .ui-progress-ring-value,
-  .ui-progress-bar-track::-webkit-progress-value {
+  .ui-progress-bar-track::-webkit-progress-value,
+  button.ui-tracker-cell {
     transition: none;
   }
 }

@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Button, EmptyState, Select, Toast } from "../../../components/ui";
+import {
+  Button,
+  ChartFrame,
+  EmptyState,
+  RankedBarList,
+  Select,
+  Sparkline,
+  Toast,
+} from "../../../components/ui";
 import {
   addCalendarDays,
   calendarDayForInstant,
@@ -9,6 +17,7 @@ import {
 } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import { HabitEditor } from "../components/HabitEditor";
+import { calculateHabitStreak } from "../metrics";
 import { HabitProgressCard } from "../components/HabitProgressCard";
 import { HabitTodayCard } from "../components/HabitTodayCard";
 import { HabitWeekGrid } from "../components/HabitWeekGrid";
@@ -21,6 +30,8 @@ import type {
 import { personalOsHabitService, type HabitService } from "../service";
 import {
   formatCalendarDay,
+  formatCalendarDayShort,
+  formatHabitStreak,
   getHabitActivityState,
   getHabitDayState,
   getHabitScheduleLabel,
@@ -151,6 +162,33 @@ export function HabitsPage({
   const trackedHabits = habits.filter(
     (habit) => habit.archivedAt === undefined,
   );
+
+  // Der Wochenverlauf zählt nur, was an dem Tag tatsächlich geplant war.
+  const weekCourse = weekDays.map((day) => {
+    let done = 0;
+    let due = 0;
+    for (const habit of weekHabits) {
+      const state = getHabitDayState(habit, entriesFor(habit), day);
+      if (state === "not-due") continue;
+      due += 1;
+      if (state === "done") done += 1;
+    }
+    return { day, done, due };
+  });
+  const weekHasPlannedDays = weekCourse.some((entry) => entry.due > 0);
+
+  const streakRanking = trackedHabits
+    .map((habit) => {
+      const streak = calculateHabitStreak(habit, entriesFor(habit), today);
+      return {
+        id: habit.id,
+        label: habit.name,
+        value: streak.current,
+        valueText: formatHabitStreak(streak.unit, streak.current),
+      };
+    })
+    .filter((entry) => entry.value > 0)
+    .sort((first, second) => second.value - first.value);
 
   const viewCounts: Record<HabitsView, number> = {
     archive: archivedHabits.length,
@@ -452,14 +490,69 @@ export function HabitsPage({
                 title="Keine Einträge"
               />
             ) : (
-              <HabitWeekGrid
-                busyHabitId={busyHabitId}
-                days={weekDays}
-                entriesByHabit={entriesByHabit}
-                habits={weekHabits}
-                onToggle={toggleWeekDay}
-                today={today}
-              />
+              <>
+                <div className="habit-week-dashboard">
+                  <ChartFrame
+                    emptyMessage="In dieser Woche war an keinem Tag etwas geplant."
+                    legend={[
+                      { id: "done", label: "Erledigt", tone: 1 },
+                      { id: "due", label: "Geplant", tone: 2 },
+                    ]}
+                    period={`${formatCalendarDay(weekStart)} bis ${formatCalendarDay(weekEnd)}`}
+                    source={`Grundlage: ${weekHabits.length} in dieser Woche aktive Gewohnheiten. Übersprungene Tage zählen nicht als erledigt.`}
+                    title="Wochenverlauf"
+                  >
+                    {weekHasPlannedDays ? (
+                      <>
+                        <Sparkline
+                          filled
+                          series={[
+                            {
+                              id: "done",
+                              label: "Erledigt",
+                              points: weekCourse.map((entry) => entry.done),
+                              tone: 1,
+                            },
+                            {
+                              id: "due",
+                              label: "Geplant",
+                              points: weekCourse.map((entry) => entry.due),
+                              tone: 2,
+                            },
+                          ]}
+                          showGrid
+                          variant="chart"
+                        />
+                        <ul className="habit-week-course">
+                          {weekCourse.map((entry) => (
+                            <li key={entry.day}>
+                              <span>{formatCalendarDayShort(entry.day)}</span>
+                              <span>
+                                {entry.done} von {entry.due}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : undefined}
+                  </ChartFrame>
+                  <RankedBarList
+                    caption="Orientierung, keine Rangordnung."
+                    emptyMessage="Noch keine laufende Serie."
+                    items={streakRanking}
+                    label="Aktive Serien"
+                    tone={2}
+                  />
+                </div>
+                <HabitWeekGrid
+                  busyHabitId={busyHabitId}
+                  days={weekDays}
+                  entriesByHabit={entriesByHabit}
+                  habits={weekHabits}
+                  onToggle={toggleWeekDay}
+                  today={today}
+                />
+              </>
             )}
           </>
         ) : activeView === "progress" ? (

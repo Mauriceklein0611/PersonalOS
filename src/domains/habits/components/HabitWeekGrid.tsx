@@ -1,3 +1,4 @@
+import { TrackerCell, type TrackerCellState } from "../../../components/ui";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import type { Habit, HabitEntry } from "../model";
 import { isHabitEligibleOn } from "../schedule";
@@ -20,6 +21,14 @@ type HabitWeekGridProps = {
   today: CalendarDay;
 };
 
+/** Ein Tag ohne Fälligkeit ist keine verpasste Gelegenheit, sondern leer. */
+const trackerStates: Record<HabitDayState, TrackerCellState> = {
+  done: "done",
+  "not-due": "none",
+  open: "open",
+  skipped: "skipped",
+};
+
 export function HabitWeekGrid({
   busyHabitId,
   days,
@@ -31,11 +40,11 @@ export function HabitWeekGrid({
   return (
     <div
       aria-label="Wochenstatus, horizontal scrollbar"
-      className="habit-week-scroll"
+      className="ui-tracker-scroller habit-week-scroll"
       role="region"
       tabIndex={0}
     >
-      <table className="habit-week-table">
+      <table className="ui-tracker-grid habit-week-table">
         <caption className="habit-week-caption">
           Erledigt, offen, übersprungen und nicht fällig stehen jeweils als
           Zeichen und als Text in der Zelle.
@@ -59,38 +68,35 @@ export function HabitWeekGrid({
                 <th scope="row">{habit.name}</th>
                 {days.map((day) => {
                   const state = getHabitDayState(habit, entries, day);
-                  const label = habitDayStateLabels[state];
                   const eligible = isHabitEligibleOn(habit, day);
                   const outdated =
                     !eligible && (state === "done" || state === "skipped");
                   const interactive =
                     eligible && day <= today && habit.archivedAt === undefined;
+                  const dayLabel = `${habit.name} am ${formatCalendarDayLong(day)}`;
+
                   return (
                     <td key={day}>
-                      {interactive ? (
-                        <button
-                          aria-label={`${habit.name} am ${formatCalendarDayLong(day)}: ${label}. ${habitDayActionLabels[state]}`}
-                          className={`habit-day-cell habit-day-button habit-day-${state}`}
-                          disabled={busyHabitId === habit.id}
-                          onClick={() => onToggle(habit, day, state)}
-                          type="button"
-                        >
-                          <span aria-hidden="true">{stateSymbol(state)}</span>
-                          <span>{label}</span>
-                        </button>
-                      ) : (
-                        <div
-                          className={`habit-day-cell habit-day-static habit-day-${state}`}
-                        >
-                          <span aria-hidden="true">{stateSymbol(state)}</span>
-                          <span>{label}</span>
-                          {outdated ? (
-                            <span className="habit-day-note">
-                              Früherer Rhythmus
-                            </span>
-                          ) : null}
-                        </div>
-                      )}
+                      <TrackerCell
+                        actionLabel={
+                          interactive ? habitDayActionLabels[state] : undefined
+                        }
+                        dayLabel={dayLabel}
+                        disabled={
+                          interactive ? busyHabitId === habit.id : undefined
+                        }
+                        onClick={
+                          interactive
+                            ? () => onToggle(habit, day, state)
+                            : undefined
+                        }
+                        state={trackerStates[state]}
+                        stateLabel={
+                          outdated
+                            ? `${habitDayStateLabels[state]}, früherer Rhythmus`
+                            : habitDayStateLabels[state]
+                        }
+                      />
                     </td>
                   );
                 })}
@@ -101,8 +107,4 @@ export function HabitWeekGrid({
       </table>
     </div>
   );
-}
-
-function stateSymbol(state: HabitDayState): string {
-  return { done: "✓", "not-due": "–", open: "○", skipped: "↷" }[state];
 }
