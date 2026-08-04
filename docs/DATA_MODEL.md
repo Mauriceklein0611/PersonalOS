@@ -20,9 +20,9 @@ type EntityMeta = {
 
 Die gemeinsamen Werte werden in `src/db/types.ts` und `src/lib/` mit Zod validiert. UUIDs sind Version 4, Zeitpunkte besitzen UTC- und Millisekundenpräzision (`YYYY-MM-DDTHH:mm:ss.sssZ`), und reine Kalendertage werden niemals implizit in eine Zeitzone umgerechnet.
 
-## Persistenzvertrag v1
+## Persistenzvertrag v2
 
-Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Die Versionsnummer der Datenbank ist unabhängig von der späteren Exportformat-Version.
+Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`; die Store- und Indexstruktur bleibt dabei unverändert. Die Versionsnummer der Datenbank ist unabhängig von der späteren Exportformat-Version.
 
 | Store | Datensätze |
 |---|---|

@@ -421,3 +421,38 @@ a {
 .settings-preview-link {
   width: fit-content;
 }
+
+.database-recovery {
+  max-width: 42rem;
+}
+
+.database-recovery-note {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  background: var(--surface-muted);
+  text-align: left;
+}
+
+.database-recovery-note span,
+.database-recovery-error {
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+.database-recovery-error {
+  color: var(--danger);
+  font-weight: var(--font-weight-medium);
+}
+
+.database-recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}

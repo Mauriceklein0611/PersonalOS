@@ -9,11 +9,19 @@ export {
   type PersistenceErrorCode,
 } from "./errors";
 export {
+  createDatabaseLifecycle,
+  DatabaseStartupError,
+  personalOsDatabaseLifecycle,
+  type DatabaseLifecycle,
+} from "./lifecycle";
+export {
   personalOsSchemaV1,
+  personalOsSchemaV2,
   personalOsSchemaVersion,
   personalOsTableNames,
   type PersonalOsTableName,
 } from "./schema";
+export { settingsSchema, type Settings } from "./schemas/settings";
 export { runInTransaction, type TransactionTableNames } from "./transactions";
 export {
   createEntityMeta,
