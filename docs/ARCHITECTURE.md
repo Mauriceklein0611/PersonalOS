@@ -54,7 +54,8 @@ Es gibt im MVP keinen Anwendungsserver. Der Service Worker cached nur die App-Sh
 - Dexie-Tabellen und versionierte Migrationen;
 - Repository-Interfaces für Domainzugriff;
 - Transaktionen für zusammengehörende Änderungen;
-- Schema-Validierung beim Import und an kritischen Schreibgrenzen.
+- Zod-Schema-Validierung an jeder Repository-Schreib- und Lesegrenze sowie beim Import;
+- typisierte Persistenzfehler (`validation`, `not-found`, `conflict`, `storage`, `transaction`) ohne Logging von Datensatzinhalten.
 
 ### Auswertung
 
@@ -192,7 +193,7 @@ Im ersten MVP unterstützt der Import nur „bestehende lokale Daten vollständi
 ## 10. Geld
 
 - Beträge als Integer in Minor Units, z. B. `1099` für 10,99 EUR.
-- ISO-4217-Währung je Datensatz bzw. klar definierter Basiswährung.
+- unterstützter ISO-4217-Währungscode in Großbuchstaben je Datensatz bzw. klar definierter Basiswährung.
 - Keine Gleitkommaarithmetik für Summen.
 - Im MVP keine automatische Währungsumrechnung.
 - Korrekturen werden nachvollziehbar geändert; spätere Audit-Anforderungen können ein Ledger erforderlich machen, sind aber nicht Teil des MVP.

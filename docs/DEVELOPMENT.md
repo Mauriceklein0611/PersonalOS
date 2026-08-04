@@ -34,6 +34,8 @@ pnpm build
 
 `pnpm test` führt Unit- und Komponententests mit Vitest und Testing Library aus. `pnpm test:e2e` startet die App automatisch und prüft den Kern-Smoke-Test in Chromium. Die GitHub-Action führt Formatprüfung, Lint, Typecheck, Tests, Build und E2E-Smoke auf Pull Requests sowie auf `main` aus.
 
+Persistenztests erhalten mit `createTestDatabase()` jeweils einen zufälligen Datenbanknamen und räumen ihn nach dem Test vollständig auf. `fake-indexeddb` stellt dafür ausschließlich in Vitest die IndexedDB-Web-API bereit. Fixtures bleiben klein, deterministisch und synthetisch.
+
 ## Von einem Issue zum Pull Request
 
 1. Ein `status:ready`-Issue wählen und Abhängigkeiten prüfen.
@@ -139,12 +141,13 @@ Vor einer neuen Laufzeitabhängigkeit prüfen:
 
 Die Begründung gehört in den PR. Lockfile und Paketmanager-Metadaten werden immer gemeinsam committed.
 
-### Bootstrap-Abhängigkeiten
+### Aktuelle Abhängigkeiten
 
-- React, React DOM und React Router sind die einzigen Laufzeitabhängigkeiten. Sie sind MIT-lizenziert, aktiv gepflegt und bilden UI sowie clientseitiges Lazy-Routing; der aktuelle App-Shell-Build umfasst rund 92 kB gzip inklusive App-Code.
+- React, React DOM und React Router bilden UI sowie clientseitiges Lazy-Routing.
+- Dexie (Apache-2.0) kapselt die browserseitige IndexedDB-API; Zod (MIT) validiert IDs, Datums-/Geldwerte und persistierte Records an den Repository-Grenzen. Beide arbeiten vollständig lokal, übertragen keine Daten und werden erst in einen Browser-Chunk aufgenommen, sobald produktiver App-Code die Datenbank nutzt.
 - Vite und das React-Plugin übernehmen Entwicklung und Build; TypeScript erzwingt den strikten Typvertrag.
 - ESLint, typescript-eslint und die React-Regeln prüfen Codefehler; Prettier stellt ein konsistentes Format sicher.
-- Vitest, Testing Library und jsdom decken Unit- und Komponententests ab; Playwright stellt den echten Browser-Smoke-Test bereit.
+- Vitest, Testing Library und jsdom decken Unit- und Komponententests ab; `fake-indexeddb` (Apache-2.0) isoliert die Datenbanktests; Playwright stellt den echten Browser-Smoke-Test bereit.
 - Alle übrigen Werkzeuge sind reine Entwicklungsabhängigkeiten und erhöhen das ausgelieferte Browser-Bundle nicht. Die Toolchain überträgt zur Laufzeit keine Nutzerdaten und fügt keine Telemetrie hinzu.
 
 ## Release-Checkliste

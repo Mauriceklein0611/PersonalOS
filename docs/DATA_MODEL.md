@@ -18,6 +18,25 @@ type EntityMeta = {
 - Referenzen werden als IDs gespeichert und beim Löschen validiert.
 - Abgeleitete Kennzahlen werden normalerweise berechnet statt als zweite Wahrheit gespeichert.
 
+Die gemeinsamen Werte werden in `src/db/types.ts` und `src/lib/` mit Zod validiert. UUIDs sind Version 4, Zeitpunkte besitzen UTC- und Millisekundenpräzision (`YYYY-MM-DDTHH:mm:ss.sssZ`), und reine Kalendertage werden niemals implizit in eine Zeitzone umgerechnet.
+
+## Persistenzvertrag v1
+
+Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Die Versionsnummer der Datenbank ist unabhängig von der späteren Exportformat-Version.
+
+| Store | Datensätze |
+|---|---|
+| `settings` | Settings |
+| `tasks` | Tasks |
+| `habits`, `habitEntries` | Habits und tägliche Check-ins |
+| `journalEntries` | Journaleinträge |
+| `goals`, `goalMilestones` | Ziele und Meilensteine |
+| `financeCategories`, `transactions`, `monthlyBudgets` | Finanzkategorien, Buchungen und Budgets |
+| `savingsGoals`, `savingsContributions` | Sparziele und Beiträge |
+| `scoreSettings`, `scoreSnapshots` | versionierte Score-Konfiguration und optionale Snapshots |
+
+Alle Stores verwenden die clientseitig erzeugte UUID `id` als Primärschlüssel. Fachlich eindeutige Kombinationen wie Habit/Tag, Journal/Tag und Budgetmonat/Kategorie besitzen zusätzlich einen eindeutigen Index. Domain-Repositories erweitern den gemeinsamen Metadatenvertrag um ihr eigenes Zod-Schema; rohe Dexie-Zugriffe bleiben auf `src/db/` beschränkt.
+
 ## Settings
 
 ```ts
@@ -239,4 +258,3 @@ Insights können überwiegend zur Laufzeit berechnet werden. Nur Nutzeraktionen 
 - Ob „Kategorie“ domänenübergreifend oder pro Domain geführt wird. Empfehlung für den MVP: pro Domain, um unpassende Kopplung zu vermeiden.
 - Ob ScoreSnapshots täglich persistiert oder bei Bedarf reproduziert werden. Entscheidung vor `v0.4`.
 - Ob Exporte später als verschlüsseltes Archiv angeboten werden. Nicht Teil von `v1.0` ohne separates Bedrohungsmodell.
-
