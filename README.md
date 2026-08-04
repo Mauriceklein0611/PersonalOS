@@ -35,6 +35,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Datenmodell](docs/DATA_MODEL.md)
 - [UI- und Textleitlinien](docs/UI_GUIDELINES.md)
 - [Entwicklungsablauf](docs/DEVELOPMENT.md)
+- [Datenschutz- und Sicherheitsbasis](docs/PRIVACY_AND_SECURITY.md)
 - [Local-first-Entscheidung](docs/decisions/0001-local-first-pwa.md)
 - [Theme-Bootstrap-Spiegel](docs/decisions/0002-theme-bootstrap-mirror.md)
 - [Datenbankmigrationen und Recovery](docs/decisions/0003-forward-database-migrations-and-recovery.md)
@@ -62,6 +63,7 @@ Die vollständigen Qualitätsprüfungen sind:
 
 ```bash
 pnpm format:check
+pnpm check:privacy
 pnpm lint
 pnpm typecheck
 pnpm test

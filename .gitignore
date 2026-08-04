@@ -21,6 +21,7 @@ receipts/
 documents/
 *.personalos.json
 *.personalos.zip
+personalos-backup-*.json
 *.sqlite
 *.sqlite3
 *.db
@@ -37,4 +38,3 @@ Thumbs.db
 *.log
 *.tmp
 *.swp
-

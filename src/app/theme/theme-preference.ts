@@ -9,7 +9,7 @@ function isThemePreference(value: string | null): value is ThemePreference {
   return value === "system" || value === "light" || value === "dark";
 }
 
-export function getBrowserThemeStorage(): ThemeStorage | null {
+export function getBrowserThemeStorage(): Storage | null {
   try {
     return window.localStorage;
   } catch {
@@ -34,6 +34,16 @@ export function persistThemePreference(
 ): void {
   try {
     storage?.setItem(themeStorageKey, preference);
+  } catch {
+    // Storage may be unavailable in private or hardened browser contexts.
+  }
+}
+
+export function clearThemePreference(
+  storage: Pick<Storage, "removeItem"> | null = getBrowserThemeStorage(),
+): void {
+  try {
+    storage?.removeItem(themeStorageKey);
   } catch {
     // Storage may be unavailable in private or hardened browser contexts.
   }

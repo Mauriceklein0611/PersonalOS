@@ -25,6 +25,7 @@ Qualitätsbefehle:
 
 ```bash
 pnpm format:check
+pnpm check:privacy
 pnpm lint
 pnpm typecheck
 pnpm test
@@ -32,7 +33,7 @@ pnpm test:e2e
 pnpm build
 ```
 
-`pnpm test` führt Unit- und Komponententests mit Vitest und Testing Library aus. `pnpm test:e2e` erstellt immer einen Produktions-Build, startet `vite preview` und prüft den Kern-Smoke-Test in Chromium. Nur so sind Manifest, Service Worker, Precache und der echte Offline-Start aktiv. Die GitHub-Action führt Formatprüfung, Lint, Typecheck, Tests, Build und E2E-Smoke auf Pull Requests sowie auf `main` aus.
+`pnpm check:privacy` prüft getrackte und noch nicht ignorierte Dateien auf typische Provider-Secrets, private Schlüssel, vollständige PersonalOS-Exporte, rohe Konsolenausgaben in App-Code und ungeprüftes HTML-Rendering. Treffer nennen nur Datei und Regel, niemals den gefundenen Wert. `pnpm test` führt Unit- und Komponententests mit Vitest und Testing Library aus. `pnpm test:e2e` erstellt immer einen Produktions-Build, startet `vite preview` und prüft den Kern-Smoke-Test in Chromium. Nur so sind Manifest, CSP, Service Worker, Precache und der echte Offline-Start aktiv. Die GitHub-Action führt Privacy-Check, Formatprüfung, Lint, Typecheck, Tests, Build und E2E-Smoke auf Pull Requests sowie auf `main` aus.
 
 Der PWA-Smoke lädt die App zunächst online, wartet auf den aktiven Service Worker und schaltet den Browser danach vollständig offline. Er prüft den erneuten Start, eine lokale Exportaktion und die Cache-Grenze. Ein Test darf deshalb keinen bereits laufenden Entwicklungsserver auf Port 4173 wiederverwenden.
 

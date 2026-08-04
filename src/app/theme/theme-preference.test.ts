@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyTheme,
+  clearThemePreference,
   initializeTheme,
   readThemePreference,
   resolveTheme,
@@ -50,7 +51,9 @@ describe("theme preference", () => {
     expect(initializeTheme()).toBe("dark");
     expect(document.documentElement.dataset.theme).toBe("dark");
 
-    window.localStorage.clear();
+    clearThemePreference();
+    expect(window.localStorage.getItem(themeStorageKey)).toBeNull();
+
     document.documentElement.removeAttribute("data-theme");
     document.documentElement.style.removeProperty("color-scheme");
   });

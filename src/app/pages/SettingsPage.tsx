@@ -1,6 +1,8 @@
 import { Link } from "react-router";
 
 import { BackupPanel } from "../settings/BackupPanel";
+import { LocalDataPanel } from "../settings/LocalDataPanel";
+import "./settings-page.css";
 
 export function Component() {
   return (
@@ -10,18 +12,21 @@ export function Component() {
       <p className="page-description">
         Passe lokale App-Einstellungen an und sichere deine Daten bewusst.
       </p>
-      <BackupPanel />
-      <div className="empty-state" role="note">
-        <p>Lokale Entwicklungsübersicht</p>
-        <span>
-          Prüfe die domänenneutralen Bausteine in allen relevanten Zuständen.
-        </span>
-        <Link
-          className="secondary-action settings-preview-link"
-          to="/komponenten"
-        >
-          Komponentenübersicht öffnen
-        </Link>
+      <div className="settings-grid">
+        <BackupPanel />
+        <LocalDataPanel />
+        <div className="empty-state" role="note">
+          <p>Lokale Entwicklungsübersicht</p>
+          <span>
+            Prüfe die domänenneutralen Bausteine in allen relevanten Zuständen.
+          </span>
+          <Link
+            className="secondary-action settings-preview-link"
+            to="/komponenten"
+          >
+            Komponentenübersicht öffnen
+          </Link>
+        </div>
       </div>
     </section>
   );
