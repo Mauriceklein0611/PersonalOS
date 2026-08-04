@@ -1,0 +1,588 @@
+/* Dashboard-Bausteine. Farbe ist immer Zusatz zu Zeichen, Muster oder Text. */
+
+.ui-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (min-width: 48rem) {
+  .ui-dashboard-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+.ui-metric-tile,
+.ui-progress-ring,
+.ui-progress-bar,
+.ui-ranked-bar-list,
+.ui-chart-frame {
+  color: var(--text);
+  background: var(--dashboard-card);
+}
+
+.ui-metric-tile,
+.ui-ranked-bar-list,
+.ui-chart-frame {
+  border: 1px solid var(--dashboard-hairline);
+  box-shadow: var(--shadow-sm);
+}
+
+.ui-metric-tile {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  animation: ui-dataviz-appear var(--duration-fast) var(--ease-standard) both;
+}
+
+.ui-metric-tile[data-tone="hero"] {
+  background: var(--gradient-hero);
+}
+
+.ui-metric-tile-label,
+.ui-ranked-bar-list-label,
+.ui-progress-ring-label,
+.ui-progress-bar-label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.05em;
+  line-height: var(--line-height-normal);
+  text-transform: uppercase;
+}
+
+.ui-metric-tile-value {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.75rem, 8vw, 2.5rem);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: var(--line-height-tight);
+}
+
+.ui-metric-tile-value[data-empty="true"],
+.ui-progress-ring-text[data-empty="true"],
+.ui-progress-bar-value[data-empty="true"] {
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0;
+}
+
+.ui-metric-tile-context,
+.ui-progress-ring-caption,
+.ui-progress-bar-caption,
+.ui-ranked-bar-list-caption,
+.ui-ranked-bar-list-empty,
+.ui-chart-frame-period,
+.ui-chart-frame-source,
+.ui-chart-frame-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.ui-dataviz-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.ui-sparkline {
+  display: block;
+  width: 100%;
+  height: 2.25rem;
+  margin-top: var(--space-2);
+  overflow: visible;
+}
+
+.ui-sparkline[data-variant="chart"] {
+  height: clamp(6rem, 28vw, 10rem);
+  margin-top: 0;
+}
+
+.ui-sparkline-line {
+  fill: none;
+  stroke: var(--data-1);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.ui-sparkline-grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+
+.ui-sparkline-line[data-tone="1"],
+.ui-progress-ring-value[data-tone="1"],
+.ui-progress-ring-gradient-start,
+.ui-chart-frame-legend-marker[data-tone="1"] {
+  stroke: var(--data-1);
+  color: var(--data-1);
+  stop-color: var(--data-1);
+}
+
+.ui-sparkline-line[data-tone="2"],
+.ui-progress-ring-value[data-tone="2"],
+.ui-chart-frame-legend-marker[data-tone="2"] {
+  stroke: var(--data-2);
+  color: var(--data-2);
+}
+
+.ui-sparkline-line[data-tone="3"],
+.ui-progress-ring-value[data-tone="3"],
+.ui-chart-frame-legend-marker[data-tone="3"] {
+  stroke: var(--data-3);
+  color: var(--data-3);
+}
+
+.ui-sparkline-line[data-tone="4"],
+.ui-progress-ring-value[data-tone="4"],
+.ui-chart-frame-legend-marker[data-tone="4"] {
+  stroke: var(--data-4);
+  color: var(--data-4);
+}
+
+.ui-sparkline-line[data-tone="5"],
+.ui-progress-ring-value[data-tone="5"],
+.ui-progress-ring-gradient-end,
+.ui-chart-frame-legend-marker[data-tone="5"] {
+  stroke: var(--data-5);
+  color: var(--data-5);
+  stop-color: var(--data-5);
+}
+
+.ui-sparkline-line[data-tone="6"],
+.ui-progress-ring-value[data-tone="6"],
+.ui-chart-frame-legend-marker[data-tone="6"] {
+  stroke: var(--data-6);
+  color: var(--data-6);
+}
+
+.ui-sparkline-area-start[data-tone="1"],
+.ui-sparkline-area-end[data-tone="1"] {
+  stop-color: var(--data-1);
+}
+
+.ui-sparkline-area-start[data-tone="2"],
+.ui-sparkline-area-end[data-tone="2"] {
+  stop-color: var(--data-2);
+}
+
+.ui-sparkline-area-start[data-tone="3"],
+.ui-sparkline-area-end[data-tone="3"] {
+  stop-color: var(--data-3);
+}
+
+.ui-sparkline-area-start[data-tone="4"],
+.ui-sparkline-area-end[data-tone="4"] {
+  stop-color: var(--data-4);
+}
+
+.ui-sparkline-area-start[data-tone="5"],
+.ui-sparkline-area-end[data-tone="5"] {
+  stop-color: var(--data-5);
+}
+
+.ui-sparkline-area-start[data-tone="6"],
+.ui-sparkline-area-end[data-tone="6"] {
+  stop-color: var(--data-6);
+}
+
+.ui-sparkline-area-start {
+  stop-opacity: var(--chart-area-opacity);
+}
+
+.ui-sparkline-area-end {
+  stop-opacity: 0;
+}
+
+.ui-progress-ring {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.ui-progress-ring-visual {
+  display: grid;
+  width: 100%;
+  max-width: 9rem;
+  place-items: center;
+}
+
+.ui-progress-ring[data-size="sm"] .ui-progress-ring-visual {
+  max-width: 6rem;
+}
+
+.ui-progress-ring-visual > * {
+  grid-area: 1 / 1;
+}
+
+.ui-progress-ring svg {
+  width: 100%;
+  height: auto;
+  transform: rotate(-90deg);
+}
+
+.ui-progress-ring-track {
+  stroke: var(--chart-track);
+  stroke-width: 10;
+}
+
+.ui-progress-ring-value {
+  stroke: var(--data-1);
+  stroke-linecap: round;
+  stroke-width: 10;
+  transition: stroke-dashoffset var(--duration-fast) var(--ease-standard);
+}
+
+.ui-progress-ring-text {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+}
+
+.ui-progress-ring[data-size="sm"] .ui-progress-ring-text {
+  font-size: var(--font-size-lg);
+}
+
+.ui-progress-bar {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ui-progress-bar-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ui-progress-bar-value {
+  color: var(--text);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-progress-bar-track,
+.ui-progress-bar-track-empty {
+  display: block;
+  width: 100%;
+  height: 0.625rem;
+  border: none;
+  border-radius: var(--radius-round);
+  background: var(--chart-track);
+  appearance: none;
+}
+
+.ui-progress-bar-track::-webkit-progress-bar {
+  border-radius: var(--radius-round);
+  background: var(--chart-track);
+}
+
+.ui-progress-bar-track::-webkit-progress-value {
+  border-radius: var(--radius-round);
+  background: var(--data-1);
+  transition: width var(--duration-fast) var(--ease-standard);
+}
+
+.ui-progress-bar-track::-moz-progress-bar {
+  border-radius: var(--radius-round);
+  background: var(--data-1);
+}
+
+.ui-progress-bar-track[data-tone="2"]::-webkit-progress-value {
+  background: var(--data-2);
+}
+
+.ui-progress-bar-track[data-tone="2"]::-moz-progress-bar {
+  background: var(--data-2);
+}
+
+.ui-progress-bar-track[data-tone="3"]::-webkit-progress-value {
+  background: var(--data-3);
+}
+
+.ui-progress-bar-track[data-tone="3"]::-moz-progress-bar {
+  background: var(--data-3);
+}
+
+.ui-progress-bar-track[data-tone="4"]::-webkit-progress-value {
+  background: var(--data-4);
+}
+
+.ui-progress-bar-track[data-tone="4"]::-moz-progress-bar {
+  background: var(--data-4);
+}
+
+.ui-progress-bar-track[data-tone="5"]::-webkit-progress-value {
+  background: var(--data-5);
+}
+
+.ui-progress-bar-track[data-tone="5"]::-moz-progress-bar {
+  background: var(--data-5);
+}
+
+.ui-progress-bar-track[data-tone="6"]::-webkit-progress-value {
+  background: var(--data-6);
+}
+
+.ui-progress-bar-track[data-tone="6"]::-moz-progress-bar {
+  background: var(--data-6);
+}
+
+.ui-ranked-bar-list {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+}
+
+.ui-ranked-bar-list-items {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-ranked-bar-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.ui-ranked-bar-list-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ui-ranked-bar-list-value {
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ui-ranked-bar-list-bar {
+  display: block;
+  width: 100%;
+  height: 0.5rem;
+  grid-column: 1 / -1;
+  border-radius: var(--radius-round);
+  background: linear-gradient(
+    to right,
+    var(--ranked-bar-color, var(--data-1)) var(--ranked-bar-width, 0%),
+    var(--chart-track) var(--ranked-bar-width, 0%)
+  );
+}
+
+.ui-ranked-bar-list-bar[data-tone="2"] {
+  --ranked-bar-color: var(--data-2);
+}
+
+.ui-ranked-bar-list-bar[data-tone="3"] {
+  --ranked-bar-color: var(--data-3);
+}
+
+.ui-ranked-bar-list-bar[data-tone="4"] {
+  --ranked-bar-color: var(--data-4);
+}
+
+.ui-ranked-bar-list-bar[data-tone="5"] {
+  --ranked-bar-color: var(--data-5);
+}
+
+.ui-ranked-bar-list-bar[data-tone="6"] {
+  --ranked-bar-color: var(--data-6);
+}
+
+.ui-tracker-cell {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid var(--dashboard-hairline);
+  border-radius: var(--radius-sm);
+  background: var(--dashboard-card-raised);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+}
+
+.ui-tracker-cell[data-state="done"] {
+  border-color: var(--data-1);
+  color: var(--text);
+  background: var(--data-1-soft);
+}
+
+.ui-tracker-cell[data-state="partial"] {
+  border-color: var(--data-4);
+  color: var(--text);
+  background: var(--data-4-soft);
+}
+
+.ui-tracker-cell[data-state="skipped"] {
+  border-style: dashed;
+}
+
+.ui-tracker-cell[data-state="none"] {
+  border-style: dashed;
+  background: transparent;
+}
+
+.ui-tracker-cell[data-tone="2"] {
+  border-color: var(--data-2);
+  background: var(--data-2-soft);
+}
+
+.ui-tracker-cell[data-tone="3"] {
+  border-color: var(--data-3);
+  background: var(--data-3-soft);
+}
+
+.ui-tracker-cell[data-tone="4"] {
+  border-color: var(--data-4);
+  background: var(--data-4-soft);
+}
+
+.ui-tracker-cell[data-tone="5"] {
+  border-color: var(--data-5);
+  background: var(--data-5-soft);
+}
+
+.ui-tracker-cell[data-tone="6"] {
+  border-color: var(--data-6);
+  background: var(--data-6-soft);
+}
+
+.ui-tracker-cell-sign {
+  font-weight: var(--font-weight-bold);
+}
+
+/* Das Raster scrollt in seinem eigenen Container und ist per Tastatur
+   erreichbar, damit es ohne Zeigegerät bedienbar bleibt. */
+.ui-tracker-scroller {
+  /* Positioniert, damit absolut gesetzte Textlabel im Raster mitscrollen und
+     nicht am Container vorbei einen Dokumentüberlauf erzeugen. */
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+}
+
+.ui-tracker-scroller:focus-visible,
+.preview-force-focus .ui-tracker-scroller {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.ui-tracker-grid {
+  border-collapse: separate;
+  border-spacing: var(--space-1);
+}
+
+.ui-tracker-grid th {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ui-tracker-grid thead th {
+  text-align: center;
+}
+
+.ui-tracker-grid tbody th {
+  padding-right: var(--space-2);
+  color: var(--text);
+  font-size: var(--font-size-sm);
+}
+
+.ui-chart-frame {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  animation: ui-dataviz-appear var(--duration-fast) var(--ease-standard) both;
+}
+
+.ui-chart-frame-head {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.ui-chart-frame-title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.ui-chart-frame-plot {
+  min-width: 0;
+}
+
+.ui-chart-frame-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  font-size: var(--font-size-sm);
+  list-style: none;
+}
+
+.ui-chart-frame-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ui-chart-frame-legend-marker {
+  color: var(--data-1);
+  font-size: var(--font-size-xs);
+  line-height: 1;
+}
+
+@keyframes ui-dataviz-appear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-metric-tile,
+  .ui-chart-frame {
+    animation: none;
+  }
+
+  .ui-progress-ring-value,
+  .ui-progress-bar-track::-webkit-progress-value {
+    transition: none;
+  }
+}

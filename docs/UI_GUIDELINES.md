@@ -9,7 +9,8 @@ Die globalen Tokens stehen in `src/styles/tokens.css`. Komponenten verwenden aus
 - Radien: `sm`, `md`, `lg`, `xl` und `round`;
 - Schatten: `sm`, `md` und `lg`;
 - Motion: kurze und normale Dauer sowie eine gemeinsame Easing-Kurve;
-- Farben: Surface, Text, Border, Accent, Danger, Fokus und Skeleton jeweils für Light und Dark.
+- Farben: Surface, Text, Border, Accent, Danger, Fokus und Skeleton jeweils für Light und Dark;
+- Dashboard: Flächen, Datenpalette, Diagrammhilfslinien und Verlauf, siehe „Dashboard-Visualisierung“.
 
 ## Accessibility-Regeln
 
@@ -57,6 +58,50 @@ Für den Tagesablauf gilt eine einheitliche Regel. Sie richtet sich danach, was 
 Konkret bedeutet das: „Wieder öffnen“ löscht den Tageseintrag samt Notiz und stellt ihn über „Rückgängig“ mit demselben Status und derselben Notiz wieder her. „Alle lokalen Daten löschen“ ist nicht umkehrbar und verlangt deshalb Bestätigung und einen vorherigen Sicherungsexport.
 
 Ein Hinweis mit „Rückgängig“ verschwindet erst, wenn er geschlossen wird oder die nächste Aktion folgt. Er blockiert die Oberfläche nicht.
+
+## Dashboard-Visualisierung
+
+Dashboard-, Fortschritts- und Tracker-Ansichten folgen einer gemeinsamen, dunkel geprägten Sprache. Sie ergänzt die bestehenden Tokens und ersetzt keine Accessibility-Regel.
+
+### Flächen und Tiefe
+
+- Der Seitengrund ist `--dashboard-canvas`, die Karte liegt mit `--dashboard-card` eine Helligkeitsstufe darüber, verschachtelte Flächen nutzen `--dashboard-card-raised`.
+- Trennung entsteht über Flächenhelligkeit, Radius und weichen Schatten. `--dashboard-hairline` bleibt eine 1-px-Linie und ersetzt keine Fläche.
+- Radien: Karte `--radius-lg` bis `--radius-xl`, Tile `--radius-md` bis `--radius-lg`, Pill `--radius-round`.
+- Dark-first bedeutet nicht „nur dunkel“. Jedes Token existiert für Light und Dark und ist im Kontrasttest abgedeckt.
+
+### Datenpalette
+
+- `--data-1` bis `--data-6` sind die einzigen Serien- und Kategoriefarben; `--data-1-soft` bis `--data-6-soft` sind ihre weichen Flächen.
+- Farbe ist immer Zusatz. Jede Serie trägt zusätzlich ein Label und ein Muster: `dataSeriesMarkers` liefert das Zeichen für Legenden, `dataSeriesDashes` das Strichmuster für Linien.
+- Datenfarben erreichen als grafisches Element mindestens 3:1 gegen Karte und Seitengrund. Zeichen auf einer weichen Fläche erreichen 4,5:1.
+- Verläufe sind ausschließlich Flächenschmuck, etwa `--gradient-hero`. Ein Verlauf codiert niemals eine Kategorie oder einen Status.
+- Glow und Neon werden nicht eingesetzt.
+
+### Zahlen und Zustände
+
+- Kennzahl-Tiles zeigen kleines Label, große Zahl und kurzen Kontexthinweis; Ziffern stehen tabellarisch.
+- Zahlen werden nicht gekürzt, solange die ausgeschriebene Entsprechung fehlt.
+- Ohne Datenbasis steht überall `Keine Angabe` statt `0 %`. Der Ring bleibt dann leer, der Balken entfällt.
+- Kennzahl-Tile, Ringfortschritt, Fortschrittsbalken, Ranglisten-Balken und Tracker-Zelle geben ihren Wert immer als Text aus. Ring, Balken und Sparkline sind Dekoration und `aria-hidden`.
+- Ein Gegenzähler wie „107 offen“ bleibt neutral und suggeriert keine Zielvorgabe. Für unterbrochene Serien gibt es kein Warnrot und keine künstliche Dringlichkeit.
+
+### Tracker-Raster
+
+- Zeilen sind Einträge, Spalten sind Tage. Jede Zelle trägt ein Zeichen und ein Textlabel; Farbe kommt zusätzlich dazu.
+- Eine Wochenfarbe aus der Datenpalette ist erlaubt. Die Wochengrenze bleibt zusätzlich über Abstand oder Spaltenkopf erkennbar.
+- Das Raster scrollt in `.ui-tracker-scroller` und erzeugt keinen Dokumentüberlauf. Der Container ist fokussierbar, damit er ohne Zeigegerät scrollbar bleibt.
+
+### Diagramme
+
+- Höchstens drei Serien je Diagramm, höchstens fünf Einträge je Ranglisten-Balkenliste.
+- Das Gitternetz nutzt `--chart-grid` und bleibt zurückhaltend; Beschriftungen erreichen den normalen Textkontrast.
+- Jedes Diagramm nennt Zeitraum und Datenbasis. `ChartFrame` erzwingt beides.
+- Diagramme werden aus SVG-Primitiven gebaut. Eine externe Chart-Bibliothek benötigt eine Begründung und ein ADR.
+
+### Motion
+
+Neue Bewegung beschränkt sich auf ein kurzes Einblenden und den Fortschrittsübergang mit `--duration-fast`. `prefers-reduced-motion: reduce` schaltet beides vollständig ab.
 
 ## Komponentenübersicht
 

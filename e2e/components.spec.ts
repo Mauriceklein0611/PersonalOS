@@ -47,3 +47,41 @@ test("keeps the component preview usable in dark mode at 320 pixels", async ({
   );
   expect(hasHorizontalOverflow).toBe(false);
 });
+
+test("shows every dashboard value as text and keeps the tracker scrollable", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/komponenten");
+
+  await expect(page.getByText("249")).toBeVisible();
+  await expect(page.getByText("71 %")).toBeVisible();
+  await expect(
+    page.getByText("Für diesen Zeitraum liegen keine Einträge vor."),
+  ).toBeVisible();
+
+  // Ohne Datenbasis steht überall der neutrale Text statt null Prozent.
+  await expect(page.getByText("Keine Angabe").first()).toBeVisible();
+
+  const tracker = page.getByRole("group", {
+    name: "Wochenraster, Normalzustand",
+  });
+  await expect(tracker).toBeVisible();
+
+  const trackerScrolls = await tracker.evaluate(
+    (element) => element.scrollWidth > element.clientWidth,
+  );
+  expect(trackerScrolls).toBe(true);
+
+  // Das eigene Scrollen des Rasters darf das Dokument nicht überlaufen lassen.
+  const hasHorizontalOverflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth,
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+
+  // Der Scroll-Container ist per Tastatur erreichbar.
+  await tracker.focus();
+  await expect(tracker).toBeFocused();
+});

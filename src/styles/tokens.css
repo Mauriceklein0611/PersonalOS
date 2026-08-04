@@ -73,6 +73,33 @@
 
   --control-height: 2.75rem;
   --mobile-nav-height: 4.5rem;
+
+  /* Dashboard-Flächen: Trennung über Helligkeit, Radius und Schatten. */
+  --dashboard-canvas: #e8ecf2;
+  --dashboard-card: #ffffff;
+  --dashboard-card-raised: #f3f6fa;
+  --dashboard-hairline: #d5dce6;
+
+  /* Datenpalette: nur Zusatz zu Text und Muster, niemals alleiniger Träger. */
+  --data-1: #1f7a3d;
+  --data-2: #0f6fbd;
+  --data-3: #6d3fd4;
+  --data-4: #8a5a12;
+  --data-5: #0d6d6a;
+  --data-6: #c02566;
+  --data-1-soft: #d8f0e0;
+  --data-2-soft: #d7ecfb;
+  --data-3-soft: #e6dcfb;
+  --data-4-soft: #f8e7c8;
+  --data-5-soft: #d3eeed;
+  --data-6-soft: #fbdde9;
+
+  --chart-grid: #dde3ec;
+  --chart-track: #d5dce6;
+  --chart-area-opacity: 0.24;
+
+  /* Verlauf ist Flächenschmuck und codiert niemals eine Kategorie. */
+  --gradient-hero: linear-gradient(135deg, #d8f0e0 0%, #d7ecfb 100%);
 }
 
 :root[data-theme="dark"] {
@@ -101,4 +128,28 @@
   --shadow-md: 0 1.25rem 3rem rgb(0 0 0 / 25%);
   --shadow-lg: 0 2rem 5rem rgb(0 0 0 / 45%);
   --shadow: var(--shadow-md);
+
+  --dashboard-canvas: #0b0f16;
+  --dashboard-card: #131a24;
+  --dashboard-card-raised: #1c2531;
+  --dashboard-hairline: #27313f;
+
+  --data-1: #4ade80;
+  --data-2: #38bdf8;
+  --data-3: #a78bfa;
+  --data-4: #fbbf24;
+  --data-5: #2dd4bf;
+  --data-6: #f472b6;
+  --data-1-soft: #10291a;
+  --data-2-soft: #0d2536;
+  --data-3-soft: #221a3d;
+  --data-4-soft: #33240a;
+  --data-5-soft: #0c2b2a;
+  --data-6-soft: #331327;
+
+  --chart-grid: #212c3a;
+  --chart-track: #232f3e;
+  --chart-area-opacity: 0.32;
+
+  --gradient-hero: linear-gradient(135deg, #16283c 0%, #241d3f 100%);
 }
