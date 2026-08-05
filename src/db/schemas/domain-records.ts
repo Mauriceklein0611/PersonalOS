@@ -124,7 +124,7 @@ export const journalEntrySchema = entityMetaSchema.safeExtend({
   body: longText.optional(),
 });
 
-export const goalSchema = entityMetaSchema.safeExtend({
+const goalFields = {
   title: shortText,
   description: longText.optional(),
   status: z.enum(["active", "paused", "completed", "cancelled"]),
@@ -132,16 +132,80 @@ export const goalSchema = entityMetaSchema.safeExtend({
   progressMode: z.enum(["milestones", "manual"]),
   manualProgress: z.number().min(0).max(100).optional(),
   completedAt: isoInstantSchema.optional(),
-});
+};
 
-export const goalMilestoneSchema = entityMetaSchema.safeExtend({
+/**
+ * `completedAt` existiert genau dann, wenn der Status `completed` ist. Ein
+ * manueller Fortschritt gehört nur zum manuellen Modus, damit beim Wechsel
+ * kein alter Wert stehen bleibt.
+ */
+const checkGoalConsistency = (
+  goal: {
+    completedAt?: string;
+    manualProgress?: number;
+    progressMode: "milestones" | "manual";
+    status: string;
+  },
+  context: z.RefinementCtx,
+) => {
+  const shouldBeCompleted = goal.status === "completed";
+  if (shouldBeCompleted !== (goal.completedAt !== undefined)) {
+    context.addIssue({
+      code: "custom",
+      message: "completedAt must match completed status",
+      path: ["completedAt"],
+    });
+  }
+
+  if (goal.progressMode !== "manual" && goal.manualProgress !== undefined) {
+    context.addIssue({
+      code: "custom",
+      message: "manualProgress belongs to the manual progress mode",
+      path: ["manualProgress"],
+    });
+  }
+};
+
+export const goalDetailsSchema = z
+  .object(goalFields)
+  .strict()
+  .superRefine(checkGoalConsistency);
+
+export const goalSchema = entityMetaSchema
+  .safeExtend(goalFields)
+  .superRefine(checkGoalConsistency);
+
+const goalMilestoneFields = {
   goalId: entityIdSchema,
   title: shortText,
   targetDate: calendarDaySchema.optional(),
   status: z.enum(["open", "completed"]),
   completedAt: isoInstantSchema.optional(),
   order: z.int().nonnegative(),
-});
+};
+
+const checkMilestoneConsistency = (
+  milestone: { completedAt?: string; status: string },
+  context: z.RefinementCtx,
+) => {
+  const shouldBeCompleted = milestone.status === "completed";
+  if (shouldBeCompleted !== (milestone.completedAt !== undefined)) {
+    context.addIssue({
+      code: "custom",
+      message: "completedAt must match completed status",
+      path: ["completedAt"],
+    });
+  }
+};
+
+export const goalMilestoneDetailsSchema = z
+  .object(goalMilestoneFields)
+  .strict()
+  .superRefine(checkMilestoneConsistency);
+
+export const goalMilestoneSchema = entityMetaSchema
+  .safeExtend(goalMilestoneFields)
+  .superRefine(checkMilestoneConsistency);
 
 const financeCategoryFields = {
   name: shortText,

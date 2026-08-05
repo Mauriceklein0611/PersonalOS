@@ -163,6 +163,15 @@ type GoalMilestone = EntityMeta & {
 
 Bei `milestones` ergibt sich Fortschritt aus abgeschlossenen, nicht archivierten Meilensteinen. Gewichtete Meilensteine sind erst eine spätere Erweiterung.
 
+Invarianten:
+
+- `completedAt` existiert genau dann, wenn der Status `completed` ist. Das gilt für Ziele und Meilensteine und wird im Schema geprüft.
+- `manualProgress` gehört ausschließlich zum Modus `manual`. Ein Wechsel auf `milestones` entfernt den Wert, statt ihn unsichtbar mitzuführen.
+- Fortschritt wird immer berechnet und nie gespeichert. Archivierte Meilensteine zählen weder im Zähler noch im Nenner, damit Aufräumen die Quote nicht rückwirkend verschlechtert.
+- Ein Ziel ohne Meilenstein und ein Ziel ohne Zieldatum sind gültige Zustände. Ohne Grundlage lautet der Fortschritt „Keine Angabe“ und nicht null Prozent.
+- Endzustände werden nicht direkt getauscht: Von `completed` oder `cancelled` führt der Weg zuerst zurück nach `active`.
+- Archivieren verändert weder Titel, Status noch Meilensteine eines Ziels.
+
 ## Finance
 
 ```ts
