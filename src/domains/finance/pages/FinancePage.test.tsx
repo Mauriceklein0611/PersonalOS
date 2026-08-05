@@ -11,6 +11,7 @@ import type {
 } from "../model";
 import type { TransactionFilter } from "../repository";
 import type { CategoryRemoval, FinanceService } from "../service";
+import { createMemorySavingsService } from "../../../test/factories/savings";
 import { FinancePage } from "./FinancePage";
 
 const fixedNow = new Date("2026-08-04T10:00:00.000Z");
@@ -19,6 +20,7 @@ function renderPage(service: FinanceService) {
   return render(
     <FinancePage
       now={() => fixedNow}
+      savingsService={createMemorySavingsService()}
       service={service}
       timeZone="Europe/Berlin"
     />,

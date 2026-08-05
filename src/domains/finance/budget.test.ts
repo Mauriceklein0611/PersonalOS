@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   calculateBudgetUsage,
   findBudget,
-  MixedCurrencyError,
   monthOfDay,
   shiftMonth,
 } from "./budget";
+import { MixedCurrencyError } from "./mixed-currency";
 import type { MonthlyBudget, Transaction } from "./model";
 
 const groceriesId = "00000000-0000-4000-8000-000000005101";
