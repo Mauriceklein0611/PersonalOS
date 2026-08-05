@@ -5,6 +5,7 @@ import { createTestDatabase, deleteTestDatabase } from "../../test/database";
 import type { Transaction } from "./model";
 import {
   createFinanceCategoryRepository,
+  createMonthlyBudgetRepository,
   createTransactionRepository,
 } from "./repository";
 import {
@@ -31,6 +32,7 @@ function buildService() {
       idGenerator: () => groceriesId,
     }),
     createTransactionRepository(database),
+    createMonthlyBudgetRepository(database),
   );
 }
 
@@ -85,6 +87,73 @@ describe("removeCategory", () => {
     expect(
       await service.listCategories({ includeArchived: true }),
     ).toHaveLength(0);
+  });
+});
+
+describe("setBudget", () => {
+  it("keeps at most one active budget per month and category", async () => {
+    const service = buildService();
+
+    const first = await service.setBudget({
+      categoryId: groceriesId,
+      limit: { amountMinor: 20_000, currency: "EUR" },
+      month: "2026-08",
+    });
+    const second = await service.setBudget({
+      categoryId: groceriesId,
+      limit: { amountMinor: 25_000, currency: "EUR" },
+      month: "2026-08",
+    });
+
+    expect(second.id).toBe(first.id);
+    expect(second.limit.amountMinor).toBe(25_000);
+    expect(await service.listBudgets("2026-08")).toHaveLength(1);
+  });
+
+  it("separates months and categories", async () => {
+    const service = buildService();
+    await service.setBudget({
+      categoryId: groceriesId,
+      limit: { amountMinor: 20_000, currency: "EUR" },
+      month: "2026-08",
+    });
+    await service.setBudget({
+      categoryId: groceriesId,
+      limit: { amountMinor: 18_000, currency: "EUR" },
+      month: "2026-09",
+    });
+    await service.setBudget({
+      categoryId: salaryId,
+      limit: { amountMinor: 5_000, currency: "EUR" },
+      month: "2026-08",
+    });
+
+    expect(await service.listBudgets("2026-08")).toHaveLength(2);
+    expect(await service.listBudgets("2026-09")).toHaveLength(1);
+  });
+
+  // Der eindeutige Index gilt datenbankweit. Ein archiviertes Budget würde die
+  // Kombination dauerhaft blockieren, deshalb wird endgültig entfernt.
+  it("frees the combination again after removal", async () => {
+    const service = buildService();
+    const budget = await service.setBudget({
+      categoryId: groceriesId,
+      limit: { amountMinor: 20_000, currency: "EUR" },
+      month: "2026-08",
+    });
+
+    await service.removeBudget(budget.id);
+    expect(await service.listBudgets("2026-08")).toHaveLength(0);
+
+    const replacement = await service.setBudget({
+      categoryId: groceriesId,
+      limit: { amountMinor: 9_000, currency: "EUR" },
+      month: "2026-08",
+    });
+
+    expect(replacement.id).not.toBe(budget.id);
+    expect(await service.listBudgets("2026-08")).toHaveLength(1);
+    expect(replacement.limit.amountMinor).toBe(9_000);
   });
 });
 

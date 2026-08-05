@@ -226,6 +226,10 @@ Invarianten:
 - Beträge werden ausschließlich als ganzzahlige Minor Units gerechnet. Die Anzahl der Nachkommastellen wird aus der Währung abgeleitet, nicht auf zwei festgelegt. Ein Saldo ist die ganzzahlige Differenz zweier Summen und niemals ein Gleitkommawert.
 - `financeCategories` und `transactions` existieren seit Schema v1. Der erste Umsetzungsstand in #17 brauchte deshalb keine Migration.
 - Ohne vorhandene Kategorie legt die Oberfläche einen synthetischen, vollständig editierbaren Startsatz an. Diese Namen sind Beispiele und keine Annahme über die Lebensumstände.
+- `monthlyBudgets` besitzt den eindeutigen Index `[month+categoryId]`. Er gilt **datenbankweit**, nicht nur für nicht archivierte Datensätze. Ein Budget wird deshalb endgültig entfernt statt archiviert; ein archivierter Datensatz würde die Kombination dauerhaft blockieren. Die Historie liegt in den Buchungen, nicht im Budget. Das Entfernen bietet ein „Rückgängig“, das denselben Stand wieder setzt.
+- Der Budgetverbrauch zählt ausschließlich nicht archivierte Ausgaben derselben Kategorie im gewählten lokalen Monat. Er wird berechnet und nie gespeichert.
+- Weicht die Währung einer Buchung vom Budgetlimit ab, wird die Aggregation verweigert und benannt, statt umzurechnen.
+- Ein Limit von null ist zulässig; die Quote bleibt dann ohne Angabe statt durch null zu teilen.
 - Sparbeiträge sind eigene Datensätze und keine normalen Ausgaben, sofern der Nutzer dies nicht ausdrücklich anders modelliert.
 
 ## Score-Konfiguration und Snapshots
