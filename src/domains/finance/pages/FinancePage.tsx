@@ -11,7 +11,6 @@ import {
   EmptyState,
   IconButton,
   Input,
-  MetricTile,
   ProgressBar,
   Select,
   Textarea,
@@ -43,14 +42,16 @@ import {
   type MonthlyBudget,
   type Transaction,
 } from "../model";
+import type { SavingsContribution, SavingsGoal } from "../model";
+import { buildMonthlyOverview } from "../overview";
 import { monthOf } from "../repository";
-import type { SavingsService } from "../savings-service";
 import {
-  calculateTotals,
-  personalOsFinanceService,
-  type FinanceService,
-} from "../service";
+  personalOsSavingsService,
+  type SavingsService,
+} from "../savings-service";
+import { personalOsFinanceService, type FinanceService } from "../service";
 import "./finance-page.css";
+import { MonthOverview } from "./MonthOverview";
 import { SavingsPanel } from "./SavingsPanel";
 
 /** Währungsumrechnung ist nicht im Scope; das MVP rechnet in einer Währung. */
@@ -70,7 +71,7 @@ export type FinancePageProps = {
 
 export function FinancePage({
   now = () => new Date(),
-  savingsService,
+  savingsService = personalOsSavingsService,
   service = personalOsFinanceService,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 }: FinancePageProps) {
@@ -103,6 +104,21 @@ export function FinancePage({
   const [monthFilter, setMonthFilter] = useState<string>(() => monthOf(today));
   const [kindFilter, setKindFilter] = useState<FinanceKind | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+  // Sparziele gehören zur Monatsübersicht und werden deshalb hier gehalten.
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
+  const [savingsContributions, setSavingsContributions] = useState<
+    SavingsContribution[]
+  >([]);
+
+  const reloadSavings = useCallback(async () => {
+    const [goals, contributions] = await Promise.all([
+      savingsService.listGoals(),
+      savingsService.listContributions(),
+    ]);
+    setSavingsGoals(goals);
+    setSavingsContributions(contributions);
+  }, [savingsService]);
 
   const reload = useCallback(async () => {
     const [storedCategories, storedTransactions, storedBudgets] =
@@ -143,13 +159,18 @@ export function FinancePage({
           await service.createCategory(details);
         }
       }
-      const [freshCategories, storedTransactions] = await Promise.all([
-        service.listCategories(),
-        service.listTransactions(),
-      ]);
+      const [freshCategories, storedTransactions, goals, contributions] =
+        await Promise.all([
+          service.listCategories(),
+          service.listTransactions(),
+          savingsService.listGoals(),
+          savingsService.listContributions(),
+        ]);
       if (!isCurrent) return;
       setCategories(freshCategories);
       setTransactions(storedTransactions);
+      setSavingsGoals(goals);
+      setSavingsContributions(contributions);
       setIsLoading(false);
     };
 
@@ -162,7 +183,7 @@ export function FinancePage({
     return () => {
       isCurrent = false;
     };
-  }, [service]);
+  }, [savingsService, service]);
 
   const categoriesById = useMemo(
     () => new Map(categories.map((category) => [category.id, category])),
@@ -190,10 +211,31 @@ export function FinancePage({
     [categoryFilter, kindFilter, monthFilter, transactions],
   );
 
-  const totals = useMemo(
-    () => calculateTotals(visibleTransactions, currency),
-    [visibleTransactions],
-  );
+  /*
+   * Die Monatsübersicht ist schreibgeschützt und wird bei jeder Änderung neu
+   * gerechnet. Gemischte Währungen werden benannt statt umgerechnet.
+   */
+  const monthOverview = useMemo(() => {
+    try {
+      return {
+        overview: buildMonthlyOverview({
+          budgets,
+          contributions: savingsContributions,
+          currency,
+          month: budgetMonth,
+          savingsGoals,
+          transactions,
+        }),
+      };
+    } catch (thrown) {
+      return {
+        error:
+          thrown instanceof MixedCurrencyError
+            ? thrown.message
+            : "Die Monatsübersicht konnte nicht berechnet werden.",
+      };
+    }
+  }, [budgetMonth, budgets, savingsContributions, savingsGoals, transactions]);
 
   // Gemischte Währungen werden nicht umgerechnet, sondern benannt.
   const budgetUsages = useMemo(
@@ -407,23 +449,16 @@ export function FinancePage({
         </p>
       ) : (
         <div className="page-grid">
-          <div className="finance-metrics" data-span="full">
-            <MetricTile
-              context="Im gewählten Zeitraum"
-              label="Einnahmen"
-              value={formatMoney(totals.income)}
-            />
-            <MetricTile
-              context="Im gewählten Zeitraum"
-              label="Ausgaben"
-              value={formatMoney(totals.expense)}
-            />
-            <MetricTile
-              context="Einnahmen abzüglich Ausgaben"
-              label="Saldo"
-              value={formatSignedMinorUnits(totals.balanceMinor, currency)}
-            />
-          </div>
+          <MonthOverview
+            categoriesById={categoriesById}
+            error={monthOverview.error}
+            monthLabel={formatMonth(budgetMonth)}
+            onNextMonth={() => setBudgetMonth((month) => shiftMonth(month, 1))}
+            onPreviousMonth={() =>
+              setBudgetMonth((month) => shiftMonth(month, -1))
+            }
+            overview={monthOverview.overview}
+          />
 
           <section className="page-section" data-span="full">
             <h2>Buchung erfassen</h2>
@@ -594,21 +629,10 @@ export function FinancePage({
 
           <section className="page-section">
             <h2>Budgets</h2>
-            <div className="finance-month-nav">
-              <Button
-                onClick={() => setBudgetMonth((month) => shiftMonth(month, -1))}
-                variant="secondary"
-              >
-                Vorheriger Monat
-              </Button>
-              <p className="finance-month-label">{formatMonth(budgetMonth)}</p>
-              <Button
-                onClick={() => setBudgetMonth((month) => shiftMonth(month, 1))}
-                variant="secondary"
-              >
-                Nächster Monat
-              </Button>
-            </div>
+            {/* Der Monat wird oben in der Übersicht gewählt und gilt hier mit. */}
+            <p className="finance-hint">
+              Budgets für {formatMonth(budgetMonth)}.
+            </p>
 
             <form
               className="finance-category-form"
@@ -714,6 +738,7 @@ export function FinancePage({
           <SavingsPanel
             currency={currency}
             now={now}
+            onChange={() => void reloadSavings()}
             service={savingsService}
             timeZone={timeZone}
           />

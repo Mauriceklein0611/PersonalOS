@@ -56,6 +56,8 @@ type SavingsUndoAction = {
 export type SavingsPanelProps = {
   currency?: string;
   now?: () => Date;
+  /** Meldet jede erfolgreiche Änderung, damit Auswertungen nachziehen. */
+  onChange?: () => void;
   service?: SavingsService;
   timeZone?: string;
 };
@@ -63,6 +65,7 @@ export type SavingsPanelProps = {
 export function SavingsPanel({
   currency = "EUR",
   now = () => new Date(),
+  onChange,
   service = personalOsSavingsService,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 }: SavingsPanelProps) {
@@ -157,13 +160,15 @@ export function SavingsPanel({
       try {
         await action();
         await reload();
+        // Der Sparstand steckt auch in der Monatsübersicht; sie zieht nach.
+        onChange?.();
         return true;
       } catch {
         setError(failure);
         return false;
       }
     },
-    [reload],
+    [onChange, reload],
   );
 
   function resetContributionForm() {

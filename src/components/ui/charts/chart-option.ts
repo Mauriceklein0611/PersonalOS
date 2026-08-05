@@ -40,7 +40,16 @@ export function buildChartOption({
   };
 
   const valueAxis = {
-    axisLabel: { color: theme.textMuted, fontSize: 11 },
+    axisLabel: {
+      color: theme.textMuted,
+      fontSize: 11,
+      /*
+       * Ohne eigenen Formatter beschriftet die Bibliothek die Rohwerte. Bei
+       * Geldbeträgen sind das Minor Units, also das Hundertfache des
+       * erwarteten Betrags.
+       */
+      formatter: (value: number) => formatValue(value),
+    },
     axisLine: { show: false },
     // Zurückhaltendes Gitternetz: nur Hilfslinien quer zur Kategorieachse.
     splitLine: { lineStyle: { color: theme.grid, type: "dashed" as const } },
@@ -50,9 +59,11 @@ export function buildChartOption({
   return {
     animation: !prefersReducedMotion(),
     animationDuration: 180,
-    // Feste Ränder statt `containLabel`: Das ist in ECharts 6 der unterstützte
-    // Weg und lässt Achsenbeschriftungen zuverlässig Platz.
-    grid: { bottom: 34, left: 44, right: 12, top: 12 },
+    /*
+     * Feste Ränder statt `containLabel`: Das ist in ECharts 6 der unterstützte
+     * Weg. Der linke Rand fasst auch einen formatierten Geldbetrag.
+     */
+    grid: { bottom: 34, left: horizontal ? 96 : 76, right: 12, top: 12 },
     series: series.map((entry, index) =>
       toSeriesOption(entry, theme, type, index),
     ),

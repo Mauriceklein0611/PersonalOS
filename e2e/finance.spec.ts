@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 test("records income and expenses and protects used categories", async ({
   page,
@@ -102,6 +102,20 @@ test("records income and expenses and protects used categories", async ({
   await page.getByRole("button", { name: "Nächster Monat" }).click();
   await expect(emptyBudget).toHaveCount(0);
 
+  // Die Monatsübersicht nennt Zeitraum und Währung und erklärt den fehlenden
+  // Vormonatsvergleich, statt ihn als 0 Prozent zu erfinden.
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Monatsübersicht" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Kein Vormonatsvergleich: Für den Vormonat/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("table", {
+      name: "Größte Ausgabenkategorien: Werte als Tabelle",
+    }),
+  ).toBeAttached();
+
   const hasHorizontalOverflow = await page.evaluate(
     () =>
       document.documentElement.scrollWidth >
@@ -116,8 +130,10 @@ test("tracks a savings goal only through its contributions", async ({
   await page.setViewportSize({ width: 320, height: 720 });
   await page.goto("/finanzen");
 
+  // Die Monatsübersicht zeigt denselben Sparstand; gemeint ist hier das Panel.
+  const panel = page.locator(".savings-panel");
   await expect(
-    page.getByRole("heading", { level: 2, name: "Sparziele" }),
+    panel.getByRole("heading", { level: 2, name: "Sparziele" }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 3, name: "Kein Sparziel" }),
@@ -142,12 +158,12 @@ test("tracks a savings goal only through its contributions", async ({
   await page.getByRole("textbox", { name: /Beitrag in Euro/ }).fill("250,00");
   await page.getByRole("button", { name: "Beitrag hinzufügen" }).click();
 
-  await expect(page.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
-  await expect(page.getByText(/Noch offen: .*750,00/)).toBeVisible();
+  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+  await expect(panel.getByText(/Noch offen: .*750,00/)).toBeVisible();
 
   // Der Stand kommt aus den Beiträgen und überlebt einen Neustart.
   await page.reload();
-  await expect(page.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
 
   await page
     .getByRole("button", {
@@ -157,9 +173,9 @@ test("tracks a savings goal only through its contributions", async ({
   await page
     .getByRole("button", { name: /Beitrag vom .* zurücknehmen/ })
     .click();
-  await expect(page.getByText(/0,00.*von.*1\.000,00/)).toBeVisible();
+  await expect(panel.getByText(/0,00.*von.*1\.000,00/)).toBeVisible();
   await page.getByRole("button", { name: "Rückgängig" }).click();
-  await expect(page.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
 
   // Endgültiges Löschen nennt vorher die betroffenen Beiträge.
   await page

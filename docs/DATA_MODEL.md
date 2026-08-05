@@ -237,6 +237,10 @@ Invarianten:
 - `targetDate` ist optional. Ein Sparziel ohne Frist ist ein gültiger Zustand und keine unvollständige Eingabe.
 - `savingsGoals` und `savingsContributions` existieren seit Schema v1. Der Umsetzungsstand in #19 brauchte deshalb keine Migration.
 - Das endgültige Löschen eines Sparziels entfernt seine Beiträge in derselben Transaktion und nennt vorher deren Anzahl. Verwaiste Beiträge entstehen dadurch nicht; der Restore prüft diese Referenz zusätzlich.
+- Die Monatsübersicht (`src/domains/finance/overview.ts`) ist eine reine Leseauswertung. Sie wird bei jeder Änderung neu berechnet und niemals gespeichert; keine Buchung wird dabei verändert.
+- Sie zählt ausschließlich nicht archivierte Buchungen des gewählten Kalendermonats. Der Sparstand ist dagegen kumulativ und nicht auf den Monat begrenzt, weil ein Sparziel über Monate hinweg wächst.
+- Weicht die Währung einer Buchung oder eines Budgets ab, wird die Auswertung verweigert und benannt, statt umzurechnen.
+- Fehlen Vormonatsdaten, meldet der Vergleich `unavailable` mit einer Begründung. Eine erfundene Null wäre eine Aussage über einen Monat, für den nichts vorliegt. Liegen die Ausgaben des Vormonats bei null, bleibt die relative Änderung ohne Angabe; die absolute Differenz bleibt gültig.
 
 ## Score-Konfiguration und Snapshots
 
