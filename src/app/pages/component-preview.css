@@ -3,6 +3,14 @@
   gap: var(--space-8);
 }
 
+/* Grid-Items dürfen nicht auf ihren Inhalt wachsen, sonst läuft ein breites
+   Raster über das Dokument statt in seinem eigenen Container zu scrollen. */
+.component-preview > *,
+.preview-grid > *,
+.preview-stack > * {
+  min-width: 0;
+}
+
 .component-preview-header,
 .preview-section {
   padding: clamp(var(--space-5), 5vw, var(--space-10));
@@ -41,6 +49,63 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface-muted);
+}
+
+.preview-grid-dashboard .preview-item {
+  border-color: var(--dashboard-hairline);
+  background: var(--dashboard-canvas);
+}
+
+.preview-grid-dashboard .preview-item > * {
+  width: 100%;
+}
+
+/* Die Dashboard-Bausteine stehen auf ihrer eigenen, dunkel geprägten Fläche. */
+.preview-canvas {
+  padding: clamp(var(--space-3), 4vw, var(--space-5));
+  border: 1px solid var(--dashboard-hairline);
+  border-radius: var(--radius-xl);
+  background: var(--dashboard-canvas);
+}
+
+.preview-stack {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+/* Der simulierte Fokusring wird außerhalb der Box gezeichnet und braucht
+   Platz, damit die Vorschau selbst keinen Dokumentüberlauf erzeugt. */
+.preview-force-focus > .ui-tracker-scroller {
+  margin: 0.375rem;
+}
+
+.preview-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.preview-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  list-style: none;
+}
+
+.preview-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.preview-tracker-rate {
+  min-width: 9rem;
 }
 
 .preview-item > span:first-child {
