@@ -4,7 +4,12 @@
   position: relative;
 }
 
+/*
+ * `--glass-strong` gilt nur innerhalb einer Karte. Der Leerzustand liegt
+ * direkt auf dem Nebel und ist deshalb selbst eine Karte.
+ */
 .task-quick-capture,
+.task-view-state,
 .task-card {
   min-width: 0;
   border: 1px solid var(--edge);
@@ -75,11 +80,8 @@
 .task-view-state {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-8);
-  border: 1px dashed var(--edge-strong);
-  border-radius: var(--radius-xl);
+  padding: var(--space-6);
   color: var(--text-muted);
-  background: var(--glass-strong);
 }
 
 .task-list {
@@ -207,6 +209,7 @@
 
 @supports not (backdrop-filter: blur(1px)) {
   .task-quick-capture,
+  .task-view-state,
   .task-card {
     background: var(--glass-opaque);
     backdrop-filter: none;
@@ -215,6 +218,7 @@
 
 @media (prefers-reduced-transparency: reduce) {
   .task-quick-capture,
+  .task-view-state,
   .task-card {
     background: var(--glass-opaque);
     backdrop-filter: none;

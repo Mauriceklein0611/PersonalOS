@@ -267,8 +267,8 @@ export function TodayPage({
           Tagesübersicht wird geladen …
         </p>
       ) : (
-        <>
-          <div className="today-metrics">
+        <div className="page-grid">
+          <div className="today-metrics" data-span="full">
             <MetricTile
               context={
                 overview.overdueTaskCount > 0
@@ -300,6 +300,7 @@ export function TodayPage({
 
           <form
             className="today-quick-capture"
+            data-span="full"
             onSubmit={(event) => void quickCreateTask(event)}
           >
             <Input
@@ -408,7 +409,7 @@ export function TodayPage({
             </p>
             <Link to="/journal">Journal öffnen</Link>
           </div>
-        </>
+        </div>
       )}
 
       {notice ? (

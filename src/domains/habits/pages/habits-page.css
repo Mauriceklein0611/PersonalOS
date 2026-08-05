@@ -78,11 +78,8 @@
 }
 
 .habit-view-status {
-  padding: var(--space-8);
-  border: 1px dashed var(--edge-strong);
-  border-radius: var(--radius-lg);
+  padding: var(--space-6);
   color: var(--text-muted);
-  background: var(--glass-strong);
 }
 
 .habit-card-list {
@@ -94,6 +91,7 @@
 /* Karten liegen als oberste Ebene über dem Nebel und tragen deshalb Blur. */
 .habit-card,
 .habit-progress-card,
+.habit-view-status,
 .habit-week-card {
   display: grid;
   min-width: 0;
@@ -109,6 +107,7 @@
 @supports not (backdrop-filter: blur(1px)) {
   .habit-card,
   .habit-progress-card,
+  .habit-view-status,
   .habit-week-card {
     background: var(--glass-opaque);
     backdrop-filter: none;
@@ -118,6 +117,7 @@
 @media (prefers-reduced-transparency: reduce) {
   .habit-card,
   .habit-progress-card,
+  .habit-view-status,
   .habit-week-card {
     background: var(--glass-opaque);
     backdrop-filter: none;

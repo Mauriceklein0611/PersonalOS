@@ -16,33 +16,37 @@ const themes = {
     canvasStops: ["#2a1030", "#3a1226", "#241030"],
     /** Nebelflecken; sie überlappen einander nicht. */
     blobs: [
-      rgba(255, 178, 125, 0.3),
-      rgba(255, 143, 179, 0.3),
-      rgba(199, 139, 255, 0.26),
-      rgba(255, 216, 138, 0.24),
+      rgba(255, 178, 125, 0.5),
+      rgba(255, 143, 179, 0.52),
+      rgba(199, 139, 255, 0.44),
+      rgba(255, 216, 138, 0.4),
     ],
+    /** `brightness` aus `--blur-glass`; der Filter dimmt den Untergrund. */
+    backdropBrightness: 0.6,
     glass: rgba(255, 255, 255, 0.09),
-    glassStrong: rgba(255, 255, 255, 0.12),
+    glassStrong: rgba(255, 255, 255, 0.11),
     glassOpaque: "#3a2040",
     field: rgba(46, 24, 55, 0.92),
     text: "#f4f6ff",
     textMuted: rgba(226, 232, 255, 1),
     accents: ["#ffb27d", "#ff8fb3"],
     accentContrast: "#33130a",
-    danger: "#ffe2dc",
+    danger: "#ffe8e3",
     dangerContrast: "#24100d",
-    focusRing: "#7dd3fc",
+    focusRing: "#bae6fd",
     edgeStrong: rgba(255, 255, 255, 0.6),
     data: ["#ffd88a", "#ffb27d", "#ff9dbd", "#d5a6ff", "#ff9d9d", "#f0e08a"],
   },
   light: {
     canvasStops: ["#e8ecfb", "#f2e9f8", "#e4f2f0"],
     blobs: [
-      rgba(124, 199, 255, 0.34),
-      rgba(196, 168, 255, 0.34),
-      rgba(126, 240, 200, 0.3),
-      rgba(255, 158, 209, 0.26),
+      rgba(90, 210, 255, 0.45),
+      rgba(178, 150, 255, 0.45),
+      rgba(120, 245, 200, 0.42),
+      rgba(255, 150, 205, 0.4),
     ],
+    /** Hier hebt der Filter den Untergrund an, statt ihn zu dimmen. */
+    backdropBrightness: 1.06,
     glass: rgba(255, 255, 255, 0.52),
     glassStrong: rgba(255, 255, 255, 0.72),
     glassOpaque: "#f4f7ff",
@@ -88,17 +92,34 @@ function pickExtreme(theme: ThemeName, colors: readonly Rgba[]): Rgba {
   );
 }
 
-/** Alle Flächen, auf denen in dieser Ansicht Text oder Grafik landen kann. */
+/**
+ * Alle Flächen, auf denen in dieser Ansicht Text oder Grafik landen kann,
+ * in derselben Reihenfolge geschichtet wie im Browser: Der Filter dimmt oder
+ * hebt den Nebel unter der Karte, darüber liegt der weiße Schleier.
+ *
+ * `--glass-strong` erscheint ausschließlich innerhalb einer Karte und liegt
+ * deshalb auf der bereits gefilterten Glasfläche, nicht auf dem rohen Nebel.
+ */
 function surfaces(theme: ThemeName): Array<{ color: Rgba; name: string }> {
   const backdrop = worstBackdrop(theme);
-  const { field, glass, glassOpaque, glassStrong } = themes[theme];
+  const { backdropBrightness, field, glass, glassOpaque, glassStrong } =
+    themes[theme];
+  const filtered = scale(backdrop, backdropBrightness);
+  const glassSurface = composite(glass, filtered);
 
   return [
-    { color: composite(glass, backdrop), name: "glass" },
-    { color: composite(glassStrong, backdrop), name: "glass-strong" },
+    { color: glassSurface, name: "glass" },
+    { color: composite(glassStrong, glassSurface), name: "glass-strong" },
     { color: parseHex(glassOpaque), name: "glass-opaque" },
     { color: composite(field, backdrop), name: "field" },
   ];
+}
+
+/** `brightness()` multipliziert jeden Farbkanal, siehe Filter-Effects-Spec. */
+function scale(color: Rgba, factor: number): Rgba {
+  const clamp = (channel: number) =>
+    Math.min(255, Math.max(0, channel * factor));
+  return rgba(clamp(color.red), clamp(color.green), clamp(color.blue), 1);
 }
 
 describe.each(themeNames)("glass palette %s", (theme) => {

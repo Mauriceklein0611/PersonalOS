@@ -18,12 +18,17 @@ html {
   min-height: 100%;
 }
 
+/*
+ * `body` bekommt bewusst keine Fläche. Der Nebel in `.app-canvas` liegt auf
+ * `z-index: -1` und würde sonst von der eigenen Fläche des Body verdeckt:
+ * Negative Ebenen zeichnen vor dem Inhalt des Wurzelkontexts, und der Body
+ * ist dieser Inhalt. Der deckende Notfarbton steht auf `:root`.
+ */
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
   color: var(--text);
-  background: var(--canvas-base);
 }
 
 button,
@@ -183,6 +188,23 @@ a {
   min-height: 24rem;
   align-content: start;
   gap: var(--space-4);
+}
+
+/*
+ * Karten stehen ab genügend Breite nebeneinander statt gestapelt. Ein Block
+ * mit `data-span="full"` bleibt über die volle Breite, etwa der Seitenkopf
+ * oder ein Raster, das seine eigene Breite braucht.
+ */
+.page-grid {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.page-grid > * {
+  min-width: 0;
 }
 
 .page-eyebrow,
@@ -373,6 +395,16 @@ a {
 @media (min-width: 40rem) {
   .page-header {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (min-width: 64rem) {
+  .page-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-grid > [data-span="full"] {
+    grid-column: 1 / -1;
   }
 }
 
