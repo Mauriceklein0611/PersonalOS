@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { personalOsDatabase, type PersonalOsDatabase } from "../../db/database";
 import { PersistenceError, toPersistenceError } from "../../db/errors";
-import type { Repository } from "../../db/repositories/contracts";
+import type { ListOptions, Repository } from "../../db/repositories/contracts";
 import { DexieRepository } from "../../db/repositories/dexie-repository";
 import type { EntityMeta, EntityMetadataDependencies } from "../../db/types";
 import {
@@ -10,11 +10,16 @@ import {
   type CalendarDay,
 } from "../../lib/dates/date-values";
 import { entityIdSchema } from "../../lib/identifiers/entity-id";
+import { sortContributions } from "./savings";
 import {
   financeCategoryDetailsSchema,
   financeCategorySchema,
   monthlyBudgetDetailsSchema,
   monthlyBudgetSchema,
+  savingsContributionDetailsSchema,
+  savingsContributionSchema,
+  savingsGoalDetailsSchema,
+  savingsGoalSchema,
   transactionDetailsSchema,
   transactionSchema,
   type FinanceCategory,
@@ -22,6 +27,10 @@ import {
   type FinanceKind,
   type MonthlyBudget,
   type MonthlyBudgetDetails,
+  type SavingsContribution,
+  type SavingsContributionDetails,
+  type SavingsGoal,
+  type SavingsGoalDetails,
   type Transaction,
   type TransactionDetails,
 } from "./model";
@@ -180,8 +189,87 @@ export function createMonthlyBudgetRepository(
   });
 }
 
+export type SavingsGoalRepository = Repository<SavingsGoal, SavingsGoalDetails>;
+
+export type SavingsContributionRepository = Repository<
+  SavingsContribution,
+  SavingsContributionDetails
+> & {
+  listForGoal(
+    savingsGoalId: string,
+    options?: ListOptions,
+  ): Promise<SavingsContribution[]>;
+};
+
+export function createSavingsGoalRepository(
+  database: PersonalOsDatabase,
+  dependencies: EntityMetadataDependencies = {},
+): SavingsGoalRepository {
+  return new DexieRepository<SavingsGoal, SavingsGoalDetails>({
+    clock: dependencies.clock,
+    createEntity: (input: SavingsGoalDetails, metadata: EntityMeta) => ({
+      ...metadata,
+      ...input,
+    }),
+    createSchema: savingsGoalDetailsSchema,
+    database,
+    entitySchema: savingsGoalSchema,
+    idGenerator: dependencies.idGenerator,
+    tableName: "savingsGoals",
+  });
+}
+
+export function createSavingsContributionRepository(
+  database: PersonalOsDatabase,
+  dependencies: EntityMetadataDependencies = {},
+): SavingsContributionRepository {
+  const records = new DexieRepository<
+    SavingsContribution,
+    SavingsContributionDetails
+  >({
+    clock: dependencies.clock,
+    createEntity: (
+      input: SavingsContributionDetails,
+      metadata: EntityMeta,
+    ) => ({
+      ...metadata,
+      ...input,
+    }),
+    createSchema: savingsContributionDetailsSchema,
+    database,
+    entitySchema: savingsContributionSchema,
+    idGenerator: dependencies.idGenerator,
+    tableName: "savingsContributions",
+  });
+
+  return Object.assign(records, {
+    async listForGoal(savingsGoalId: string, options: ListOptions = {}) {
+      try {
+        const validId = parse(entityIdSchema, savingsGoalId);
+        const rows = await database
+          .table<SavingsContribution>("savingsContributions")
+          .where("savingsGoalId")
+          .equals(validId)
+          .toArray();
+        const parsed = rows.map((row) => parse(savingsContributionSchema, row));
+        return sortContributions(
+          options.includeArchived
+            ? parsed
+            : parsed.filter((row) => row.archivedAt === undefined),
+        );
+      } catch (error) {
+        throw toPersistenceError(error);
+      }
+    },
+  });
+}
+
 export const personalOsFinanceCategoryRepository =
   createFinanceCategoryRepository(personalOsDatabase);
+export const personalOsSavingsContributionRepository =
+  createSavingsContributionRepository(personalOsDatabase);
+export const personalOsSavingsGoalRepository =
+  createSavingsGoalRepository(personalOsDatabase);
 export const personalOsMonthlyBudgetRepository =
   createMonthlyBudgetRepository(personalOsDatabase);
 export const personalOsTransactionRepository =

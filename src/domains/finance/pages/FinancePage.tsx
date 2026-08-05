@@ -17,12 +17,8 @@ import {
   Textarea,
   Toast,
 } from "../../../components/ui";
-import {
-  calculateBudgetUsage,
-  MixedCurrencyError,
-  shiftMonth,
-  type BudgetUsage,
-} from "../budget";
+import { calculateBudgetUsage, shiftMonth, type BudgetUsage } from "../budget";
+import { MixedCurrencyError } from "../mixed-currency";
 import { calendarDayForInstant } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import {
@@ -48,12 +44,14 @@ import {
   type Transaction,
 } from "../model";
 import { monthOf } from "../repository";
+import type { SavingsService } from "../savings-service";
 import {
   calculateTotals,
   personalOsFinanceService,
   type FinanceService,
 } from "../service";
 import "./finance-page.css";
+import { SavingsPanel } from "./SavingsPanel";
 
 /** Währungsumrechnung ist nicht im Scope; das MVP rechnet in einer Währung. */
 const currency = "EUR";
@@ -65,12 +63,14 @@ type FinanceUndoAction = {
 
 export type FinancePageProps = {
   now?: () => Date;
+  savingsService?: SavingsService;
   service?: FinanceService;
   timeZone?: string;
 };
 
 export function FinancePage({
   now = () => new Date(),
+  savingsService,
   service = personalOsFinanceService,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 }: FinancePageProps) {
@@ -710,6 +710,13 @@ export function FinancePage({
               </ul>
             )}
           </section>
+
+          <SavingsPanel
+            currency={currency}
+            now={now}
+            service={savingsService}
+            timeZone={timeZone}
+          />
 
           <section className="page-section">
             <h2>Kategorien</h2>

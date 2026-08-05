@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { Chart } from "./Chart";
@@ -53,12 +53,11 @@ describe("Chart", () => {
     expect(screen.getByRole("list").children).toHaveLength(3);
     expect(screen.queryByText("D")).not.toBeInTheDocument();
     // Die Grafik lädt nach; sie bleibt in jedem Zustand rein dekorativ.
-    await waitFor(() =>
-      expect(screen.getByTestId("chart-plot")).toHaveAttribute(
-        "aria-hidden",
-        "true",
-      ),
-    );
+    const plot = await screen.findByTestId("chart-plot");
+    expect(plot).toHaveAttribute("aria-hidden", "true");
+    // Ohne den Ersatz zöge dieser Test die ganze Bibliothek nach und liefe
+    // unter paralleler Last in die Wartezeit.
+    expect(plot).toHaveAttribute("data-chart-stub", "true");
   });
 
   it("names missing values instead of drawing a zero", () => {

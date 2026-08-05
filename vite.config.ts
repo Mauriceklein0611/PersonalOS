@@ -71,7 +71,12 @@ export default defineConfig({
      */
     alias: [
       {
-        find: /\/charts\/ChartCanvas$/,
+        /*
+         * Der Ausdruck verbraucht den gesamten Bezeichner. Ein Teiltreffer
+         * würde nur den passenden Abschnitt ersetzen und einen ungültigen
+         * Pfad hinterlassen. Gemeint ist der Import in `Chart.tsx`.
+         */
+        find: /^\.\/ChartCanvas$/,
         replacement: fromHere("./src/test/chart-canvas-stub.tsx"),
       },
     ],

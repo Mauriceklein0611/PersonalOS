@@ -5,6 +5,10 @@ import {
   financeCategorySchema,
   monthlyBudgetDetailsSchema,
   monthlyBudgetSchema,
+  savingsContributionDetailsSchema,
+  savingsContributionSchema,
+  savingsGoalDetailsSchema,
+  savingsGoalSchema,
   transactionDetailsSchema,
   transactionSchema,
 } from "../../db/schemas/domain-records";
@@ -14,6 +18,10 @@ export {
   financeCategorySchema,
   monthlyBudgetDetailsSchema,
   monthlyBudgetSchema,
+  savingsContributionDetailsSchema,
+  savingsContributionSchema,
+  savingsGoalDetailsSchema,
+  savingsGoalSchema,
   transactionDetailsSchema,
   transactionSchema,
 };
@@ -34,4 +42,24 @@ export const financeKinds = ["income", "expense"] as const;
 export const financeKindLabels: Record<FinanceKind, string> = {
   expense: "Ausgabe",
   income: "Einnahme",
+};
+
+export type SavingsGoal = z.infer<typeof savingsGoalSchema>;
+export type SavingsGoalDetails = z.infer<typeof savingsGoalDetailsSchema>;
+export type SavingsGoalStatus = SavingsGoal["status"];
+export type SavingsContribution = z.infer<typeof savingsContributionSchema>;
+export type SavingsContributionDetails = z.infer<
+  typeof savingsContributionDetailsSchema
+>;
+
+export const savingsGoalStatuses = [
+  "active",
+  "completed",
+  "cancelled",
+] as const;
+
+export const savingsGoalStatusLabels: Record<SavingsGoalStatus, string> = {
+  active: "Aktiv",
+  cancelled: "Abgebrochen",
+  completed: "Abgeschlossen",
 };

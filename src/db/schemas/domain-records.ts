@@ -250,19 +250,31 @@ export const monthlyBudgetDetailsSchema = z
 export const monthlyBudgetSchema =
   entityMetaSchema.safeExtend(monthlyBudgetFields);
 
-export const savingsGoalSchema = entityMetaSchema.safeExtend({
+const savingsGoalFields = {
   name: shortText,
   target: moneySchema,
   targetDate: calendarDaySchema.optional(),
   status: z.enum(["active", "completed", "cancelled"]),
-});
+};
 
-export const savingsContributionSchema = entityMetaSchema.safeExtend({
+export const savingsGoalDetailsSchema = z.object(savingsGoalFields).strict();
+
+export const savingsGoalSchema = entityMetaSchema.safeExtend(savingsGoalFields);
+
+const savingsContributionFields = {
   savingsGoalId: entityIdSchema,
   money: moneySchema,
   bookedOn: calendarDaySchema,
   note: longText.optional(),
-});
+};
+
+export const savingsContributionDetailsSchema = z
+  .object(savingsContributionFields)
+  .strict();
+
+export const savingsContributionSchema = entityMetaSchema.safeExtend(
+  savingsContributionFields,
+);
 
 export const scoreSettingsSchema = entityMetaSchema.safeExtend({
   enabled: z.boolean(),
