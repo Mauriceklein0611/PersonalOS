@@ -10,6 +10,8 @@ export type HabitFormValues = {
   count: string;
   description: string;
   endDate: string;
+  /** Optionale Zielreferenz. Leer bedeutet: gehört zu keinem Ziel. */
+  goalId: string;
   name: string;
   scheduleKind: HabitSchedule["kind"];
   startDate: string;
@@ -73,6 +75,9 @@ export function parseHabitFormValues(
     ...preserved,
     description: description || undefined,
     endDate: values.endDate || undefined,
+    // Das Formular gewinnt über den erhaltenen Wert, damit ein Entfernen der
+    // Verknüpfung nicht still zurückgesetzt wird.
+    goalId: values.goalId || undefined,
     name,
     schedule,
     startDate: values.startDate,
@@ -96,6 +101,7 @@ export function habitToFormValues(
         : "3",
     description: habit?.description ?? "",
     endDate: habit?.endDate ?? "",
+    goalId: habit?.goalId ?? "",
     name: habit?.name ?? "",
     scheduleKind: habit?.schedule.kind ?? "daily",
     startDate: habit?.startDate ?? today,

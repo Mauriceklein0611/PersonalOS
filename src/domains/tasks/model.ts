@@ -37,6 +37,8 @@ export const taskDetailsSchema = z
     plannedDate: calendarDaySchema.optional(),
     estimatedMinutes: z.int().positive().max(100_000).optional(),
     categoryId: entityIdSchema.optional(),
+    /** Optionale Zielreferenz; schnelle Erfassung bleibt ohne sie möglich. */
+    goalId: entityIdSchema.optional(),
   })
   .strict()
   .superRefine((details, context) => {
