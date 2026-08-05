@@ -2,12 +2,10 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { ChartFrame } from "./ChartFrame";
 import { MetricTile } from "./MetricTile";
 import { ProgressBar } from "./ProgressBar";
 import { ProgressRing } from "./ProgressRing";
 import { RankedBarList } from "./RankedBarList";
-import { Sparkline } from "./Sparkline";
 import { TrackerCell } from "./TrackerCell";
 import {
   dataSeriesDashes,
@@ -38,22 +36,17 @@ describe("formatRatio", () => {
 });
 
 describe("MetricTile", () => {
-  it("shows the value as text and keeps the sparkline decorative", () => {
-    const { container } = render(
+  it("shows the value and its context as text", () => {
+    render(
       <MetricTile
         context="Diese Woche"
         label="Erledigte Aufgaben"
-        sparkline={[2, 5, 3, 8]}
         value="249"
       />,
     );
 
     expect(screen.getByText("249")).toBeInTheDocument();
     expect(screen.getByText("Diese Woche")).toBeInTheDocument();
-    expect(container.querySelector(".ui-sparkline")).toHaveAttribute(
-      "aria-hidden",
-      "true",
-    );
   });
 
   it("falls back to a neutral text instead of a zero value", () => {
@@ -215,72 +208,20 @@ describe("TrackerCell", () => {
   });
 });
 
-describe("Sparkline", () => {
-  it("draws at most three series and marks each one with its own pattern", () => {
-    const { container } = render(
-      <Sparkline
-        series={[
-          { id: "a", label: "A", points: [1, 4, 2], tone: 1 },
-          { id: "b", label: "B", points: [2, 3, 5], tone: 2 },
-          { id: "c", label: "C", points: [5, 1, 3], tone: 3 },
-          { id: "d", label: "D", points: [3, 3, 3], tone: 4 },
-        ]}
-      />,
+describe("ProgressRing glow", () => {
+  it("marks the glow only when a value exists", () => {
+    const { container, rerender } = render(
+      <ProgressRing glow label="Tagesfortschritt" value={0.5} />,
+    );
+    expect(container.querySelector(".ui-progress-ring")).toHaveAttribute(
+      "data-glow",
+      "true",
     );
 
-    const lines = container.querySelectorAll(".ui-sparkline-line");
-    expect(lines).toHaveLength(3);
-    expect(lines[1]).toHaveAttribute("stroke-dasharray", "7 4");
-  });
-
-  it("renders nothing without points", () => {
-    const { container } = render(<Sparkline series={[]} />);
-
-    expect(container).toBeEmptyDOMElement();
-  });
-});
-
-describe("ChartFrame", () => {
-  it("names period and data basis and labels every legend entry", () => {
-    render(
-      <ChartFrame
-        legend={[
-          { id: "a", label: "Erledigte Aufgaben", tone: 1 },
-          { id: "b", label: "Geplante Aufgaben", tone: 2 },
-        ]}
-        period="1. bis 7. August"
-        source="Grundlage: lokale Aufgaben dieser Woche"
-        title="Wochenverlauf"
-      >
-        <Sparkline
-          series={[{ id: "a", label: "A", points: [1, 3, 2], tone: 1 }]}
-        />
-      </ChartFrame>,
+    rerender(<ProgressRing glow label="Tagesfortschritt" value={null} />);
+    expect(container.querySelector(".ui-progress-ring")).toHaveAttribute(
+      "data-glow",
+      "false",
     );
-
-    expect(screen.getByText("1. bis 7. August")).toBeInTheDocument();
-    expect(
-      screen.getByText("Grundlage: lokale Aufgaben dieser Woche"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Erledigte Aufgaben")).toBeInTheDocument();
-    expect(screen.getByText("Geplante Aufgaben")).toBeInTheDocument();
-  });
-
-  it("keeps period and data basis visible in the empty state", () => {
-    render(
-      <ChartFrame
-        emptyMessage="Für diesen Zeitraum liegen keine Einträge vor."
-        period="1. bis 7. August"
-        source="Grundlage: lokale Aufgaben dieser Woche"
-        title="Wochenverlauf"
-      />,
-    );
-
-    expect(
-      screen.getByText("Für diesen Zeitraum liegen keine Einträge vor."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Grundlage: lokale Aufgaben dieser Woche"),
-    ).toBeInTheDocument();
   });
 });

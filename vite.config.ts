@@ -5,6 +5,14 @@ import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  build: {
+    /*
+     * Terser statt esbuild: Der Diagramm-Chunk muss unter dem in ADR 0008
+     * festgelegten Budget von 180 KB gzip bleiben, und esbuild kommt hier
+     * knapp darüber heraus.
+     */
+    minify: "terser",
+  },
   plugins: [
     react(),
     VitePWA({

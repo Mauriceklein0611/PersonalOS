@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react";
 import {
   Button,
   Card,
-  ChartFrame,
+  Chart,
   Checkbox,
   Dialog,
   EmptyState,
@@ -15,7 +15,6 @@ import {
   RankedBarList,
   Select,
   Skeleton,
-  Sparkline,
   Textarea,
   Toast,
   TrackerCell,
@@ -33,6 +32,8 @@ const trackerDays = [
   "Sa, 8. August",
   "So, 9. August",
 ];
+
+const chartDays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
 const trackerRows: Array<{
   label: string;
@@ -163,7 +164,6 @@ export function Component() {
           <MetricTile
             context="Diese Woche, lokal gezählt"
             label="Erledigt"
-            sparkline={[4, 6, 5, 9, 7, 11, 12]}
             value="249"
           />
           <MetricTile context="Ohne Zielvorgabe" label="Offen" value="107" />
@@ -189,6 +189,14 @@ export function Component() {
       </section>
 
       <PreviewSection title="Ring- und Balkenfortschritt" tone="dashboard">
+        <PreviewItem label="Ring mit Glow (einmal je Ansicht)">
+          <ProgressRing
+            caption="12 von 17 Schritten"
+            glow
+            label="Tagesfortschritt"
+            value={0.71}
+          />
+        </PreviewItem>
         <PreviewItem label="Ring normal">
           <ProgressRing
             caption="12 von 17 Schritten"
@@ -303,55 +311,95 @@ export function Component() {
         </div>
       </section>
 
-      <PreviewSection title="Diagrammrahmen" tone="dashboard">
-        <PreviewItem label="Normal">
-          <ChartFrame
-            legend={[
-              { id: "done", label: "Erledigte Aufgaben", tone: 1 },
-              { id: "planned", label: "Geplante Aufgaben", tone: 2 },
-            ]}
+      <PreviewSection title="Diagramme" tone="dashboard">
+        <PreviewItem label="Linie mit Verlaufsfüllung">
+          <Chart
+            categories={chartDays}
             period="1. bis 7. August"
+            series={[
+              {
+                id: "done",
+                label: "Erledigte Aufgaben",
+                tone: 1,
+                values: [3, 5, 4, 8, 6, 9, 11],
+              },
+              {
+                id: "planned",
+                label: "Geplante Aufgaben",
+                tone: 2,
+                values: [6, 6, 7, 9, 8, 10, 12],
+              },
+            ]}
             source="Grundlage: erfundene Beispieldaten dieser Vorschau"
             title="Wochenverlauf"
-          >
-            <Sparkline
-              filled
-              series={[
-                {
-                  id: "done",
-                  label: "Erledigte Aufgaben",
-                  points: [3, 5, 4, 8, 6, 9, 11],
-                  tone: 1,
-                },
-                {
-                  id: "planned",
-                  label: "Geplante Aufgaben",
-                  points: [6, 6, 7, 9, 8, 10, 12],
-                  tone: 2,
-                },
-              ]}
-              showGrid
-              variant="chart"
-            />
-          </ChartFrame>
+          />
+        </PreviewItem>
+        <PreviewItem label="Balken">
+          <Chart
+            categories={chartDays}
+            period="1. bis 7. August"
+            series={[
+              {
+                id: "done",
+                label: "Erledigte Aufgaben",
+                tone: 3,
+                values: [3, 5, 4, 8, 6, 9, 11],
+              },
+            ]}
+            source="Grundlage: erfundene Beispieldaten dieser Vorschau"
+            title="Tagesvergleich"
+            type="bar"
+          />
         </PreviewItem>
         <PreviewItem label="Leerzustand">
-          <ChartFrame
+          <Chart
+            categories={chartDays}
             emptyMessage="Für diesen Zeitraum liegen keine Einträge vor."
             period="1. bis 7. August"
+            series={[]}
             source="Grundlage: erfundene Beispieldaten dieser Vorschau"
             title="Wochenverlauf"
           />
         </PreviewItem>
         <PreviewItem label="Fehlerzustand">
-          <ChartFrame
+          <Chart
+            categories={chartDays}
             error="Der Verlauf konnte nicht gezeichnet werden."
             period="1. bis 7. August"
+            series={[]}
             source="Grundlage: erfundene Beispieldaten dieser Vorschau"
             title="Wochenverlauf"
           />
         </PreviewItem>
       </PreviewSection>
+
+      {/*
+        Ohne Blur muss dieselbe Ansicht vollwertig bleiben. Die Vorschau zeigt
+        den Zustand ausdrücklich, damit er nicht nur in der Theorie existiert.
+      */}
+      <section className="preview-section">
+        <h2>Fallback ohne Blur</h2>
+        <p className="preview-note">
+          So sehen die Bausteine aus, wenn der Browser `backdrop-filter` nicht
+          unterstützt oder weniger Transparenz gewünscht ist.
+        </p>
+        <div className="preview-stack preview-canvas preview-force-opaque">
+          <div className="ui-dashboard-grid">
+            <MetricTile
+              context="Diese Woche, lokal gezählt"
+              label="Erledigt"
+              value="249"
+            />
+            <MetricTile context="Ohne Zielvorgabe" label="Offen" value="107" />
+          </div>
+          <Card
+            description="Dieselbe Karte mit deckender Fläche."
+            title="Beispielkarte"
+          >
+            <p>Der Nebel im Hintergrund bleibt erhalten.</p>
+          </Card>
+        </div>
+      </section>
 
       <PreviewSection title="Dialog">
         <Button onClick={() => setIsDialogOpen(true)}>Dialog öffnen</Button>

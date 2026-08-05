@@ -98,7 +98,11 @@ describe("HabitsPage", () => {
     await screen.findByRole("heading", { level: 2, name: "Heute fällig" });
     await user.click(screen.getByRole("tab", { name: /^Woche/ }));
 
-    const table = await screen.findByRole("table");
+    // Das Wochendiagramm bringt seine Werte als eigene Tabelle mit; gemeint
+    // ist hier das Raster.
+    const table = await screen.findByRole("table", {
+      name: /Zeichen und als Text in der Zelle/,
+    });
     expect(
       within(table).getByRole("button", {
         name: "Rücken dehnen am 3. August 2026: Offen. Als erledigt eintragen",
@@ -125,7 +129,11 @@ describe("HabitsPage", () => {
       "done",
     );
     expect(
-      await within(await screen.findByRole("table")).findByRole("button", {
+      await within(
+        await screen.findByRole("table", {
+          name: /Zeichen und als Text in der Zelle/,
+        }),
+      ).findByRole("button", {
         name: "Rücken dehnen am 3. August 2026: Erledigt. Check-in entfernen",
       }),
     ).toBeInTheDocument();

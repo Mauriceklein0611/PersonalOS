@@ -1,0 +1,150 @@
+/*
+ * Glas-Utility und Seitengrund, Issue #55.
+ *
+ * `.glass` ist die einzige Stelle, an der `backdrop-filter` gesetzt wird.
+ * Verschachtelte Glas-Ebenen sind verboten: Eine Karte in einer Karte nutzt
+ * `.glass-inner`, also `--glass-strong` ohne eigenen Blur.
+ */
+
+.app-canvas {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background:
+    var(--canvas-blob-1), var(--canvas-blob-2), var(--canvas-blob-3),
+    var(--canvas-blob-4), var(--canvas-base);
+  background-repeat: no-repeat;
+  background-size: cover;
+  pointer-events: none;
+}
+
+.glass {
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-xl);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+  backdrop-filter: var(--blur-glass);
+}
+
+/* Innere Flächen sind eine solide Abstufung, niemals eine zweite Blur-Ebene. */
+.glass-inner {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--glass-strong);
+}
+
+.glass-divider {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+}
+
+/*
+ * Ohne `backdrop-filter` bliebe durch das Glas der Nebel ungefiltert sichtbar
+ * und der Text unlesbar. Die Fläche wird deshalb deckend.
+ */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
+  }
+
+  .glass-inner {
+    background: var(--glass-opaque);
+  }
+}
+
+/* Wer weniger Transparenz möchte, bekommt dieselbe Ansicht in deckend. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
+  }
+
+  .glass-inner {
+    background: var(--glass-opaque);
+  }
+}
+
+/* Genau ein Glow-Element je Ansicht; es markiert den primären Fortschritt. */
+.glass-glow {
+  filter: drop-shadow(0 0 1.5rem var(--accent-glow));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-glow {
+    filter: none;
+  }
+}
+
+/* Kleines Label über einer Kennzahl: klein, versal, gedämpft. */
+.glass-label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  line-height: var(--line-height-normal);
+  text-transform: uppercase;
+}
+
+.glass-kpi {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-kpi);
+  font-weight: var(--font-weight-kpi);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: var(--line-height-tight);
+}
+
+.glass-chip {
+  display: inline-flex;
+  min-height: 1.75rem;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--chip-color, var(--hairline));
+  border-radius: var(--radius-round);
+  color: var(--text);
+  background: var(--chip-soft, var(--glass-strong));
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
+.glass-chip[data-tone="1"] {
+  --chip-color: var(--data-1);
+  --chip-soft: var(--data-1-soft);
+}
+
+.glass-chip[data-tone="2"] {
+  --chip-color: var(--data-2);
+  --chip-soft: var(--data-2-soft);
+}
+
+.glass-chip[data-tone="3"] {
+  --chip-color: var(--data-3);
+  --chip-soft: var(--data-3-soft);
+}
+
+.glass-chip[data-tone="4"] {
+  --chip-color: var(--data-4);
+  --chip-soft: var(--data-4-soft);
+}
+
+.glass-chip[data-tone="5"] {
+  --chip-color: var(--data-5);
+  --chip-soft: var(--data-5-soft);
+}
+
+.glass-chip[data-tone="6"] {
+  --chip-color: var(--data-6);
+  --chip-soft: var(--data-6-soft);
+}
+
+@media (min-width: 52rem) {
+  /* Auf Mobile kostet ein fixierter Hintergrund bei iOS jeden Scroll-Repaint. */
+  .app-canvas {
+    background-attachment: fixed;
+  }
+}

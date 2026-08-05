@@ -15,6 +15,11 @@ export type ProgressRingProps = {
   caption?: string;
   className?: string;
   error?: string;
+  /**
+   * Hebt den primären Fortschritt einer Ansicht hervor. Je Ansicht ist genau
+   * ein Glow erlaubt, damit er eine Aussage behält.
+   */
+  glow?: boolean;
   size?: "sm" | "md";
   /** Ohne Angabe bleibt der Ring ein dekorativer Verlauf ohne Kategorie. */
   tone?: DataSeriesTone;
@@ -29,6 +34,7 @@ export function ProgressRing({
   caption,
   className,
   error,
+  glow = false,
   label,
   size = "md",
   tone,
@@ -40,7 +46,11 @@ export function ProgressRing({
   const ratio = hasValue ? clampRatio(value) : 0;
 
   return (
-    <div className={classNames("ui-progress-ring", className)} data-size={size}>
+    <div
+      className={classNames("ui-progress-ring", className)}
+      data-glow={glow && hasValue}
+      data-size={size}
+    >
       <div className="ui-progress-ring-visual">
         <svg aria-hidden="true" focusable="false" viewBox="0 0 100 100">
           {tone === undefined ? (
