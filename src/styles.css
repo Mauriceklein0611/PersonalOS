@@ -162,12 +162,16 @@ a {
   backdrop-filter: var(--blur-glass);
 }
 
+/*
+ * Der untere Rand hält den Bereich frei, in dem Hinweis-Toasts erscheinen.
+ * Ohne ihn legt sich ein Toast auf kurzen Seiten über die letzten Aktionen.
+ */
 .main-content {
   width: min(100%, 78rem);
   min-height: calc(100vh - 4rem);
   margin: 0 auto;
   padding: 1rem 1rem
-    calc(var(--mobile-nav-height) + 2rem + env(safe-area-inset-bottom));
+    calc(var(--mobile-nav-height) + 8rem + env(safe-area-inset-bottom));
 }
 
 /*
@@ -455,6 +459,7 @@ a {
 
   .main-content {
     padding: clamp(1.5rem, 4vw, 3.5rem);
+    padding-bottom: 9rem;
   }
 
   .route-page {

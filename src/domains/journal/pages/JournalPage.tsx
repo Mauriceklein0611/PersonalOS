@@ -165,12 +165,16 @@ export function JournalPage({
 
   return (
     <section aria-labelledby="page-title" className="route-page journal-page">
-      <p className="page-eyebrow">Reflexion</p>
-      <h1 id="page-title">Journal</h1>
-      <p className="page-description">
-        Halte deinen Tag in wenigen Minuten fest. Jedes Feld ist freiwillig, und
-        ein ausgelassener Wert bedeutet nicht null.
-      </p>
+      <header className="page-header">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">Reflexion</p>
+          <h1 id="page-title">Journal</h1>
+          <p className="page-description">
+            Halte deinen Tag in wenigen Minuten fest. Jedes Feld ist freiwillig,
+            und ein ausgelassener Wert bedeutet nicht null.
+          </p>
+        </div>
+      </header>
 
       <div className="journal-day-picker">
         <Button

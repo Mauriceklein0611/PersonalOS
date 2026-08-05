@@ -349,11 +349,16 @@ export function HabitsPage({
 
   return (
     <section aria-labelledby="page-title" className="route-page habits-page">
-      <p className="page-eyebrow">Routinen</p>
-      <h1 id="page-title">Gewohnheiten</h1>
-      <p className="page-description">
-        Begleite wiederkehrende Routinen ohne Druck oder versteckte Bewertung.
-      </p>
+      <header className="page-header">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">Routinen</p>
+          <h1 id="page-title">Gewohnheiten</h1>
+          <p className="page-description">
+            Begleite wiederkehrende Routinen ohne Druck oder versteckte
+            Bewertung.
+          </p>
+        </div>
+      </header>
 
       <div className="habit-page-actions">
         <Button onClick={() => setEditor({})}>Neue Gewohnheit</Button>
@@ -564,14 +569,16 @@ export function HabitsPage({
                     tone={2}
                   />
                 </div>
-                <HabitWeekGrid
-                  busyHabitId={busyHabitId}
-                  days={weekDays}
-                  entriesByHabit={entriesByHabit}
-                  habits={weekHabits}
-                  onToggle={toggleWeekDay}
-                  today={today}
-                />
+                <div className="habit-week-card">
+                  <HabitWeekGrid
+                    busyHabitId={busyHabitId}
+                    days={weekDays}
+                    entriesByHabit={entriesByHabit}
+                    habits={weekHabits}
+                    onToggle={toggleWeekDay}
+                    today={today}
+                  />
+                </div>
               </>
             )}
           </>

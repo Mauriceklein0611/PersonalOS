@@ -20,12 +20,13 @@ Apache ECharts übernimmt Linien-, Flächen- und Balkendiagramme. `Sparkline` un
 
 Bedingungen dieser Entscheidung:
 
-- Der Import läuft ausschließlich über `echarts/core` mit ausdrücklicher Registrierung der benötigten Bausteine (`BarChart`, `LineChart`, `PieChart`, `GridComponent`, `TooltipComponent`, `LegendComponent`, `SVGRenderer`). Ein Import des Gesamtpakets ist nicht zulässig.
+- Der Import läuft ausschließlich über `echarts/core` mit ausdrücklicher Registrierung der benötigten Bausteine. Ein Import des Gesamtpakets ist nicht zulässig. Registriert sind `BarChart`, `LineChart`, `GridComponent`, `TooltipComponent` und `SVGRenderer`. Nicht registriert sind `PieChart`, weil keine Ansicht ihn braucht, und `LegendComponent`, weil die Legende als HTML-Liste neben der Grafik steht und dort auch ohne Farbe lesbar bleibt.
 - Der SVG-Renderer wird bevorzugt: scharfe Darstellung ohne Geräteauflösungslogik, kleinerer Code, und in jsdom testbar ohne native Zeichenfläche.
 - Farben kommen zur Laufzeit aus den CSS-Tokens. Die Bibliothek bekommt kein eigenes Farbschema; `chart-theme.ts` liest `--data-1` bis `--data-6`, Text- und Gitterfarben vom Wurzelelement und reagiert auf einen Theme-Wechsel.
 - Jedes Diagramm bleibt `aria-hidden` und trägt dieselben Werte zusätzlich als Tabelle. Zeitraum und Datenbasis stehen als Text an der Grafik.
 - `prefers-reduced-motion: reduce` schaltet die Animation ab.
-- Zusätzliches Bundle-Budget: höchstens 180 KB gzip. Der Chunk wird im Build-Report ausgewiesen und ist über den Router lazy geladen, damit er den Erststart nicht belastet.
+- Zusätzliches Bundle-Budget: höchstens 180 KB gzip. Der Chunk wird im Build-Report ausgewiesen und über `React.lazy` erst geladen, wenn tatsächlich ein Diagramm erscheint. Rahmen, Wertetabelle und Leerzustand funktionieren ohne die Bibliothek.
+- Der Build minifiziert mit Terser statt esbuild. Mit esbuild liegt der Diagramm-Chunk knapp über dem Budget; Terser bringt ihn darunter. Terser ist eine reine Build-Abhängigkeit ohne Laufzeitanteil.
 
 ## Konsequenzen
 

@@ -28,15 +28,20 @@ export function TaskCard({
   const overdue = isTaskOverdue(task, context);
 
   return (
-    <article className="task-card" aria-labelledby={headingId}>
+    <article
+      aria-labelledby={headingId}
+      className="task-card"
+      data-completed={task.status === "completed"}
+    >
       <div className="task-card-heading">
         <div>
           <p className="task-card-meta">
             <span>{taskPriorityLabels[task.priority]}</span>
             {category ? <span>{category}</span> : null}
             {overdue ? <strong>Überfällig</strong> : null}
-            {task.status === "completed" ? <strong>Erledigt</strong> : null}
-            {task.status === "cancelled" ? <strong>Abgebrochen</strong> : null}
+            {/* Erledigt und abgebrochen sind neutrale Zustände, kein Alarm. */}
+            {task.status === "completed" ? <span>Erledigt</span> : null}
+            {task.status === "cancelled" ? <span>Abgebrochen</span> : null}
           </p>
           <h2 id={headingId}>{task.title}</h2>
         </div>

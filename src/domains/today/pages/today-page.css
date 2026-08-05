@@ -1,10 +1,16 @@
+/*
+ * Heute in Glas-Optik, Issue #55. Die Karten liegen direkt auf dem
+ * Seitengrund; Listenzeilen sind Inhalte einer Karte und bekommen deshalb
+ * keinen eigenen Blur.
+ */
+
 .today-page h2 {
-  margin: var(--space-8) 0 var(--space-3);
+  margin: var(--space-4) 0 0;
   font-size: var(--font-size-lg);
 }
 
 .today-focus {
-  margin: var(--space-6) 0 0;
+  margin: 0;
   overflow-wrap: anywhere;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
@@ -12,38 +18,15 @@
 }
 
 .today-error {
-  margin: var(--space-3) 0 0;
+  margin: 0;
   color: var(--danger);
   font-weight: var(--font-weight-medium);
 }
 
 .today-status {
-  margin: var(--space-2) 0 0;
+  margin: 0;
   color: var(--text-muted);
   line-height: var(--line-height-normal);
-}
-
-/* Ruhige Hero-Karte: Datum, Begrüßung und genau eine primäre Aktion. */
-.today-hero {
-  padding: clamp(var(--space-4), 5vw, var(--space-6));
-  border: 1px solid var(--dashboard-hairline);
-  border-radius: var(--radius-xl);
-  background: var(--gradient-hero);
-}
-
-.today-hero > :first-child {
-  margin-top: 0;
-}
-
-.today-hero > :last-child {
-  margin-bottom: 0;
-}
-
-.today-dashboard {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-4);
-  margin-top: var(--space-4);
 }
 
 .today-metrics {
@@ -53,19 +36,18 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.today-dashboard .ui-progress-ring {
-  justify-self: center;
-}
-
-.today-quick-capture {
+.today-quick-capture,
+.today-journal-card,
+.today-list-card {
   display: grid;
   min-width: 0;
   gap: var(--space-3);
-  margin-top: var(--space-6);
   padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface-muted);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-xl);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+  backdrop-filter: var(--blur-glass);
 }
 
 .today-quick-capture .ui-button {
@@ -74,9 +56,9 @@
 
 .today-list {
   display: grid;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
-  gap: var(--space-2);
   list-style: none;
 }
 
@@ -88,9 +70,9 @@
   justify-content: space-between;
   gap: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--glass-strong);
 }
 
 .today-list-copy {
@@ -115,16 +97,6 @@
   gap: var(--space-2);
 }
 
-.today-journal-card {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-}
-
 .today-journal-card p {
   margin: 0;
   line-height: var(--line-height-normal);
@@ -138,10 +110,10 @@
 
 .today-journal-card a,
 .ui-empty-state-action a {
-  align-self: start;
-  min-height: var(--control-height);
   display: inline-flex;
+  min-height: var(--control-height);
   align-items: center;
+  align-self: start;
   font-weight: var(--font-weight-bold);
 }
 
@@ -153,23 +125,37 @@
   width: min(38rem, calc(100vw - 2rem));
 }
 
+@media (min-width: 40rem) {
+  .today-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .today-quick-capture {
+    align-items: end;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
 @media (min-width: 52rem) {
   .today-toast-region {
     bottom: 1rem;
   }
 }
 
-@media (min-width: 40rem) {
-  .today-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@supports not (backdrop-filter: blur(1px)) {
+  .today-quick-capture,
+  .today-journal-card,
+  .today-list-card {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
   }
+}
 
-  .today-dashboard {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .today-quick-capture {
-    grid-template-columns: minmax(0, 1fr) auto;
+@media (prefers-reduced-transparency: reduce) {
+  .today-quick-capture,
+  .today-journal-card,
+  .today-list-card {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
   }
 }

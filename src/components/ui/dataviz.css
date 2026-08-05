@@ -332,12 +332,18 @@
   width: 2rem;
   height: 2rem;
   place-items: center;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--edge);
   border-radius: var(--radius-cell);
   color: var(--text-muted);
-  background: var(--glass-strong);
+  background: var(--glass);
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-kpi);
   line-height: 1;
+}
+
+button.ui-tracker-cell:hover:not(:disabled),
+.preview-force-hover button.ui-tracker-cell:not(:disabled) {
+  background: var(--glass-strong);
 }
 
 /* Erledigt trägt den Verlauf; das Zeichen bleibt der eigentliche Träger. */
@@ -474,6 +480,7 @@ button.ui-tracker-cell:disabled {
 
 .ui-chart {
   display: grid;
+  min-width: 0;
   gap: var(--space-3);
   margin: 0;
   padding: var(--space-4);
@@ -493,9 +500,13 @@ button.ui-tracker-cell:disabled {
   line-height: var(--line-height-tight);
 }
 
+/* Die Bibliothek setzt eine Pixelbreite; der Container begrenzt sie hart,
+   damit ein Diagramm nie das Dokument überlaufen lässt. */
 .ui-chart-plot {
   min-width: 0;
+  max-width: 100%;
   height: clamp(9rem, 34vw, 15rem);
+  overflow: hidden;
 }
 
 .ui-chart-legend {

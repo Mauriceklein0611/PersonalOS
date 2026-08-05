@@ -6,6 +6,8 @@ import { dataSeriesTones, type DataSeriesTone } from "../data-series";
  * Theme-Wechsel wirkt ohne zweite Quelle.
  */
 export type ChartTheme = {
+  accent1: string;
+  accent2: string;
   areaOpacity: number;
   edge: string;
   glass: string;
@@ -21,6 +23,8 @@ export type ChartTheme = {
  * halten das Diagramm lesbar und sind bewusst neutral.
  */
 const fallbackTheme: ChartTheme = {
+  accent1: "#ffb27d",
+  accent2: "#ff8fb3",
   areaOpacity: 0.3,
   edge: "#8a8f9e",
   glass: "#2f1539",
@@ -65,6 +69,8 @@ export function readChartTheme(
   );
 
   return {
+    accent1: read("--accent-1", fallbackTheme.accent1),
+    accent2: read("--accent-2", fallbackTheme.accent2),
     areaOpacity: Number.isFinite(areaOpacity)
       ? areaOpacity
       : fallbackTheme.areaOpacity,
@@ -106,17 +112,39 @@ export function verticalFade(
   };
 }
 
+/**
+ * Balkenfüllung: unten fast durchsichtig, oben voll. Der Balken wirkt dadurch
+ * aus dem Glas herausgewachsen statt aufgeklebt.
+ */
 export function barFade(color: string): ReturnType<typeof verticalFade> {
   return {
     colorStops: [
       { color: withAlpha(color, 1), offset: 0 },
-      { color: withAlpha(color, 0.55), offset: 1 },
+      { color: withAlpha(color, 0.25), offset: 1 },
     ],
     type: "linear",
     x: 0,
     x2: 0,
     y: 0,
     y2: 1,
+  };
+}
+
+/** Verlauf entlang der Linie, von der ersten zur zweiten Akzentfarbe. */
+export function accentStroke(
+  from: string,
+  to: string,
+): ReturnType<typeof verticalFade> {
+  return {
+    colorStops: [
+      { color: from, offset: 0 },
+      { color: to, offset: 1 },
+    ],
+    type: "linear",
+    x: 0,
+    x2: 1,
+    y: 0,
+    y2: 0,
   };
 }
 

@@ -7,11 +7,15 @@ import "./settings-page.css";
 export function Component() {
   return (
     <section className="route-page" aria-labelledby="page-title">
-      <p className="page-eyebrow">PersonalOS</p>
-      <h1 id="page-title">Einstellungen</h1>
-      <p className="page-description">
-        Passe lokale App-Einstellungen an und sichere deine Daten bewusst.
-      </p>
+      <header className="page-header">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">PersonalOS</p>
+          <h1 id="page-title">Einstellungen</h1>
+          <p className="page-description">
+            Passe lokale App-Einstellungen an und sichere deine Daten bewusst.
+          </p>
+        </div>
+      </header>
       <div className="settings-grid">
         <BackupPanel />
         <LocalDataPanel />

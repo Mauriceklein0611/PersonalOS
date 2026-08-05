@@ -191,10 +191,10 @@ export function Component() {
       <PreviewSection title="Ring- und Balkenfortschritt" tone="dashboard">
         <PreviewItem label="Ring mit Glow (einmal je Ansicht)">
           <ProgressRing
-            caption="12 von 17 Schritten"
+            caption="9 von 17 Schritten"
             glow
             label="Tagesfortschritt"
-            value={0.71}
+            value={0.53}
           />
         </PreviewItem>
         <PreviewItem label="Ring normal">
@@ -388,9 +388,9 @@ export function Component() {
             <MetricTile
               context="Diese Woche, lokal gezählt"
               label="Erledigt"
-              value="249"
+              value="312"
             />
-            <MetricTile context="Ohne Zielvorgabe" label="Offen" value="107" />
+            <MetricTile context="Ohne Zielvorgabe" label="Offen" value="88" />
           </div>
           <Card
             description="Dieselbe Karte mit deckender Fläche."

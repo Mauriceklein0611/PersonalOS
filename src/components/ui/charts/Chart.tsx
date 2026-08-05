@@ -120,35 +120,39 @@ type TableProps = Required<Pick<ChartProps, "categories" | "formatValue">> & {
  */
 function ChartTable({ categories, formatValue, series, title }: TableProps) {
   return (
-    <table className="visually-hidden">
-      <caption>{`${title}: Werte als Tabelle`}</caption>
-      <thead>
-        <tr>
-          <th scope="col">Zeitpunkt</th>
-          {series.map((entry) => (
-            <th key={entry.id} scope="col">
-              {entry.label}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {categories.map((category, index) => (
-          <tr key={category}>
-            <th scope="row">{category}</th>
-            {series.map((entry) => {
-              const value = entry.values[index];
-              return (
-                <td key={entry.id}>
-                  {value === null || value === undefined
-                    ? noDataText
-                    : formatValue(value)}
-                </td>
-              );
-            })}
+    // Der Rahmen trägt das Verstecken. Eine Tabelle selbst lässt sich nicht auf
+    // einen Pixel begrenzen und würde das Dokument nach rechts verbreitern.
+    <div className="visually-hidden">
+      <table>
+        <caption>{`${title}: Werte als Tabelle`}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Zeitpunkt</th>
+            {series.map((entry) => (
+              <th key={entry.id} scope="col">
+                {entry.label}
+              </th>
+            ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {categories.map((category, index) => (
+            <tr key={category}>
+              <th scope="row">{category}</th>
+              {series.map((entry) => {
+                const value = entry.values[index];
+                return (
+                  <td key={entry.id}>
+                    {value === null || value === undefined
+                      ? noDataText
+                      : formatValue(value)}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

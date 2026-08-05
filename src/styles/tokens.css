@@ -3,20 +3,20 @@
  * „Tageslicht“ (light). Komponenten verwenden ausschließlich die semantischen
  * Variablen dieser Datei; Rohfarbwerte stehen nur hier.
  *
- * Drei Werte weichen bewusst von der Vorlage ab, weil die Worst-Case-Prüfung
- * in `color-contrast.test.ts` sie sonst nicht besteht. Abschnitt 6 der
- * Vorschrift verlangt, in diesem Fall das Token anzupassen, nicht den Test:
+ * Das Glas ist in beiden Themes ein heller Milchglas-Schleier, wie in der
+ * Vorlage. Damit gedämpfter Text darauf trotzdem 4,5:1 erreicht, liegt der
+ * Stellhebel beim Nebel und beim Text, nicht beim Glas:
  *
- * 1. Dark `--glass` ist ein dunkles Glas statt weißem Schleier. Weiß über der
- *    hellsten Nebelstelle hebt die Karte so weit an, dass gedämpfter Text nur
- *    2,9:1 erreicht; mehr Weiß verschlimmert das. Der weiße Schimmer der
- *    Vorlage bleibt als Inset-Highlight der `.glass`-Utility erhalten.
- * 2. Light `--text-muted` steht auf 70 % statt 64 %. Ein höheres Glas-Alpha
- *    hilft hier kaum, weil der gedämpfte Text selbst durchscheinend ist und
- *    mit der Karte zusammen aufhellt.
+ * 1. Die Nebelflecken sind gedämpfter als in der Vorlage. Bei deren Deckkraft
+ *    erreicht gedämpfter Text auf der hellsten Stelle nur 2,9:1, und mehr
+ *    Glas-Alpha verschlimmert das, weil weißes Glas die Karte weiter aufhellt.
+ * 2. `--text-muted` ist deckender als in der Vorlage. Gedämpfter Text ist
+ *    selbst durchscheinend und hellt sonst mit der Karte zusammen auf.
  * 3. Light `--accent-1`/`--data-1` und `--accent-2` sind abgedunkelt. Weiße
  *    Schrift auf dem Originalgrün erreicht 3,2:1 statt 4,5:1. Farbton und
  *    Charakter bleiben, nur die Helligkeit sinkt.
+ * 4. `--field` ist die deckende Fläche für Eingabefelder. `--glass-strong` ist
+ *    die angehobene Glasfläche der Vorlage und für Text zu durchscheinend.
  */
 
 :root {
@@ -92,29 +92,30 @@
   --canvas-base: linear-gradient(160deg, #e8ecfb 0%, #f2e9f8 45%, #e4f2f0 100%);
   --canvas-blob-1: radial-gradient(
     50% 60% at 15% 10%,
-    rgb(124 199 255 / 45%) 0%,
+    rgb(124 199 255 / 34%) 0%,
     transparent 60%
   );
   --canvas-blob-2: radial-gradient(
     45% 55% at 85% 15%,
-    rgb(196 168 255 / 45%) 0%,
+    rgb(196 168 255 / 34%) 0%,
     transparent 60%
   );
   --canvas-blob-3: radial-gradient(
     55% 60% at 70% 90%,
-    rgb(126 240 200 / 40%) 0%,
+    rgb(126 240 200 / 30%) 0%,
     transparent 60%
   );
   --canvas-blob-4: radial-gradient(
     40% 50% at 20% 85%,
-    rgb(255 158 209 / 35%) 0%,
+    rgb(255 158 209 / 26%) 0%,
     transparent 60%
   );
   --canvas-solid: #eef1fb;
 
-  --glass: rgb(255 255 255 / 62%);
-  --glass-strong: rgb(255 255 255 / 86%);
-  --glass-opaque: #f7f9ff;
+  --glass: rgb(255 255 255 / 52%);
+  --glass-strong: rgb(255 255 255 / 72%);
+  --glass-opaque: #f4f7ff;
+  --field: rgb(255 255 255 / 92%);
   --edge: rgb(255 255 255 / 85%);
   --edge-strong: rgb(27 36 54 / 52%);
   --hairline: rgb(27 36 54 / 12%);
@@ -155,9 +156,9 @@
   --skeleton: rgb(27 36 54 / 10%);
   --skeleton-highlight: rgb(255 255 255 / 70%);
 
-  --shadow-sm: 0 0.25rem 0.8rem rgb(20 26 40 / 8%);
-  --shadow-md: 0 1.25rem 3rem rgb(20 26 40 / 12%);
-  --shadow-lg: 0 2rem 5rem rgb(20 26 40 / 22%);
+  --shadow-sm: 0 0.5rem 2rem rgb(20 26 40 / 14%);
+  --shadow-md: 0 1.25rem 3rem rgb(20 26 40 / 18%);
+  --shadow-lg: 0 2rem 5rem rgb(20 26 40 / 26%);
   --shadow: var(--shadow-md);
 }
 
@@ -170,36 +171,37 @@
   --canvas-base: linear-gradient(160deg, #2a1030 0%, #3a1226 45%, #241030 100%);
   --canvas-blob-1: radial-gradient(
     50% 60% at 15% 10%,
-    rgb(255 178 125 / 42%) 0%,
+    rgb(255 178 125 / 30%) 0%,
     transparent 60%
   );
   --canvas-blob-2: radial-gradient(
     45% 55% at 85% 15%,
-    rgb(255 143 179 / 45%) 0%,
+    rgb(255 143 179 / 30%) 0%,
     transparent 60%
   );
   --canvas-blob-3: radial-gradient(
     55% 60% at 70% 90%,
-    rgb(199 139 255 / 34%) 0%,
+    rgb(199 139 255 / 26%) 0%,
     transparent 60%
   );
   --canvas-blob-4: radial-gradient(
     40% 50% at 20% 85%,
-    rgb(255 216 138 / 30%) 0%,
+    rgb(255 216 138 / 24%) 0%,
     transparent 60%
   );
   --canvas-solid: #2c1234;
 
-  --glass: rgb(41 18 50 / 58%);
-  --glass-strong: rgb(58 28 68 / 74%);
-  --glass-opaque: #2f1539;
+  --glass: rgb(255 255 255 / 9%);
+  --glass-strong: rgb(255 255 255 / 12%);
+  --glass-opaque: #3a2040;
+  --field: rgb(46 24 55 / 92%);
   --edge: rgb(255 255 255 / 22%);
-  --edge-strong: rgb(255 255 255 / 42%);
+  --edge-strong: rgb(255 255 255 / 60%);
   --hairline: rgb(255 255 255 / 12%);
   --overlay: rgb(12 4 16 / 62%);
 
   --text: #f4f6ff;
-  --text-muted: rgb(226 232 255 / 72%);
+  --text-muted: #e2e8ff;
 
   --accent-1: #ffb27d;
   --accent-2: #ff8fb3;
@@ -209,20 +211,20 @@
   --accent-soft: rgb(255 178 125 / 18%);
   --focus-ring: #7dd3fc;
 
-  --danger: #ffb1a5;
-  --danger-soft: rgb(255 177 165 / 16%);
+  --danger: #ffe2dc;
+  --danger-soft: rgb(255 226 220 / 16%);
   --danger-contrast: #24100d;
 
   --data-1: #ffd88a;
   --data-2: #ffb27d;
-  --data-3: #ff8fb3;
-  --data-4: #c78bff;
+  --data-3: #ff9dbd;
+  --data-4: #d5a6ff;
   --data-5: #ff9d9d;
   --data-6: #f0e08a;
   --data-1-soft: rgb(255 216 138 / 22%);
   --data-2-soft: rgb(255 178 125 / 22%);
-  --data-3-soft: rgb(255 143 179 / 22%);
-  --data-4-soft: rgb(199 139 255 / 22%);
+  --data-3-soft: rgb(255 157 189 / 22%);
+  --data-4-soft: rgb(213 166 255 / 22%);
   --data-5-soft: rgb(255 157 157 / 22%);
   --data-6-soft: rgb(240 224 138 / 22%);
 
@@ -233,9 +235,9 @@
   --skeleton: rgb(255 255 255 / 12%);
   --skeleton-highlight: rgb(255 255 255 / 26%);
 
-  --shadow-sm: 0 0.25rem 0.8rem rgb(8 3 12 / 28%);
-  --shadow-md: 0 1.25rem 3rem rgb(8 3 12 / 38%);
-  --shadow-lg: 0 2rem 5rem rgb(8 3 12 / 55%);
+  --shadow-sm: 0 0.5rem 2rem rgb(10 8 40 / 30%);
+  --shadow-md: 0 1.25rem 3rem rgb(10 8 40 / 40%);
+  --shadow-lg: 0 2rem 5rem rgb(10 8 40 / 55%);
   --shadow: var(--shadow-md);
 }
 

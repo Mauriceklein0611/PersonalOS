@@ -218,13 +218,43 @@ export function TodayPage({
 
   return (
     <section aria-labelledby="page-title" className="route-page today-page">
-      <div className="today-hero">
-        <p className="page-eyebrow">Tagesübersicht</p>
-        <h1 id="page-title">Heute</h1>
-        <p className="page-description">
-          {greetings[overview.greeting]} {formatToday(context.today)}
-        </p>
-      </div>
+      {/* Glas-Hero: Datum, Begrüßung und der Tagesring als einziges Glow. */}
+      <header className="page-header today-hero">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">Tagesübersicht</p>
+          <h1 id="page-title">Heute</h1>
+          <p className="page-description">
+            {greetings[overview.greeting]} {formatToday(context.today)}
+          </p>
+          <p className="today-focus">
+            {overview.mostImportantTask
+              ? `Wichtigstes für heute: ${overview.mostImportantTask.title}`
+              : "Für heute steht keine Aufgabe an. Du kannst den Tag frei einteilen."}
+          </p>
+        </div>
+        <div className="page-header-aside">
+          <ProgressRing
+            caption={
+              overview.habitDueCount === 0
+                ? "Heute ist keine Gewohnheit fällig."
+                : `${overview.habitSettledCount} von ${overview.habitDueCount} Gewohnheiten erfasst`
+            }
+            glow
+            label="Tagesfortschritt"
+            size="sm"
+            value={
+              overview.habitDueCount === 0
+                ? null
+                : overview.habitSettledCount / overview.habitDueCount
+            }
+            valueText={
+              overview.habitDueCount === 0
+                ? undefined
+                : `${overview.habitSettledCount} von ${overview.habitDueCount}`
+            }
+          />
+        </div>
+      </header>
 
       {error ? (
         <p className="today-error" role="alert">
@@ -238,60 +268,33 @@ export function TodayPage({
         </p>
       ) : (
         <>
-          <p className="today-focus">
-            {overview.mostImportantTask
-              ? `Wichtigstes für heute: ${overview.mostImportantTask.title}`
-              : "Für heute steht keine Aufgabe an. Du kannst den Tag frei einteilen."}
-          </p>
-
-          <div className="today-dashboard">
-            <div className="today-metrics">
-              <MetricTile
-                context={
-                  overview.overdueTaskCount > 0
-                    ? `${overview.overdueTaskCount} davon überfällig`
-                    : "Nichts überfällig"
-                }
-                label="Aufgaben heute"
-                value={`${overview.openTasks.length} offen`}
-              />
-              <MetricTile
-                context={
-                  overview.habitDueCount === 0
-                    ? "Heute ist nichts geplant"
-                    : `${overview.habitSettledCount} von ${overview.habitDueCount} erfasst`
-                }
-                label="Gewohnheiten heute"
-                value={`${overview.dueHabits.length} offen`}
-              />
-              <MetricTile
-                context={
-                  overview.journal.hasEntryToday
-                    ? `${overview.journal.filledFieldCount} Felder ausgefüllt`
-                    : "Freiwillig und jederzeit nachtragbar"
-                }
-                label="Abendreflexion"
-                value={overview.journal.hasEntryToday ? "Erfasst" : "Offen"}
-              />
-            </div>
-            <ProgressRing
-              caption={
-                overview.habitDueCount === 0
-                  ? "Heute ist keine Gewohnheit fällig."
-                  : `${overview.habitSettledCount} von ${overview.habitDueCount} Gewohnheiten erfasst`
+          <div className="today-metrics">
+            <MetricTile
+              context={
+                overview.overdueTaskCount > 0
+                  ? `${overview.overdueTaskCount} davon überfällig`
+                  : "Nichts überfällig"
               }
-              label="Tagesfortschritt"
-              size="sm"
-              value={
+              label="Aufgaben heute"
+              value={`${overview.openTasks.length} offen`}
+            />
+            <MetricTile
+              context={
                 overview.habitDueCount === 0
-                  ? null
-                  : overview.habitSettledCount / overview.habitDueCount
+                  ? "Heute ist nichts geplant"
+                  : `${overview.habitSettledCount} von ${overview.habitDueCount} erfasst`
               }
-              valueText={
-                overview.habitDueCount === 0
-                  ? undefined
-                  : `${overview.habitSettledCount} von ${overview.habitDueCount}`
+              label="Gewohnheiten heute"
+              value={`${overview.dueHabits.length} offen`}
+            />
+            <MetricTile
+              context={
+                overview.journal.hasEntryToday
+                  ? `${overview.journal.filledFieldCount} Felder ausgefüllt`
+                  : "Freiwillig und jederzeit nachtragbar"
               }
+              label="Abendreflexion"
+              value={overview.journal.hasEntryToday ? "Erfasst" : "Offen"}
             />
           </div>
 
@@ -315,77 +318,81 @@ export function TodayPage({
             <Button type="submit">Aufgabe hinzufügen</Button>
           </form>
 
-          <h2>Aufgaben für heute</h2>
-          {overview.openTasks.length === 0 ? (
-            <EmptyState
-              action={<Link to="/aufgaben">Zu den Aufgaben</Link>}
-              description="Für heute ist nichts geplant oder überfällig."
-              title="Keine offene Aufgabe"
-            />
-          ) : (
-            <ul className="today-list">
-              {overview.openTasks.slice(0, 5).map((task) => (
-                <li key={task.id}>
-                  <div className="today-list-copy">
-                    <h3>{task.title}</h3>
-                    <p>{describeTask(task, context.today)}</p>
-                  </div>
-                  <Button
-                    aria-label={`„${task.title}“ abschließen`}
-                    disabled={busyId === task.id}
-                    onClick={() => void completeTask(task)}
-                  >
-                    Erledigt
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <h2>Gewohnheiten für heute</h2>
-          {overview.habitDueCount === 0 ? (
-            <EmptyState
-              action={<Link to="/gewohnheiten">Zu den Gewohnheiten</Link>}
-              description="Heute ist laut deinen Rhythmen keine Gewohnheit fällig."
-              title="Nichts fällig"
-            />
-          ) : overview.dueHabits.length === 0 ? (
-            <p className="today-status" role="status">
-              Alle {overview.habitDueCount} fälligen Gewohnheiten sind für heute
-              erfasst.
-            </p>
-          ) : (
-            <ul className="today-list">
-              {overview.dueHabits.map(({ habit }) => (
-                <li key={habit.id}>
-                  <div className="today-list-copy">
-                    <h3>{habit.name}</h3>
-                    <p>Heute fällig</p>
-                  </div>
-                  <div className="today-list-actions">
+          <section className="today-list-card">
+            <h2>Aufgaben für heute</h2>
+            {overview.openTasks.length === 0 ? (
+              <EmptyState
+                action={<Link to="/aufgaben">Zu den Aufgaben</Link>}
+                description="Für heute ist nichts geplant oder überfällig."
+                title="Keine offene Aufgabe"
+              />
+            ) : (
+              <ul className="today-list">
+                {overview.openTasks.slice(0, 5).map((task) => (
+                  <li key={task.id}>
+                    <div className="today-list-copy">
+                      <h3>{task.title}</h3>
+                      <p>{describeTask(task, context.today)}</p>
+                    </div>
                     <Button
-                      aria-label={`„${habit.name}“ heute erledigen`}
-                      disabled={busyId === habit.id}
-                      onClick={() => void checkInHabit(habit, "done")}
+                      aria-label={`„${task.title}“ abschließen`}
+                      disabled={busyId === task.id}
+                      onClick={() => void completeTask(task)}
                     >
                       Erledigt
                     </Button>
-                    <Button
-                      aria-label={`„${habit.name}“ heute überspringen`}
-                      disabled={busyId === habit.id}
-                      onClick={() => void checkInHabit(habit, "skipped")}
-                      variant="ghost"
-                    >
-                      Überspringen
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
-          <h2>Reflexion</h2>
+          <section className="today-list-card">
+            <h2>Gewohnheiten für heute</h2>
+            {overview.habitDueCount === 0 ? (
+              <EmptyState
+                action={<Link to="/gewohnheiten">Zu den Gewohnheiten</Link>}
+                description="Heute ist laut deinen Rhythmen keine Gewohnheit fällig."
+                title="Nichts fällig"
+              />
+            ) : overview.dueHabits.length === 0 ? (
+              <p className="today-status" role="status">
+                Alle {overview.habitDueCount} fälligen Gewohnheiten sind für
+                heute erfasst.
+              </p>
+            ) : (
+              <ul className="today-list">
+                {overview.dueHabits.map(({ habit }) => (
+                  <li key={habit.id}>
+                    <div className="today-list-copy">
+                      <h3>{habit.name}</h3>
+                      <p>Heute fällig</p>
+                    </div>
+                    <div className="today-list-actions">
+                      <Button
+                        aria-label={`„${habit.name}“ heute erledigen`}
+                        disabled={busyId === habit.id}
+                        onClick={() => void checkInHabit(habit, "done")}
+                      >
+                        Erledigt
+                      </Button>
+                      <Button
+                        aria-label={`„${habit.name}“ heute überspringen`}
+                        disabled={busyId === habit.id}
+                        onClick={() => void checkInHabit(habit, "skipped")}
+                        variant="ghost"
+                      >
+                        Überspringen
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
           <div className="today-journal-card">
+            <h2>Reflexion</h2>
             <p>
               {overview.journal.hasEntryToday
                 ? "Für heute ist eine Reflexion gespeichert."

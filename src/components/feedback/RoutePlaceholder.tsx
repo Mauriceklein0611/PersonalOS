@@ -11,9 +11,13 @@ export function RoutePlaceholder({
 }: RoutePlaceholderProps) {
   return (
     <section className="route-page" aria-labelledby="page-title">
-      <p className="page-eyebrow">{eyebrow}</p>
-      <h1 id="page-title">{title}</h1>
-      <p className="page-description">{description}</p>
+      <header className="page-header">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">{eyebrow}</p>
+          <h1 id="page-title">{title}</h1>
+          <p className="page-description">{description}</p>
+        </div>
+      </header>
       <div className="empty-state" role="note">
         <p>Noch keine Einträge</p>
         <span>

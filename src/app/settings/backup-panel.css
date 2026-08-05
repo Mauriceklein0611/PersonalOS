@@ -15,7 +15,7 @@
 }
 
 .backup-message {
-  color: var(--accent);
+  color: var(--accent-1);
 }
 
 .backup-preview {
@@ -23,7 +23,7 @@
   gap: var(--space-4);
   margin-top: var(--space-5);
   padding-top: var(--space-5);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--hairline);
 }
 
 .backup-preview h3,
@@ -44,7 +44,7 @@
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-sm);
-  background: var(--surface-muted);
+  background: var(--glass-strong);
 }
 
 .backup-counts dd {

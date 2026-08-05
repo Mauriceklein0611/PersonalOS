@@ -384,12 +384,16 @@ export function FinancePage({
 
   return (
     <section aria-labelledby="page-title" className="route-page finance-page">
-      <p className="page-eyebrow">Überblick</p>
-      <h1 id="page-title">Finanzen</h1>
-      <p className="page-description">
-        Erfasse Einnahmen und Ausgaben manuell und vollständig lokal. Diese
-        Ansicht ist keine Buchhaltung und keine Finanzberatung.
-      </p>
+      <header className="page-header">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">Überblick</p>
+          <h1 id="page-title">Finanzen</h1>
+          <p className="page-description">
+            Erfasse Einnahmen und Ausgaben manuell und vollständig lokal. Diese
+            Ansicht ist keine Buchhaltung und keine Finanzberatung.
+          </p>
+        </div>
+      </header>
 
       {error ? (
         <p className="finance-error" role="alert">

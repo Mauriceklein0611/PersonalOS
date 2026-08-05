@@ -16,35 +16,37 @@ const themes = {
     canvasStops: ["#2a1030", "#3a1226", "#241030"],
     /** Nebelflecken; sie überlappen einander nicht. */
     blobs: [
-      rgba(255, 178, 125, 0.42),
-      rgba(255, 143, 179, 0.45),
-      rgba(199, 139, 255, 0.34),
-      rgba(255, 216, 138, 0.3),
+      rgba(255, 178, 125, 0.3),
+      rgba(255, 143, 179, 0.3),
+      rgba(199, 139, 255, 0.26),
+      rgba(255, 216, 138, 0.24),
     ],
-    glass: rgba(41, 18, 50, 0.58),
-    glassStrong: rgba(58, 28, 68, 0.74),
-    glassOpaque: "#2f1539",
+    glass: rgba(255, 255, 255, 0.09),
+    glassStrong: rgba(255, 255, 255, 0.12),
+    glassOpaque: "#3a2040",
+    field: rgba(46, 24, 55, 0.92),
     text: "#f4f6ff",
-    textMuted: rgba(226, 232, 255, 0.72),
+    textMuted: rgba(226, 232, 255, 1),
     accents: ["#ffb27d", "#ff8fb3"],
     accentContrast: "#33130a",
-    danger: "#ffb1a5",
+    danger: "#ffe2dc",
     dangerContrast: "#24100d",
     focusRing: "#7dd3fc",
-    edgeStrong: rgba(255, 255, 255, 0.42),
-    data: ["#ffd88a", "#ffb27d", "#ff8fb3", "#c78bff", "#ff9d9d", "#f0e08a"],
+    edgeStrong: rgba(255, 255, 255, 0.6),
+    data: ["#ffd88a", "#ffb27d", "#ff9dbd", "#d5a6ff", "#ff9d9d", "#f0e08a"],
   },
   light: {
     canvasStops: ["#e8ecfb", "#f2e9f8", "#e4f2f0"],
     blobs: [
-      rgba(124, 199, 255, 0.45),
-      rgba(196, 168, 255, 0.45),
-      rgba(126, 240, 200, 0.4),
-      rgba(255, 158, 209, 0.35),
+      rgba(124, 199, 255, 0.34),
+      rgba(196, 168, 255, 0.34),
+      rgba(126, 240, 200, 0.3),
+      rgba(255, 158, 209, 0.26),
     ],
-    glass: rgba(255, 255, 255, 0.62),
-    glassStrong: rgba(255, 255, 255, 0.86),
-    glassOpaque: "#f7f9ff",
+    glass: rgba(255, 255, 255, 0.52),
+    glassStrong: rgba(255, 255, 255, 0.72),
+    glassOpaque: "#f4f7ff",
+    field: rgba(255, 255, 255, 0.92),
     text: "#1b2436",
     textMuted: rgba(27, 36, 54, 0.7),
     accents: ["#0a7a55", "#0369a1"],
@@ -89,12 +91,13 @@ function pickExtreme(theme: ThemeName, colors: readonly Rgba[]): Rgba {
 /** Alle Flächen, auf denen in dieser Ansicht Text oder Grafik landen kann. */
 function surfaces(theme: ThemeName): Array<{ color: Rgba; name: string }> {
   const backdrop = worstBackdrop(theme);
-  const { glass, glassOpaque, glassStrong } = themes[theme];
+  const { field, glass, glassOpaque, glassStrong } = themes[theme];
 
   return [
     { color: composite(glass, backdrop), name: "glass" },
     { color: composite(glassStrong, backdrop), name: "glass-strong" },
     { color: parseHex(glassOpaque), name: "glass-opaque" },
+    { color: composite(field, backdrop), name: "field" },
   ];
 }
 
