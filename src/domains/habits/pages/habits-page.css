@@ -69,10 +69,14 @@
   margin-top: var(--space-2);
 }
 
+/*
+ * Der Hinweis liegt zwischen den Karten direkt auf dem Nebel. Gedämpfte
+ * Schrift erreicht dort die 4,5:1 nicht, deshalb steht er in Textfarbe.
+ */
 .habit-view-hint {
   max-width: 46rem;
   margin: 0 0 var(--space-3);
-  color: var(--text-muted);
+  color: var(--text);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
 }

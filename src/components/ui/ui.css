@@ -75,7 +75,7 @@
 
 .ui-button-danger {
   color: var(--danger-contrast);
-  background: var(--danger);
+  background: var(--danger-surface);
 }
 
 .ui-button-danger:hover:not(:disabled),

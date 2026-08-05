@@ -231,7 +231,7 @@ export function TasksPage({
       </form>
 
       {error ? (
-        <p className="task-page-error" role="alert">
+        <p className="page-alert task-page-error" role="alert">
           {error}
         </p>
       ) : null}

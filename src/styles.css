@@ -236,6 +236,47 @@ a {
   line-height: var(--line-height-normal);
 }
 
+/*
+ * Ein Abschnitt aus Überschrift und Inhalt als Glas-Karte. Text steht nie
+ * direkt auf dem Nebel: Dort erreicht gedämpfte Schrift die 4,5:1 nicht,
+ * weil der Nebel an seiner hellsten Stelle zu hell ist.
+ */
+.page-section {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--space-3);
+  padding: clamp(var(--space-4), 3vw, var(--space-5));
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-xl);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+  backdrop-filter: var(--blur-glass);
+}
+
+.page-section > h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+/*
+ * Seitenweite Meldungen liegen zwischen den Karten und brauchen deshalb eine
+ * eigene Fläche: Auf dem blanken Nebel erreicht die Fehlerfarbe die 4,5:1
+ * nicht.
+ */
+.page-alert {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--edge);
+  border-left: 4px solid var(--danger);
+  border-radius: var(--radius-tile);
+  color: var(--danger);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight);
+  font-weight: var(--font-weight-medium);
+  backdrop-filter: var(--blur-glass);
+}
+
 /* Kopfbereich einer Ansicht als Glas-Hero. */
 .page-header {
   display: grid;
@@ -504,7 +545,9 @@ a {
   .mobile-navigation,
   .desktop-sidebar,
   .navigation-progress,
-  .page-header {
+  .page-header,
+  .page-section,
+  .page-alert {
     background: var(--glass-opaque);
     backdrop-filter: none;
   }
@@ -515,7 +558,9 @@ a {
   .mobile-navigation,
   .desktop-sidebar,
   .navigation-progress,
-  .page-header {
+  .page-header,
+  .page-section,
+  .page-alert {
     background: var(--glass-opaque);
     backdrop-filter: none;
   }

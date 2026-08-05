@@ -351,7 +351,7 @@ export function GoalsPage({
       </header>
 
       {error ? (
-        <p className="goal-error" role="alert">
+        <p className="page-alert goal-error" role="alert">
           {error}
         </p>
       ) : null}

@@ -143,6 +143,7 @@
 
   --danger: #8f3025;
   --danger-soft: rgb(143 48 37 / 12%);
+  --danger-surface: #8f3025;
   --danger-contrast: #ffffff;
 
   --data-1: #0a7a55;
@@ -237,8 +238,13 @@
   --accent-soft: rgb(255 178 125 / 18%);
   --focus-ring: #bae6fd;
 
+  /*
+   * `--danger` ist Fehlertext auf Glas und deshalb hell. Ein destruktiver
+   * Button braucht dagegen eine kräftige Fläche, sonst wirkt er harmlos.
+   */
   --danger: #ffe8e3;
   --danger-soft: rgb(255 232 227 / 16%);
+  --danger-surface: #ff8f7a;
   --danger-contrast: #24100d;
 
   --data-1: #ffd88a;

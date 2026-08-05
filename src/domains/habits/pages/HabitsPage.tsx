@@ -365,7 +365,7 @@ export function HabitsPage({
       </div>
 
       {error ? (
-        <p className="habit-page-error" role="alert">
+        <p className="page-alert habit-page-error" role="alert">
           {error}
         </p>
       ) : null}

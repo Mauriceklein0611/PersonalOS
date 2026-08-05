@@ -257,7 +257,7 @@ export function TodayPage({
       </header>
 
       {error ? (
-        <p className="today-error" role="alert">
+        <p className="page-alert today-error" role="alert">
           {error}
         </p>
       ) : null}

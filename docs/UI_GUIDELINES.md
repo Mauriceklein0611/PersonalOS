@@ -87,7 +87,11 @@ Alle Ansichten folgen einer gemeinsamen Glas-Sprache: durchscheinende Karten mit
 
 ### Kontrast auf Glas
 
-Durchscheinende Flächen haben keinen festen Hintergrund. `color-contrast.test.ts` rechnet deshalb die tatsächliche Schichtung nach — Nebelfleck über Grundverlauf, darüber das Glas-Alpha, darüber der Text — und prüft immer den ungünstigsten Fleck. Erreicht ein Wert die Schwelle nicht, wird das Token geändert, nicht die Schwelle. Weil weißes Glas die Karte aufhellt, sind die Stellhebel im Dark-Theme die Deckkraft des Nebels und die des Textes, nicht das Glas-Alpha.
+Durchscheinende Flächen haben keinen festen Hintergrund. `color-contrast.test.ts` rechnet deshalb die tatsächliche Schichtung nach — Nebelfleck über Grundverlauf, darüber die Helligkeitskorrektur des Filters, darüber das Glas-Alpha, darüber der Text — und prüft immer den ungünstigsten Fleck. Erreicht ein Wert die Schwelle nicht, wird das Token geändert, nicht die Schwelle.
+
+Der Stellhebel ist `brightness()` in `--blur-glass`: Es dunkelt den Nebel **unter** der Karte ab und lässt dessen Farbe und Verlauf sichtbar. Ein deckender Grundton über der Karte würde denselben Kontrast erzeugen, aber genau das zerstören, was die Fläche als Glas lesbar macht. Mehr Glas-Alpha hilft im Dark-Theme nicht: Weißes Glas hellt die Karte weiter auf.
+
+**Text steht immer auf einer Glasfläche, nie auf dem blanken Nebel.** Ausnahme sind Überschriften in `--text`; der Test deckt diesen Fall ausdrücklich ab. Gedämpfter Text, Fehlertext und Datenfarben erreichen ihre Schwelle nur auf Glas — dafür gibt es `.page-section` für Abschnitte und `.page-alert` für seitenweite Meldungen.
 
 ## Dashboard-Visualisierung
 

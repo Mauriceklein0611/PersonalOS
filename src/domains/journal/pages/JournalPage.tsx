@@ -215,7 +215,7 @@ export function JournalPage({
       ) : null}
 
       {error ? (
-        <p className="journal-page-error" role="alert">
+        <p className="page-alert journal-page-error" role="alert">
           {error}
         </p>
       ) : null}
@@ -254,7 +254,7 @@ export function JournalPage({
           ))}
 
           {errors.form ? (
-            <p className="journal-page-error" role="alert">
+            <p className="page-alert journal-page-error" role="alert">
               {errors.form}
             </p>
           ) : null}

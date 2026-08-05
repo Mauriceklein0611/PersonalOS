@@ -396,7 +396,7 @@ export function FinancePage({
       </header>
 
       {error ? (
-        <p className="finance-error" role="alert">
+        <p className="page-alert finance-error" role="alert">
           {error}
         </p>
       ) : null}
@@ -406,8 +406,8 @@ export function FinancePage({
           Finanzübersicht wird geladen …
         </p>
       ) : (
-        <>
-          <div className="finance-metrics">
+        <div className="page-grid">
+          <div className="finance-metrics" data-span="full">
             <MetricTile
               context="Im gewählten Zeitraum"
               label="Einnahmen"
@@ -425,327 +425,349 @@ export function FinancePage({
             />
           </div>
 
-          <h2>Buchung erfassen</h2>
-          {/* Die eigene Prüfung nennt Problem und Korrektur; die native
+          <section className="page-section" data-span="full">
+            <h2>Buchung erfassen</h2>
+            {/* Die eigene Prüfung nennt Problem und Korrektur; die native
               Browsermeldung würde sie nur verdecken. */}
-          <form
-            className="finance-form"
-            noValidate
-            onSubmit={(event) => void submitTransaction(event)}
-          >
-            <Select
-              label="Art"
-              onChange={(event) => {
-                const kind = event.currentTarget.value as FinanceKind;
-                setValues((current) => ({ ...current, categoryId: "", kind }));
-              }}
-              value={values.kind}
+            <form
+              className="finance-form"
+              noValidate
+              onSubmit={(event) => void submitTransaction(event)}
             >
-              {financeKinds.map((kind) => (
-                <option key={kind} value={kind}>
-                  {financeKindLabels[kind]}
-                </option>
-              ))}
-            </Select>
-            <Input
-              error={formErrors.amount}
-              hint="Zum Beispiel 12,50. Die Richtung ergibt sich aus der Art."
-              inputMode="decimal"
-              label="Betrag in Euro"
-              onChange={(event) => {
-                const amount = event.currentTarget.value;
-                setValues((current) => ({ ...current, amount }));
-              }}
-              required
-              value={values.amount}
-            />
-            <Select
-              error={formErrors.categoryId}
-              label="Kategorie der Buchung"
-              onChange={(event) => {
-                const categoryId = event.currentTarget.value;
-                setValues((current) => ({ ...current, categoryId }));
-              }}
-              required
-              value={values.categoryId}
-            >
-              <option value="">Bitte wählen</option>
-              {selectableCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </Select>
-            <Input
-              error={formErrors.bookedOn}
-              label="Datum"
-              onChange={(event) => {
-                const bookedOn = event.currentTarget.value;
-                setValues((current) => ({ ...current, bookedOn }));
-              }}
-              required
-              type="date"
-              value={values.bookedOn}
-            />
-            <Textarea
-              hint="Optional, zum Beispiel ein kurzer Verwendungszweck."
-              label="Notiz"
-              onChange={(event) => {
-                const description = event.currentTarget.value;
-                setValues((current) => ({ ...current, description }));
-              }}
-              value={values.description}
-            />
-            <Button type="submit">Buchung speichern</Button>
-          </form>
+              <Select
+                label="Art"
+                onChange={(event) => {
+                  const kind = event.currentTarget.value as FinanceKind;
+                  setValues((current) => ({
+                    ...current,
+                    categoryId: "",
+                    kind,
+                  }));
+                }}
+                value={values.kind}
+              >
+                {financeKinds.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {financeKindLabels[kind]}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                error={formErrors.amount}
+                hint="Zum Beispiel 12,50. Die Richtung ergibt sich aus der Art."
+                inputMode="decimal"
+                label="Betrag in Euro"
+                onChange={(event) => {
+                  const amount = event.currentTarget.value;
+                  setValues((current) => ({ ...current, amount }));
+                }}
+                required
+                value={values.amount}
+              />
+              <Select
+                error={formErrors.categoryId}
+                label="Kategorie der Buchung"
+                onChange={(event) => {
+                  const categoryId = event.currentTarget.value;
+                  setValues((current) => ({ ...current, categoryId }));
+                }}
+                required
+                value={values.categoryId}
+              >
+                <option value="">Bitte wählen</option>
+                {selectableCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                error={formErrors.bookedOn}
+                label="Datum"
+                onChange={(event) => {
+                  const bookedOn = event.currentTarget.value;
+                  setValues((current) => ({ ...current, bookedOn }));
+                }}
+                required
+                type="date"
+                value={values.bookedOn}
+              />
+              <Textarea
+                hint="Optional, zum Beispiel ein kurzer Verwendungszweck."
+                label="Notiz"
+                onChange={(event) => {
+                  const description = event.currentTarget.value;
+                  setValues((current) => ({ ...current, description }));
+                }}
+                value={values.description}
+              />
+              <Button type="submit">Buchung speichern</Button>
+            </form>
+          </section>
 
-          <h2>Buchungen</h2>
-          <div className="finance-filters">
-            <Select
-              label="Monat"
-              onChange={(event) => setMonthFilter(event.currentTarget.value)}
-              value={monthFilter}
-            >
-              <option value="all">Alle Monate</option>
-              {months.map((month) => (
-                <option key={month} value={month}>
-                  {formatMonth(month)}
-                </option>
-              ))}
-            </Select>
-            <Select
-              label="Art der Buchung"
-              onChange={(event) =>
-                setKindFilter(event.currentTarget.value as FinanceKind | "all")
-              }
-              value={kindFilter}
-            >
-              <option value="all">Alle Arten</option>
-              {financeKinds.map((kind) => (
-                <option key={kind} value={kind}>
-                  {financeKindLabels[kind]}
-                </option>
-              ))}
-            </Select>
-            <Select
-              label="Kategoriefilter"
-              onChange={(event) => setCategoryFilter(event.currentTarget.value)}
-              value={categoryFilter}
-            >
-              <option value="all">Alle Kategorien</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </Select>
-          </div>
+          <section className="page-section">
+            <h2>Buchungen</h2>
+            <div className="finance-filters">
+              <Select
+                label="Monat"
+                onChange={(event) => setMonthFilter(event.currentTarget.value)}
+                value={monthFilter}
+              >
+                <option value="all">Alle Monate</option>
+                {months.map((month) => (
+                  <option key={month} value={month}>
+                    {formatMonth(month)}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label="Art der Buchung"
+                onChange={(event) =>
+                  setKindFilter(
+                    event.currentTarget.value as FinanceKind | "all",
+                  )
+                }
+                value={kindFilter}
+              >
+                <option value="all">Alle Arten</option>
+                {financeKinds.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {financeKindLabels[kind]}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label="Kategoriefilter"
+                onChange={(event) =>
+                  setCategoryFilter(event.currentTarget.value)
+                }
+                value={categoryFilter}
+              >
+                <option value="all">Alle Kategorien</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
 
-          {visibleTransactions.length === 0 ? (
-            <EmptyState
-              description="Für diese Auswahl ist keine Buchung erfasst."
-              title="Keine Buchung"
-            />
-          ) : (
-            <ul className="finance-list">
-              {visibleTransactions.map((entry) => (
-                <li key={entry.id}>
-                  <div className="finance-list-copy">
-                    <h3>
-                      {categoriesById.get(entry.categoryId)?.name ??
-                        "Entfernte Kategorie"}
-                    </h3>
-                    <p>
-                      {financeKindLabels[entry.kind]} am{" "}
-                      {formatDay(entry.bookedOn)}
-                      {entry.description ? ` · ${entry.description}` : ""}
+            {visibleTransactions.length === 0 ? (
+              <EmptyState
+                description="Für diese Auswahl ist keine Buchung erfasst."
+                title="Keine Buchung"
+              />
+            ) : (
+              <ul className="finance-list">
+                {visibleTransactions.map((entry) => (
+                  <li key={entry.id}>
+                    <div className="finance-list-copy">
+                      <h3>
+                        {categoriesById.get(entry.categoryId)?.name ??
+                          "Entfernte Kategorie"}
+                      </h3>
+                      <p>
+                        {financeKindLabels[entry.kind]} am{" "}
+                        {formatDay(entry.bookedOn)}
+                        {entry.description ? ` · ${entry.description}` : ""}
+                      </p>
+                    </div>
+                    <p className="finance-list-amount">
+                      {formatSignedMinorUnits(
+                        entry.kind === "income"
+                          ? entry.money.amountMinor
+                          : -entry.money.amountMinor,
+                        entry.money.currency,
+                      )}
                     </p>
+                    <IconButton
+                      label={`Buchung vom ${formatDay(entry.bookedOn)} archivieren`}
+                      onClick={() => void archiveTransaction(entry)}
+                    >
+                      ×
+                    </IconButton>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="page-section">
+            <h2>Budgets</h2>
+            <div className="finance-month-nav">
+              <Button
+                onClick={() => setBudgetMonth((month) => shiftMonth(month, -1))}
+                variant="secondary"
+              >
+                Vorheriger Monat
+              </Button>
+              <p className="finance-month-label">{formatMonth(budgetMonth)}</p>
+              <Button
+                onClick={() => setBudgetMonth((month) => shiftMonth(month, 1))}
+                variant="secondary"
+              >
+                Nächster Monat
+              </Button>
+            </div>
+
+            <form
+              className="finance-category-form"
+              noValidate
+              onSubmit={(event) => void submitBudget(event)}
+            >
+              <Select
+                label="Kategorie für das Budget"
+                onChange={(event) => {
+                  setBudgetCategoryId(event.currentTarget.value);
+                  setBudgetError(undefined);
+                }}
+                value={budgetCategoryId}
+              >
+                <option value="">Bitte wählen</option>
+                {categories
+                  .filter((category) => category.kind === "expense")
+                  .map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+              </Select>
+              <Input
+                error={budgetError}
+                hint="Monatlicher Betrag, zum Beispiel 250,00."
+                inputMode="decimal"
+                label="Budget in Euro"
+                onChange={(event) => {
+                  setBudgetAmount(event.currentTarget.value);
+                  setBudgetError(undefined);
+                }}
+                value={budgetAmount}
+              />
+              <Button type="submit" variant="secondary">
+                Budget speichern
+              </Button>
+            </form>
+
+            {budgetUsages.length === 0 ? (
+              <EmptyState
+                description="Für diesen Monat ist kein Budget gesetzt."
+                title="Kein Budget"
+              />
+            ) : (
+              <ul className="finance-budget-list">
+                {budgetUsages.map(({ budget, error, usage }) => (
+                  <li key={budget.id}>
+                    <div className="finance-budget-head">
+                      <h3>
+                        {categoriesById.get(budget.categoryId)?.name ??
+                          "Entfernte Kategorie"}
+                      </h3>
+                      <IconButton
+                        label={`Budget für ${
+                          categoriesById.get(budget.categoryId)?.name ??
+                          "entfernte Kategorie"
+                        } entfernen`}
+                        onClick={() => void removeBudget(budget)}
+                      >
+                        ×
+                      </IconButton>
+                    </div>
+                    {error ? (
+                      <p className="finance-error">{error}</p>
+                    ) : usage ? (
+                      <>
+                        <ProgressBar
+                          caption={usage.summary}
+                          label="Verbraucht"
+                          value={usage.ratio}
+                          valueText={`${formatMoney(
+                            createMoney(usage.spentMinor, usage.currency),
+                          )} von ${formatMoney(budget.limit)}`}
+                        />
+                        <p className="finance-hint">
+                          {usage.remainingMinor >= 0
+                            ? `Rest: ${formatMoney(
+                                createMoney(
+                                  usage.remainingMinor,
+                                  usage.currency,
+                                ),
+                              )}`
+                            : `Darüber hinaus: ${formatMoney(
+                                createMoney(
+                                  Math.abs(usage.remainingMinor),
+                                  usage.currency,
+                                ),
+                              )}`}{" "}
+                          · {usage.transactionCount}{" "}
+                          {usage.transactionCount === 1
+                            ? "Buchung"
+                            : "Buchungen"}
+                        </p>
+                      </>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="page-section">
+            <h2>Kategorien</h2>
+            <p className="finance-hint">
+              Die Startwerte sind Beispiele. Eine Kategorie mit Buchungen wird
+              archiviert statt gelöscht, damit keine Buchung ihren Bezug
+              verliert.
+            </p>
+            <form
+              className="finance-category-form"
+              noValidate
+              onSubmit={(event) => void submitCategory(event)}
+            >
+              <Input
+                error={categoryError}
+                label="Neue Kategorie"
+                onChange={(event) => {
+                  setCategoryName(event.currentTarget.value);
+                  setCategoryError(undefined);
+                }}
+                value={categoryName}
+              />
+              <Select
+                label="Art der Kategorie"
+                onChange={(event) =>
+                  setCategoryKind(event.currentTarget.value as FinanceKind)
+                }
+                value={categoryKind}
+              >
+                {financeKinds.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {financeKindLabels[kind]}
+                  </option>
+                ))}
+              </Select>
+              <Button type="submit" variant="secondary">
+                Kategorie anlegen
+              </Button>
+            </form>
+
+            <ul className="finance-list">
+              {categories.map((category) => (
+                <li key={category.id}>
+                  <div className="finance-list-copy">
+                    <h3>{category.name}</h3>
+                    <p>{financeKindLabels[category.kind]}</p>
                   </div>
-                  <p className="finance-list-amount">
-                    {formatSignedMinorUnits(
-                      entry.kind === "income"
-                        ? entry.money.amountMinor
-                        : -entry.money.amountMinor,
-                      entry.money.currency,
-                    )}
-                  </p>
                   <IconButton
-                    label={`Buchung vom ${formatDay(entry.bookedOn)} archivieren`}
-                    onClick={() => void archiveTransaction(entry)}
+                    label={`Kategorie „${category.name}“ entfernen`}
+                    onClick={() => void removeCategory(category)}
                   >
                     ×
                   </IconButton>
                 </li>
               ))}
             </ul>
-          )}
-
-          <h2>Budgets</h2>
-          <div className="finance-month-nav">
-            <Button
-              onClick={() => setBudgetMonth((month) => shiftMonth(month, -1))}
-              variant="secondary"
-            >
-              Vorheriger Monat
-            </Button>
-            <p className="finance-month-label">{formatMonth(budgetMonth)}</p>
-            <Button
-              onClick={() => setBudgetMonth((month) => shiftMonth(month, 1))}
-              variant="secondary"
-            >
-              Nächster Monat
-            </Button>
-          </div>
-
-          <form
-            className="finance-category-form"
-            noValidate
-            onSubmit={(event) => void submitBudget(event)}
-          >
-            <Select
-              label="Kategorie für das Budget"
-              onChange={(event) => {
-                setBudgetCategoryId(event.currentTarget.value);
-                setBudgetError(undefined);
-              }}
-              value={budgetCategoryId}
-            >
-              <option value="">Bitte wählen</option>
-              {categories
-                .filter((category) => category.kind === "expense")
-                .map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-            </Select>
-            <Input
-              error={budgetError}
-              hint="Monatlicher Betrag, zum Beispiel 250,00."
-              inputMode="decimal"
-              label="Budget in Euro"
-              onChange={(event) => {
-                setBudgetAmount(event.currentTarget.value);
-                setBudgetError(undefined);
-              }}
-              value={budgetAmount}
-            />
-            <Button type="submit" variant="secondary">
-              Budget speichern
-            </Button>
-          </form>
-
-          {budgetUsages.length === 0 ? (
-            <EmptyState
-              description="Für diesen Monat ist kein Budget gesetzt."
-              title="Kein Budget"
-            />
-          ) : (
-            <ul className="finance-budget-list">
-              {budgetUsages.map(({ budget, error, usage }) => (
-                <li key={budget.id}>
-                  <div className="finance-budget-head">
-                    <h3>
-                      {categoriesById.get(budget.categoryId)?.name ??
-                        "Entfernte Kategorie"}
-                    </h3>
-                    <IconButton
-                      label={`Budget für ${
-                        categoriesById.get(budget.categoryId)?.name ??
-                        "entfernte Kategorie"
-                      } entfernen`}
-                      onClick={() => void removeBudget(budget)}
-                    >
-                      ×
-                    </IconButton>
-                  </div>
-                  {error ? (
-                    <p className="finance-error">{error}</p>
-                  ) : usage ? (
-                    <>
-                      <ProgressBar
-                        caption={usage.summary}
-                        label="Verbraucht"
-                        value={usage.ratio}
-                        valueText={`${formatMoney(
-                          createMoney(usage.spentMinor, usage.currency),
-                        )} von ${formatMoney(budget.limit)}`}
-                      />
-                      <p className="finance-hint">
-                        {usage.remainingMinor >= 0
-                          ? `Rest: ${formatMoney(
-                              createMoney(usage.remainingMinor, usage.currency),
-                            )}`
-                          : `Darüber hinaus: ${formatMoney(
-                              createMoney(
-                                Math.abs(usage.remainingMinor),
-                                usage.currency,
-                              ),
-                            )}`}{" "}
-                        · {usage.transactionCount}{" "}
-                        {usage.transactionCount === 1 ? "Buchung" : "Buchungen"}
-                      </p>
-                    </>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <h2>Kategorien</h2>
-          <p className="finance-hint">
-            Die Startwerte sind Beispiele. Eine Kategorie mit Buchungen wird
-            archiviert statt gelöscht, damit keine Buchung ihren Bezug verliert.
-          </p>
-          <form
-            className="finance-category-form"
-            noValidate
-            onSubmit={(event) => void submitCategory(event)}
-          >
-            <Input
-              error={categoryError}
-              label="Neue Kategorie"
-              onChange={(event) => {
-                setCategoryName(event.currentTarget.value);
-                setCategoryError(undefined);
-              }}
-              value={categoryName}
-            />
-            <Select
-              label="Art der Kategorie"
-              onChange={(event) =>
-                setCategoryKind(event.currentTarget.value as FinanceKind)
-              }
-              value={categoryKind}
-            >
-              {financeKinds.map((kind) => (
-                <option key={kind} value={kind}>
-                  {financeKindLabels[kind]}
-                </option>
-              ))}
-            </Select>
-            <Button type="submit" variant="secondary">
-              Kategorie anlegen
-            </Button>
-          </form>
-
-          <ul className="finance-list">
-            {categories.map((category) => (
-              <li key={category.id}>
-                <div className="finance-list-copy">
-                  <h3>{category.name}</h3>
-                  <p>{financeKindLabels[category.kind]}</p>
-                </div>
-                <IconButton
-                  label={`Kategorie „${category.name}“ entfernen`}
-                  onClick={() => void removeCategory(category)}
-                >
-                  ×
-                </IconButton>
-              </li>
-            ))}
-          </ul>
-        </>
+          </section>
+        </div>
       )}
 
       {notice ? (

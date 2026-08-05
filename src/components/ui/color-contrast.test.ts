@@ -32,6 +32,7 @@ const themes = {
     accents: ["#ffb27d", "#ff8fb3"],
     accentContrast: "#33130a",
     danger: "#ffe8e3",
+    dangerSurface: "#ff8f7a",
     dangerContrast: "#24100d",
     focusRing: "#bae6fd",
     edgeStrong: rgba(255, 255, 255, 0.6),
@@ -56,6 +57,7 @@ const themes = {
     accents: ["#0a7a55", "#0369a1"],
     accentContrast: "#ffffff",
     danger: "#8f3025",
+    dangerSurface: "#8f3025",
     dangerContrast: "#ffffff",
     focusRing: "#0369a1",
     edgeStrong: rgba(27, 36, 54, 0.52),
@@ -157,7 +159,21 @@ describe.each(themeNames)("glass palette %s", (theme) => {
 
   it("keeps the danger button label readable", () => {
     expect(
-      contrastRatio(parseHex(dangerContrast), parseHex(danger)),
+      contrastRatio(
+        parseHex(dangerContrast),
+        parseHex(themes[theme].dangerSurface),
+      ),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  /*
+   * Überschriften und Meldungen liegen zwischen den Karten direkt auf dem
+   * Nebel. Gedämpfte Schrift gehört dort nicht hin und wird deshalb auch nicht
+   * geprüft: Sie steht laut `docs/UI_GUIDELINES.md` ausschließlich auf Glas.
+   */
+  it("keeps a heading readable directly on the fog", () => {
+    expect(
+      contrastRatio(parseHex(text), worstBackdrop(theme)),
     ).toBeGreaterThanOrEqual(4.5);
   });
 });
