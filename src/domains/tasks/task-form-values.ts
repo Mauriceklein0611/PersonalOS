@@ -12,6 +12,8 @@ export type TaskFormValues = {
   categoryId: string;
   dueLocal: string;
   estimatedMinutes: string;
+  /** Optionale Zielreferenz. Leer bedeutet: gehört zu keinem Ziel. */
+  goalId: string;
   notes: string;
   plannedDate: string;
   priority: TaskPriority;
@@ -78,6 +80,7 @@ export function parseTaskFormValues(
     categoryId: values.categoryId || undefined,
     dueAt,
     estimatedMinutes,
+    goalId: values.goalId || undefined,
     notes: notes || undefined,
     plannedDate,
     priority: values.priority,
@@ -97,6 +100,7 @@ export function taskToFormValues(task: TaskDetails): TaskFormValues {
     categoryId: task.categoryId ?? "",
     dueLocal: task.dueAt ? toLocalDateTimeInput(task.dueAt) : "",
     estimatedMinutes: task.estimatedMinutes?.toString() ?? "",
+    goalId: task.goalId ?? "",
     notes: task.notes ?? "",
     plannedDate: task.plannedDate ?? "",
     priority: task.priority,

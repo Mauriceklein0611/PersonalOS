@@ -7,6 +7,11 @@ import {
 } from "react";
 
 import { Button, Input, Toast } from "../../../components/ui";
+import {
+  personalOsGoalLinkService,
+  type GoalLinkService,
+  type GoalOption,
+} from "../../goals/link-service";
 import { TaskCard } from "../components/TaskCard";
 import { TaskEditor } from "../components/TaskEditor";
 import type { Task, TaskDetails } from "../model";
@@ -42,17 +47,20 @@ const taskViews: Array<{
 ];
 
 export type TasksPageProps = {
+  goalLinks?: GoalLinkService;
   now?: () => Date;
   service?: TaskService;
   timeZone?: string;
 };
 
 export function TasksPage({
+  goalLinks = personalOsGoalLinkService,
   now = systemNow,
   service = personalOsTaskService,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 }: TasksPageProps) {
   const [activeView, setActiveView] = useState<TaskView>("inbox");
+  const [goalOptions, setGoalOptions] = useState<GoalOption[]>([]);
   const [busyTaskId, setBusyTaskId] = useState<string>();
   const [editingTask, setEditingTask] = useState<Task>();
   const [error, setError] = useState<string>();
@@ -70,6 +78,23 @@ export function TasksPage({
   const refreshTasks = useCallback(async () => {
     setTasks(await service.list());
   }, [service]);
+
+  // Die Zielauswahl ist optional. Schlägt sie fehl, bleibt sie leer und die
+  // Aufgabenerfassung funktioniert unverändert weiter.
+  useEffect(() => {
+    let isCurrent = true;
+    void goalLinks
+      .listGoalOptions()
+      .then((options) => {
+        if (isCurrent) setGoalOptions(options);
+      })
+      .catch(() => {
+        if (isCurrent) setGoalOptions([]);
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [goalLinks]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -307,6 +332,7 @@ export function TasksPage({
 
       {editingTask ? (
         <TaskEditor
+          goalOptions={goalOptions}
           isSaving={busyTaskId === editingTask.id}
           key={editingTask.id}
           onClose={() => setEditingTask(undefined)}

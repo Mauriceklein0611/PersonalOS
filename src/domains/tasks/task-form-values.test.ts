@@ -7,6 +7,7 @@ const validValues: TaskFormValues = {
   categoryId: taskCategories[0].id,
   dueLocal: "",
   estimatedMinutes: "25",
+  goalId: "",
   notes: "Neutrale Notiz",
   plannedDate: "2026-08-05",
   priority: "normal",

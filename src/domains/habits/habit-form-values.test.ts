@@ -6,6 +6,7 @@ const baseValues = {
   count: "3",
   description: "",
   endDate: "",
+  goalId: "",
   name: "Morgenroutine",
   scheduleKind: "daily" as const,
   startDate: "2026-08-04",

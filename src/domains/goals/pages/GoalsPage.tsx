@@ -9,6 +9,7 @@ import {
 import {
   Button,
   Checkbox,
+  Dialog,
   EmptyState,
   IconButton,
   Input,
@@ -17,6 +18,11 @@ import {
   Textarea,
   Toast,
 } from "../../../components/ui";
+import {
+  personalOsGoalLinkService,
+  type GoalLinkService,
+} from "../link-service";
+import { describeGoalLinks, type GoalLinkSummary } from "../links";
 import { calendarDayForInstant } from "../../../lib/dates/calendar-days";
 import {
   goalProgressModeLabels,
@@ -42,12 +48,14 @@ type GoalUndoAction = {
 };
 
 export type GoalsPageProps = {
+  goalLinks?: GoalLinkService;
   now?: () => Date;
   service?: GoalService;
   timeZone?: string;
 };
 
 export function GoalsPage({
+  goalLinks = personalOsGoalLinkService,
   now = () => new Date(),
   service = personalOsGoalService,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -73,6 +81,12 @@ export function GoalsPage({
   const [titleError, setTitleError] = useState<string>();
   const [milestoneTitle, setMilestoneTitle] = useState("");
   const [milestoneError, setMilestoneError] = useState<string>();
+  const [links, setLinks] = useState<GoalLinkSummary>();
+  const [deletion, setDeletion] = useState<{
+    goal: Goal;
+    habits: number;
+    tasks: number;
+  }>();
 
   const selected = goals.find((goal) => goal.id === selectedId);
 
@@ -82,6 +96,24 @@ export function GoalsPage({
     },
     [service],
   );
+
+  // Verknüpfte Elemente werden nur gelesen; die Zielseite kennt keine UI der
+  // Aufgaben- oder Gewohnheitsdomain.
+  useEffect(() => {
+    if (!selected) return;
+    let isCurrent = true;
+    void goalLinks
+      .summarize(selected)
+      .then((summary) => {
+        if (isCurrent) setLinks(summary);
+      })
+      .catch(() => {
+        if (isCurrent) setLinks(undefined);
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [goalLinks, selected]);
 
   const reload = useCallback(
     async (keepId?: string) => {
@@ -259,6 +291,35 @@ export function GoalsPage({
     }, "Der Fortschritt konnte nicht gespeichert werden.");
   }
 
+  async function askForDeletion(goal: Goal) {
+    setError(undefined);
+    try {
+      const counts = await goalLinks.countReferences(goal);
+      setDeletion({ goal, habits: counts.habits, tasks: counts.tasks });
+    } catch {
+      setError("Die Verknüpfungen konnten nicht geprüft werden.");
+    }
+  }
+
+  async function confirmDeletion() {
+    if (!deletion) return;
+    const { goal } = deletion;
+    setDeletion(undefined);
+
+    const removed = await run(async () => {
+      await goalLinks.deleteGoalPermanently(goal);
+      await reload();
+    }, "Das Ziel konnte nicht gelöscht werden.");
+
+    if (removed) {
+      // Endgültiges Löschen ist nicht umkehrbar, deshalb kein Undo-Angebot.
+      setNotice(
+        "Das Ziel wurde endgültig gelöscht. Aufgaben und Gewohnheiten sind erhalten geblieben.",
+      );
+      setUndo(undefined);
+    }
+  }
+
   async function runUndo(action: GoalUndoAction) {
     setUndo(undefined);
     const done = await run(
@@ -409,6 +470,22 @@ export function GoalsPage({
                 value={progress.ratio}
               />
               <p className="goal-meta">{deadline.text}</p>
+              {/* Nur anzeigen, wenn die Auswertung zum gewählten Ziel gehört. */}
+              {links && links.goalId === selected.id ? (
+                <div className="goal-links">
+                  <p className="goal-meta">{describeGoalLinks(links)}</p>
+                  {links.taskTitles.length > 0 ? (
+                    <p className="goal-meta">
+                      Aufgaben: {links.taskTitles.join(", ")}
+                    </p>
+                  ) : null}
+                  {links.habitNames.length > 0 ? (
+                    <p className="goal-meta">
+                      Gewohnheiten: {links.habitNames.join(", ")}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
 
               {selected.progressMode === "manual" ? (
                 <Input
@@ -500,11 +577,45 @@ export function GoalsPage({
                 >
                   Ziel archivieren
                 </Button>
+                <Button
+                  onClick={() => void askForDeletion(selected)}
+                  variant="danger"
+                >
+                  Ziel endgültig löschen
+                </Button>
               </div>
             </section>
           ) : null}
         </>
       )}
+
+      {/* Endgültiges Löschen ist nicht umkehrbar und nennt vorher, was es
+          anfasst und was erhalten bleibt. */}
+      <Dialog
+        actions={
+          <>
+            <Button onClick={() => setDeletion(undefined)} variant="secondary">
+              Abbrechen
+            </Button>
+            <Button onClick={() => void confirmDeletion()} variant="danger">
+              Endgültig löschen
+            </Button>
+          </>
+        }
+        description="Diese Aktion lässt sich nicht rückgängig machen."
+        onClose={() => setDeletion(undefined)}
+        open={deletion !== undefined}
+        title="Ziel endgültig löschen"
+      >
+        {deletion ? (
+          <p>
+            „{deletion.goal.title}“ und seine Meilensteine werden entfernt.{" "}
+            {deletion.tasks + deletion.habits === 0
+              ? "Es ist nichts mit diesem Ziel verknüpft."
+              : `${deletion.tasks} Aufgaben und ${deletion.habits} Gewohnheiten verlieren nur die Verknüpfung; die Einträge selbst bleiben erhalten.`}
+          </p>
+        ) : null}
+      </Dialog>
 
       {notice ? (
         <div className="goal-toast-region">

@@ -21,6 +21,8 @@ import {
 } from "../task-form-values";
 
 type TaskEditorProps = {
+  /** Auswählbare Ziele. Ohne Ziele entfällt die Auswahl nicht, sie bleibt leer. */
+  goalOptions?: ReadonlyArray<{ id: string; title: string }>;
   isSaving: boolean;
   onClose: () => void;
   onSave: (details: TaskDetails) => Promise<boolean>;
@@ -28,6 +30,7 @@ type TaskEditorProps = {
 };
 
 export function TaskEditor({
+  goalOptions = [],
   isSaving,
   onClose,
   onSave,
@@ -128,6 +131,20 @@ export function TaskEditor({
             {taskCategories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.label}
+              </option>
+            ))}
+          </Select>
+          {/* Verknüpfung ist opt-in und macht die Erfassung nicht länger. */}
+          <Select
+            hint="Optional. Eine Aufgabe funktioniert auch ohne Ziel."
+            label="Ziel"
+            onChange={(event) => update("goalId", event.currentTarget.value)}
+            value={values.goalId}
+          >
+            <option value="">Ohne Ziel</option>
+            {goalOptions.map((goal) => (
+              <option key={goal.id} value={goal.id}>
+                {goal.title}
               </option>
             ))}
           </Select>

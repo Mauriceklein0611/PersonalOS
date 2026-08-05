@@ -167,6 +167,9 @@ describe("GoalsPage", () => {
       within(detail).getByRole("button", { name: "Abgeschlossen" }),
     );
 
+    // Erst prüfen, wenn der Statuswechsel tatsächlich gerendert ist.
+    await screen.findByText("Der Status ist jetzt „Abgeschlossen“.");
+
     const afterCompletion = await screen.findByRole("region", {
       name: "Synthetisches Ziel",
     });

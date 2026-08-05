@@ -16,6 +16,11 @@ import {
   getIsoWeekBounds,
 } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
+import {
+  personalOsGoalLinkService,
+  type GoalLinkService,
+  type GoalOption,
+} from "../../goals/link-service";
 import { HabitEditor } from "../components/HabitEditor";
 import { calculateHabitStreak } from "../metrics";
 import { HabitProgressCard } from "../components/HabitProgressCard";
@@ -63,17 +68,20 @@ const progressPeriods: HabitProgressPeriod[] = [
 ];
 
 export type HabitsPageProps = {
+  goalLinks?: GoalLinkService;
   now?: () => Date;
   service?: HabitService;
   timeZone?: string;
 };
 
 export function HabitsPage({
+  goalLinks = personalOsGoalLinkService,
   now = systemNow,
   service = personalOsHabitService,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
 }: HabitsPageProps) {
   const [activeView, setActiveView] = useState<HabitsView>("today");
+  const [goalOptions, setGoalOptions] = useState<GoalOption[]>([]);
   const [busyHabitId, setBusyHabitId] = useState<string>();
   const [editor, setEditor] = useState<{ habit?: Habit }>();
   const [entriesByHabit, setEntriesByHabit] = useState<
@@ -99,6 +107,22 @@ export function HabitsPage({
     setHabits(snapshot.habits);
     setEntriesByHabit(snapshot.entries);
   }, [service]);
+
+  // Die Zielauswahl ist optional; ohne sie bleibt die Seite voll nutzbar.
+  useEffect(() => {
+    let isCurrent = true;
+    void goalLinks
+      .listGoalOptions()
+      .then((options) => {
+        if (isCurrent) setGoalOptions(options);
+      })
+      .catch(() => {
+        if (isCurrent) setGoalOptions([]);
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [goalLinks]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -659,6 +683,7 @@ export function HabitsPage({
 
       {editor ? (
         <HabitEditor
+          goalOptions={goalOptions}
           habit={editor.habit}
           isSaving={isSaving}
           key={editor.habit?.id ?? "new"}

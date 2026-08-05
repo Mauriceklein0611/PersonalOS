@@ -171,6 +171,9 @@ Invarianten:
 - Ein Ziel ohne Meilenstein und ein Ziel ohne Zieldatum sind gültige Zustände. Ohne Grundlage lautet der Fortschritt „Keine Angabe“ und nicht null Prozent.
 - Endzustände werden nicht direkt getauscht: Von `completed` oder `cancelled` führt der Weg zuerst zurück nach `active`.
 - Archivieren verändert weder Titel, Status noch Meilensteine eines Ziels.
+- `goalId` in Task und Habit ist optional und opt-in. Beide funktionieren vollständig ohne Zielbezug; die schnelle Erfassung bekommt kein zusätzliches Pflichtfeld.
+- Ein archiviertes Ziel behält seine Verknüpfungen. Erst das endgültige Löschen löst sie auf: In einer Transaktion wird `goalId` bei Tasks und Habits entfernt, die Meilensteine werden gelöscht und danach das Ziel. Aufgaben und Gewohnheiten selbst bleiben erhalten.
+- Beim Import wird jede `goalId` gegen die enthaltenen Ziele geprüft, bevor geschrieben wird. Eine unbekannte Referenz bricht die Wiederherstellung ab.
 
 ## Finance
 

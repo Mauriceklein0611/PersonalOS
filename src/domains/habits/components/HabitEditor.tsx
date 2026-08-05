@@ -18,6 +18,8 @@ import {
 import type { Habit, HabitDetails } from "../model";
 
 type HabitEditorProps = {
+  /** Auswählbare Ziele; ohne Ziele bleibt die Auswahl leer. */
+  goalOptions?: ReadonlyArray<{ id: string; title: string }>;
   habit?: Habit;
   isSaving: boolean;
   onClose: () => void;
@@ -36,6 +38,7 @@ const weekdays = [
 ];
 
 export function HabitEditor({
+  goalOptions = [],
   habit,
   isSaving,
   onClose,
@@ -134,6 +137,20 @@ export function HabitEditor({
           onChange={(event) => update("description", event.currentTarget.value)}
           value={values.description}
         />
+        {/* Verknüpfung ist opt-in und erhöht die Pflichtfelder nicht. */}
+        <Select
+          hint="Optional. Eine Gewohnheit funktioniert auch ohne Ziel."
+          label="Ziel"
+          onChange={(event) => update("goalId", event.currentTarget.value)}
+          value={values.goalId}
+        >
+          <option value="">Ohne Ziel</option>
+          {goalOptions.map((goal) => (
+            <option key={goal.id} value={goal.id}>
+              {goal.title}
+            </option>
+          ))}
+        </Select>
         <Select
           hint={
             habit
