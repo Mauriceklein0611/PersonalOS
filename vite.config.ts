@@ -1,8 +1,13 @@
 /// <reference types="vitest/config" />
 
+import { fileURLToPath } from "node:url";
+
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
+
+const fromHere = (path: string) =>
+  fileURLToPath(new URL(path, import.meta.url));
 
 export default defineConfig({
   build: {
@@ -58,6 +63,18 @@ export default defineConfig({
     }),
   ],
   test: {
+    /*
+     * Komponententests bekommen statt der Diagrammbibliothek eine leere
+     * Fläche. ECharts durch die Transform-Pipeline zu laden kostet in jsdom
+     * mehrere Sekunden und ließ Tests unter paralleler Last zufällig in die
+     * Wartezeit laufen. Die Optionen prüft `chart-option.test.ts` direkt.
+     */
+    alias: [
+      {
+        find: /\/charts\/ChartCanvas$/,
+        replacement: fromHere("./src/test/chart-canvas-stub.tsx"),
+      },
+    ],
     environment: "jsdom",
     globals: false,
     include: ["src/**/*.test.{ts,tsx}"],
