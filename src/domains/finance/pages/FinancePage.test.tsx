@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type {
   FinanceCategory,
   FinanceCategoryDetails,
+  MonthlyBudget,
   Transaction,
   TransactionDetails,
 } from "../model";
@@ -38,8 +39,31 @@ function createMemoryFinanceService(): FinanceService {
     updatedAt: "2026-08-04T08:00:00.000Z",
   });
 
+  const budgets: MonthlyBudget[] = [];
+
   return {
     archiveCategory: async (id) => requireCategory(id),
+    listBudgets: async (month) =>
+      budgets.filter((budget) => budget.month === month),
+    removeBudget: async (id) => {
+      const index = budgets.findIndex((row) => row.id === id);
+      if (index >= 0) budgets.splice(index, 1);
+    },
+    setBudget: async (details) => {
+      const current = budgets.find(
+        (budget) =>
+          budget.archivedAt === undefined &&
+          budget.month === details.month &&
+          budget.categoryId === details.categoryId,
+      );
+      if (current) {
+        current.limit = details.limit;
+        return current;
+      }
+      const budget = { ...meta(), ...details } as MonthlyBudget;
+      budgets.push(budget);
+      return budget;
+    },
     archiveTransaction: async (id) => {
       const entry = transactions.find((row) => row.id === id);
       if (!entry) throw new Error("unknown transaction");
@@ -181,6 +205,62 @@ describe("FinancePage", () => {
     );
 
     expect(screen.getByText("Keine Buchung")).toBeInTheDocument();
+  });
+
+  it("shows consumption, remainder and a text summary for a budget", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+
+    await addExpense("12,50", "Lebensmittel");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /Kategorie für das Budget/ }),
+      ["Lebensmittel"],
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /Budget in Euro/ }),
+      "50,00",
+    );
+    await user.click(screen.getByRole("button", { name: "Budget speichern" }));
+
+    expect(
+      await screen.findByText("Ein Teil des Budgets ist noch offen."),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/12,50.*von.*50,00/)).toBeInTheDocument();
+    expect(screen.getByText(/Rest: .*37,50/)).toBeInTheDocument();
+  });
+
+  it("names an exceeded budget without any shaming text", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+
+    await addExpense("60,00", "Lebensmittel");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /Kategorie für das Budget/ }),
+      ["Lebensmittel"],
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /Budget in Euro/ }),
+      "50,00",
+    );
+    await user.click(screen.getByRole("button", { name: "Budget speichern" }));
+
+    expect(
+      await screen.findByText(
+        "Das Budget ist aufgebraucht; darüber hinaus sind weitere Ausgaben gebucht.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Darüber hinaus: .*10,00/)).toBeInTheDocument();
+  });
+
+  it("explains the empty state for a month without a budget", async () => {
+    const service = createMemoryFinanceService();
+    renderPage(service);
+
+    expect(await screen.findByText("Kein Budget")).toBeInTheDocument();
   });
 
   it("archives a used category instead of breaking its bookings", async () => {

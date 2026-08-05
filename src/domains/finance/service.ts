@@ -4,17 +4,22 @@ import {
   sumMoney,
   type Money,
 } from "../../lib/money/money";
+import { findBudget } from "./budget";
 import type {
   FinanceCategory,
   FinanceCategoryDetails,
   FinanceKind,
+  MonthlyBudget,
+  MonthlyBudgetDetails,
   Transaction,
   TransactionDetails,
 } from "./model";
 import {
   personalOsFinanceCategoryRepository,
+  personalOsMonthlyBudgetRepository,
   personalOsTransactionRepository,
   type FinanceCategoryRepository,
+  type MonthlyBudgetRepository,
   type TransactionFilter,
   type TransactionRepository,
 } from "./repository";
@@ -36,6 +41,15 @@ export type MonthlyTotals = {
 
 export type FinanceService = {
   archiveCategory(id: string): Promise<FinanceCategory>;
+  listBudgets(month: string): Promise<MonthlyBudget[]>;
+  /**
+   * Entfernt endgültig. Der eindeutige Index über Monat und Kategorie gilt
+   * datenbankweit; ein archivierter Datensatz würde die Kombination dauerhaft
+   * blockieren. Die Historie liegt ohnehin in den Buchungen, nicht im Budget.
+   */
+  removeBudget(id: string): Promise<void>;
+  /** Legt an oder aktualisiert; pro Monat und Kategorie bleibt es eines. */
+  setBudget(details: MonthlyBudgetDetails): Promise<MonthlyBudget>;
   archiveTransaction(id: string): Promise<Transaction>;
   createCategory(details: FinanceCategoryDetails): Promise<FinanceCategory>;
   createTransaction(details: TransactionDetails): Promise<Transaction>;
@@ -59,9 +73,20 @@ export type FinanceService = {
 export function createFinanceService(
   categories: FinanceCategoryRepository = personalOsFinanceCategoryRepository,
   transactions: TransactionRepository = personalOsTransactionRepository,
+  budgets: MonthlyBudgetRepository = personalOsMonthlyBudgetRepository,
 ): FinanceService {
   return {
     archiveCategory: (id) => categories.archive(id),
+    listBudgets: (month) => budgets.listForMonth(month),
+    removeBudget: (id) => budgets.deletePermanently(id),
+    async setBudget(details) {
+      const existing = await budgets.listForMonth(details.month);
+      const current = findBudget(existing, details.month, details.categoryId);
+      // Ein zweites aktives Budget für dieselbe Kombination entsteht nie.
+      return current === undefined
+        ? budgets.create(details)
+        : budgets.update(current.id, { limit: details.limit });
+    },
     archiveTransaction: (id) => transactions.archive(id),
     createCategory: (details) => categories.create(details),
     createTransaction: (details) => transactions.create(details),

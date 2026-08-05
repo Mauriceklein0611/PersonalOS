@@ -237,11 +237,18 @@ export const transactionDetailsSchema = z.object(transactionFields).strict();
 
 export const transactionSchema = entityMetaSchema.safeExtend(transactionFields);
 
-export const monthlyBudgetSchema = entityMetaSchema.safeExtend({
+const monthlyBudgetFields = {
   month: calendarMonthSchema,
   categoryId: entityIdSchema,
   limit: moneySchema,
-});
+};
+
+export const monthlyBudgetDetailsSchema = z
+  .object(monthlyBudgetFields)
+  .strict();
+
+export const monthlyBudgetSchema =
+  entityMetaSchema.safeExtend(monthlyBudgetFields);
 
 export const savingsGoalSchema = entityMetaSchema.safeExtend({
   name: shortText,

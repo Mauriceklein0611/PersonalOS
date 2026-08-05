@@ -81,6 +81,27 @@ test("records income and expenses and protects used categories", async ({
       .filter({ has: page.getByText("Ausgaben", { exact: true }) }),
   ).toContainText("12,50");
 
+  // Budget setzen und Verbrauch prüfen.
+  await page
+    .getByRole("combobox", { name: /Kategorie für das Budget/ })
+    .selectOption({ label: "Sonstige Ausgaben" });
+  await page.getByRole("textbox", { name: /Budget in Euro/ }).fill("20,00");
+  await page.getByRole("button", { name: "Budget speichern" }).click();
+  await expect(page.getByText("Das Budget wurde gespeichert.")).toBeVisible();
+  await expect(
+    page.getByText("Für diese Kategorie ist kein Betrag vorgesehen."),
+  ).toHaveCount(0);
+
+  // Ein Monatswechsel zeigt den Leerzustand statt fremder Zahlen.
+  const emptyBudget = page.getByRole("heading", {
+    level: 3,
+    name: "Kein Budget",
+  });
+  await page.getByRole("button", { name: "Vorheriger Monat" }).click();
+  await expect(emptyBudget).toBeVisible();
+  await page.getByRole("button", { name: "Nächster Monat" }).click();
+  await expect(emptyBudget).toHaveCount(0);
+
   const hasHorizontalOverflow = await page.evaluate(
     () =>
       document.documentElement.scrollWidth >

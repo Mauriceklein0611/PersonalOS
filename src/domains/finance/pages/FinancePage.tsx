@@ -12,13 +12,25 @@ import {
   IconButton,
   Input,
   MetricTile,
+  ProgressBar,
   Select,
   Textarea,
   Toast,
 } from "../../../components/ui";
+import {
+  calculateBudgetUsage,
+  MixedCurrencyError,
+  shiftMonth,
+  type BudgetUsage,
+} from "../budget";
 import { calendarDayForInstant } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
-import { formatMoney, formatSignedMinorUnits } from "../../../lib/money/money";
+import {
+  createMoney,
+  formatMoney,
+  formatSignedMinorUnits,
+  parseMoneyInput,
+} from "../../../lib/money/money";
 import { defaultFinanceCategories } from "../default-categories";
 import {
   createTransactionFormValues,
@@ -32,6 +44,7 @@ import {
   financeKinds,
   type FinanceCategory,
   type FinanceKind,
+  type MonthlyBudget,
   type Transaction,
 } from "../model";
 import { monthOf } from "../repository";
@@ -81,18 +94,43 @@ export function FinancePage({
   const [categoryKind, setCategoryKind] = useState<FinanceKind>("expense");
   const [categoryError, setCategoryError] = useState<string>();
 
+  const [budgets, setBudgets] = useState<MonthlyBudget[]>([]);
+  const [budgetMonth, setBudgetMonth] = useState<string>(() => monthOf(today));
+  const [budgetCategoryId, setBudgetCategoryId] = useState("");
+  const [budgetAmount, setBudgetAmount] = useState("");
+  const [budgetError, setBudgetError] = useState<string>();
+
   const [monthFilter, setMonthFilter] = useState<string>(() => monthOf(today));
   const [kindFilter, setKindFilter] = useState<FinanceKind | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const reload = useCallback(async () => {
-    const [storedCategories, storedTransactions] = await Promise.all([
-      service.listCategories(),
-      service.listTransactions(),
-    ]);
+    const [storedCategories, storedTransactions, storedBudgets] =
+      await Promise.all([
+        service.listCategories(),
+        service.listTransactions(),
+        service.listBudgets(budgetMonth),
+      ]);
     setCategories(storedCategories);
     setTransactions(storedTransactions);
-  }, [service]);
+    setBudgets(storedBudgets);
+  }, [budgetMonth, service]);
+
+  // Ein Monatswechsel lädt die Budgets dieses Monats nach.
+  useEffect(() => {
+    let isCurrent = true;
+    void service
+      .listBudgets(budgetMonth)
+      .then((stored) => {
+        if (isCurrent) setBudgets(stored);
+      })
+      .catch(() => {
+        if (isCurrent) setBudgets([]);
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [budgetMonth, service]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -155,6 +193,29 @@ export function FinancePage({
   const totals = useMemo(
     () => calculateTotals(visibleTransactions, currency),
     [visibleTransactions],
+  );
+
+  // Gemischte Währungen werden nicht umgerechnet, sondern benannt.
+  const budgetUsages = useMemo(
+    () =>
+      budgets.map((budget) => {
+        try {
+          return { budget, usage: calculateBudgetUsage(budget, transactions) };
+        } catch (thrown) {
+          return {
+            budget,
+            error:
+              thrown instanceof MixedCurrencyError
+                ? thrown.message
+                : "Das Budget konnte nicht berechnet werden.",
+          };
+        }
+      }) as Array<{
+        budget: MonthlyBudget;
+        error?: string;
+        usage?: BudgetUsage;
+      }>,
+    [budgets, transactions],
   );
 
   const runAction = useCallback(
@@ -250,6 +311,61 @@ export function FinancePage({
       }
     } catch {
       setError("Die Kategorie konnte nicht entfernt werden.");
+    }
+  }
+
+  async function submitBudget(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (budgetCategoryId.length === 0) {
+      setBudgetError("Wähle eine Kategorie.");
+      return;
+    }
+
+    const amount = parseMoneyInput(budgetAmount, currency);
+    if (!amount.ok) {
+      setBudgetError(
+        amount.reason === "precision"
+          ? "Gib höchstens zwei Nachkommastellen ein, zum Beispiel 250,00."
+          : "Gib einen Betrag ohne Vorzeichen ein, zum Beispiel 250,00.",
+      );
+      return;
+    }
+
+    setBudgetError(undefined);
+    const saved = await runAction(
+      () =>
+        service.setBudget({
+          categoryId: budgetCategoryId,
+          limit: amount.money,
+          month: budgetMonth,
+        }),
+      "Das Budget konnte nicht gespeichert werden.",
+    );
+    if (saved) {
+      setBudgetAmount("");
+      setNotice("Das Budget wurde gespeichert.");
+      setUndo(undefined);
+    }
+  }
+
+  async function removeBudget(budget: MonthlyBudget) {
+    const removed = await runAction(
+      () => service.removeBudget(budget.id),
+      "Das Budget konnte nicht entfernt werden.",
+    );
+    if (removed) {
+      setNotice("Das Budget wurde entfernt.");
+      setUndo({
+        message: "Das Budget ist wieder gesetzt.",
+        // Ein Budget ist eine Einstellung; derselbe Stand lässt sich exakt
+        // wiederherstellen, auch wenn der Datensatz neu angelegt wird.
+        run: () =>
+          service.setBudget({
+            categoryId: budget.categoryId,
+            limit: budget.limit,
+            month: budget.month,
+          }),
+      });
     }
   }
 
@@ -455,6 +571,118 @@ export function FinancePage({
                   >
                     ×
                   </IconButton>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <h2>Budgets</h2>
+          <div className="finance-month-nav">
+            <Button
+              onClick={() => setBudgetMonth((month) => shiftMonth(month, -1))}
+              variant="secondary"
+            >
+              Vorheriger Monat
+            </Button>
+            <p className="finance-month-label">{formatMonth(budgetMonth)}</p>
+            <Button
+              onClick={() => setBudgetMonth((month) => shiftMonth(month, 1))}
+              variant="secondary"
+            >
+              Nächster Monat
+            </Button>
+          </div>
+
+          <form
+            className="finance-category-form"
+            noValidate
+            onSubmit={(event) => void submitBudget(event)}
+          >
+            <Select
+              label="Kategorie für das Budget"
+              onChange={(event) => {
+                setBudgetCategoryId(event.currentTarget.value);
+                setBudgetError(undefined);
+              }}
+              value={budgetCategoryId}
+            >
+              <option value="">Bitte wählen</option>
+              {categories
+                .filter((category) => category.kind === "expense")
+                .map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+            </Select>
+            <Input
+              error={budgetError}
+              hint="Monatlicher Betrag, zum Beispiel 250,00."
+              inputMode="decimal"
+              label="Budget in Euro"
+              onChange={(event) => {
+                setBudgetAmount(event.currentTarget.value);
+                setBudgetError(undefined);
+              }}
+              value={budgetAmount}
+            />
+            <Button type="submit" variant="secondary">
+              Budget speichern
+            </Button>
+          </form>
+
+          {budgetUsages.length === 0 ? (
+            <EmptyState
+              description="Für diesen Monat ist kein Budget gesetzt."
+              title="Kein Budget"
+            />
+          ) : (
+            <ul className="finance-budget-list">
+              {budgetUsages.map(({ budget, error, usage }) => (
+                <li key={budget.id}>
+                  <div className="finance-budget-head">
+                    <h3>
+                      {categoriesById.get(budget.categoryId)?.name ??
+                        "Entfernte Kategorie"}
+                    </h3>
+                    <IconButton
+                      label={`Budget für ${
+                        categoriesById.get(budget.categoryId)?.name ??
+                        "entfernte Kategorie"
+                      } entfernen`}
+                      onClick={() => void removeBudget(budget)}
+                    >
+                      ×
+                    </IconButton>
+                  </div>
+                  {error ? (
+                    <p className="finance-error">{error}</p>
+                  ) : usage ? (
+                    <>
+                      <ProgressBar
+                        caption={usage.summary}
+                        label="Verbraucht"
+                        value={usage.ratio}
+                        valueText={`${formatMoney(
+                          createMoney(usage.spentMinor, usage.currency),
+                        )} von ${formatMoney(budget.limit)}`}
+                      />
+                      <p className="finance-hint">
+                        {usage.remainingMinor >= 0
+                          ? `Rest: ${formatMoney(
+                              createMoney(usage.remainingMinor, usage.currency),
+                            )}`
+                          : `Darüber hinaus: ${formatMoney(
+                              createMoney(
+                                Math.abs(usage.remainingMinor),
+                                usage.currency,
+                              ),
+                            )}`}{" "}
+                        · {usage.transactionCount}{" "}
+                        {usage.transactionCount === 1 ? "Buchung" : "Buchungen"}
+                      </p>
+                    </>
+                  ) : null}
                 </li>
               ))}
             </ul>

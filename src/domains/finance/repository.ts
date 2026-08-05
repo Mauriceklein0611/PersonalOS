@@ -13,11 +13,15 @@ import { entityIdSchema } from "../../lib/identifiers/entity-id";
 import {
   financeCategoryDetailsSchema,
   financeCategorySchema,
+  monthlyBudgetDetailsSchema,
+  monthlyBudgetSchema,
   transactionDetailsSchema,
   transactionSchema,
   type FinanceCategory,
   type FinanceCategoryDetails,
   type FinanceKind,
+  type MonthlyBudget,
+  type MonthlyBudgetDetails,
   type Transaction,
   type TransactionDetails,
 } from "./model";
@@ -135,7 +139,50 @@ function parse<TValue>(schema: z.ZodType<TValue>, value: unknown): TValue {
   return result.data;
 }
 
+export type MonthlyBudgetRepository = Repository<
+  MonthlyBudget,
+  MonthlyBudgetDetails
+> & {
+  listForMonth(month: string): Promise<MonthlyBudget[]>;
+};
+
+export function createMonthlyBudgetRepository(
+  database: PersonalOsDatabase,
+  dependencies: EntityMetadataDependencies = {},
+): MonthlyBudgetRepository {
+  const records = new DexieRepository<MonthlyBudget, MonthlyBudgetDetails>({
+    clock: dependencies.clock,
+    createEntity: (input: MonthlyBudgetDetails, metadata: EntityMeta) => ({
+      ...metadata,
+      ...input,
+    }),
+    createSchema: monthlyBudgetDetailsSchema,
+    database,
+    entitySchema: monthlyBudgetSchema,
+    idGenerator: dependencies.idGenerator,
+    tableName: "monthlyBudgets",
+  });
+
+  return Object.assign(records, {
+    async listForMonth(month: string) {
+      try {
+        const validMonth = parse(calendarMonthOnly, month);
+        const rows = await database
+          .table<MonthlyBudget>("monthlyBudgets")
+          .where("month")
+          .equals(validMonth)
+          .toArray();
+        return rows.map((row) => parse(monthlyBudgetSchema, row));
+      } catch (error) {
+        throw toPersistenceError(error);
+      }
+    },
+  });
+}
+
 export const personalOsFinanceCategoryRepository =
   createFinanceCategoryRepository(personalOsDatabase);
+export const personalOsMonthlyBudgetRepository =
+  createMonthlyBudgetRepository(personalOsDatabase);
 export const personalOsTransactionRepository =
   createTransactionRepository(personalOsDatabase);
