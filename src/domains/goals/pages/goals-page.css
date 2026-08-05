@@ -36,9 +36,9 @@
   min-width: 0;
   gap: var(--space-3);
   padding: var(--space-4);
-  border: 1px solid var(--border);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: var(--glass-strong);
 }
 
 .goal-detail {
@@ -67,13 +67,13 @@
   min-width: 0;
   gap: var(--space-2);
   padding: var(--space-4);
-  border: 1px solid var(--border);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: var(--glass-strong);
 }
 
 .goal-card[data-selected="true"] {
-  border-color: var(--accent);
+  border-color: var(--accent-1);
 }
 
 .goal-card-head {
@@ -94,7 +94,7 @@
 .goal-chip {
   margin: 0;
   padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--edge-strong);
   border-radius: var(--radius-round);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
@@ -107,9 +107,9 @@
   gap: var(--space-2);
   grid-template-columns: minmax(0, 1fr) auto;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  background: var(--surface-muted);
+  background: var(--glass-strong);
 }
 
 .goal-actions {
@@ -141,5 +141,34 @@
 @media (min-width: 52rem) {
   .goal-toast-region {
     bottom: 1rem;
+  }
+}
+
+/*
+ * Oberste Ebene über dem Seitengrund, Issue #55. Listenzeilen bleiben eine
+ * solide Abstufung ohne eigenen Blur, damit keine zweite Ebene entsteht.
+ */
+.goal-form,
+.goal-detail {
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-xl);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+  backdrop-filter: var(--blur-glass);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .goal-form,
+  .goal-detail {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .goal-form,
+  .goal-detail {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
   }
 }

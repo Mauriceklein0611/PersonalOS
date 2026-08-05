@@ -1,6 +1,25 @@
+/*
+ * Glas-Ästhetik, Issue #55. Zwei Paletten: „Abendrot“ (dark, Standard) und
+ * „Tageslicht“ (light). Komponenten verwenden ausschließlich die semantischen
+ * Variablen dieser Datei; Rohfarbwerte stehen nur hier.
+ *
+ * Das Glas ist in beiden Themes ein heller Milchglas-Schleier, wie in der
+ * Vorlage. Damit gedämpfter Text darauf trotzdem 4,5:1 erreicht, liegt der
+ * Stellhebel beim Nebel und beim Text, nicht beim Glas:
+ *
+ * 1. Die Nebelflecken sind gedämpfter als in der Vorlage. Bei deren Deckkraft
+ *    erreicht gedämpfter Text auf der hellsten Stelle nur 2,9:1, und mehr
+ *    Glas-Alpha verschlimmert das, weil weißes Glas die Karte weiter aufhellt.
+ * 2. `--text-muted` ist deckender als in der Vorlage. Gedämpfter Text ist
+ *    selbst durchscheinend und hellt sonst mit der Karte zusammen auf.
+ * 3. Light `--accent-1`/`--data-1` und `--accent-2` sind abgedunkelt. Weiße
+ *    Schrift auf dem Originalgrün erreicht 3,2:1 statt 4,5:1. Farbton und
+ *    Charakter bleiben, nur die Helligkeit sinkt.
+ * 4. `--field` ist die deckende Fläche für Eingabefelder. `--glass-strong` ist
+ *    die angehobene Glasfläche der Vorlage und für Text zu durchscheinend.
+ */
+
 :root {
-  color: #16202e;
-  background: #e8ecf2;
   font-family:
     Inter,
     ui-sans-serif,
@@ -20,11 +39,15 @@
   --font-size-md: 1rem;
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.5rem;
+  --font-size-kpi: clamp(1.75rem, 3.5vw, 2.25rem);
+  --font-size-display: clamp(2rem, 4.5vw, 2.75rem);
   --font-weight-normal: 400;
   --font-weight-medium: 600;
   --font-weight-bold: 750;
+  --font-weight-kpi: 800;
   --line-height-tight: 1.2;
   --line-height-normal: 1.55;
+  --letter-spacing-label: 0.09em;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -38,7 +61,9 @@
   --space-16: 4rem;
 
   --radius-sm: 0.5rem;
+  --radius-cell: 0.625rem;
   --radius-md: 0.75rem;
+  --radius-tile: 1rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
   --radius-round: 999px;
@@ -47,109 +72,226 @@
   --duration-normal: 200ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  /* Eine Flächenfamilie für Shell und Dashboard, siehe ADR 0007. */
-  --surface: #ffffff;
-  --surface-muted: #e8ecf2;
-  --surface-strong: #d5dce6;
-  --overlay: rgb(11 15 22 / 55%);
-  --text: #16202e;
-  --text-muted: #4d5a6c;
-  --border: #d5dce6;
-  --border-strong: #6e7c90;
-  --accent: #285c3a;
-  --accent-hover: #1f492e;
-  --accent-soft: #dcebe0;
-  --accent-contrast: #ffffff;
-  --danger-soft: #f8e4df;
-  --danger: #8f3025;
-  --danger-hover: #70241c;
-  --danger-contrast: #ffffff;
-  --focus-ring: #176b87;
-  --skeleton: #dde3ec;
-  --skeleton-highlight: #f3f6fa;
-  --shadow-sm: 0 0.25rem 0.8rem rgb(16 24 40 / 8%);
-  --shadow-md: 0 1.25rem 3rem rgb(16 24 40 / 10%);
-  --shadow-lg: 0 2rem 5rem rgb(11 15 22 / 18%);
-  --shadow: var(--shadow-md);
+  --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 18%);
 
   --control-height: 2.75rem;
   --mobile-nav-height: 4.5rem;
-
-  /* Dashboard-Flächen: sprechende Namen auf derselben Familie, ADR 0007. */
-  --dashboard-canvas: var(--surface-muted);
-  --dashboard-card: var(--surface);
-  --dashboard-card-raised: #f3f6fa;
-  --dashboard-hairline: var(--border);
-
-  /* Datenpalette: nur Zusatz zu Text und Muster, niemals alleiniger Träger. */
-  --data-1: #1f7a3d;
-  --data-2: #0f6fbd;
-  --data-3: #6d3fd4;
-  --data-4: #8a5a12;
-  --data-5: #0d6d6a;
-  --data-6: #c02566;
-  --data-1-soft: #d8f0e0;
-  --data-2-soft: #d7ecfb;
-  --data-3-soft: #e6dcfb;
-  --data-4-soft: #f8e7c8;
-  --data-5-soft: #d3eeed;
-  --data-6-soft: #fbdde9;
-
-  --chart-grid: #dde3ec;
-  --chart-track: #d5dce6;
-  --chart-area-opacity: 0.24;
-
-  /* Verlauf ist Flächenschmuck und codiert niemals eine Kategorie. */
-  --gradient-hero: linear-gradient(135deg, #d8f0e0 0%, #d7ecfb 100%);
 }
 
-:root[data-theme="dark"] {
-  color: #e7eef7;
-  background: #0b0f16;
+/*
+ * Tageslicht. Steht auch ohne `data-theme` bereit, damit vor dem
+ * Theme-Bootstrap nichts ungestaltet erscheint.
+ */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  color: #1b2436;
+  background: #e8ecfb;
 
-  /* Der Seitengrund ist die dunkelste Fläche, Karten liegen darüber. */
-  --surface: #131a24;
-  --surface-muted: #0b0f16;
-  --surface-strong: #1c2531;
-  --overlay: rgb(0 0 0 / 70%);
-  --text: #e7eef7;
-  --text-muted: #9fb0c3;
-  --border: #27313f;
-  --border-strong: #63728c;
-  --accent: #8bc89c;
-  --accent-hover: #a4d8b1;
-  --accent-soft: #14301f;
-  --accent-contrast: #06210f;
-  --danger-soft: #3d211d;
-  --danger: #ffb1a5;
-  --danger-hover: #ffd0c8;
-  --danger-contrast: #24100d;
-  --focus-ring: #75d5f2;
-  --skeleton: #1c2531;
-  --skeleton-highlight: #2b3646;
-  --shadow-sm: 0 0.25rem 0.8rem rgb(0 0 0 / 18%);
-  --shadow-md: 0 1.25rem 3rem rgb(0 0 0 / 25%);
-  --shadow-lg: 0 2rem 5rem rgb(0 0 0 / 45%);
+  --canvas-base: linear-gradient(160deg, #e8ecfb 0%, #f2e9f8 45%, #e4f2f0 100%);
+  /*
+   * Umgekehrt zum Dark-Theme: Hier darf der Nebel die Karte nicht abdunkeln.
+   * Die Flecken sind deshalb hell und gesättigt statt tief.
+   */
+  --canvas-blob-1: radial-gradient(
+    50% 60% at 15% 10%,
+    rgb(90 210 255 / 45%) 0%,
+    transparent 60%
+  );
+  --canvas-blob-2: radial-gradient(
+    45% 55% at 85% 15%,
+    rgb(178 150 255 / 45%) 0%,
+    transparent 60%
+  );
+  --canvas-blob-3: radial-gradient(
+    55% 60% at 70% 90%,
+    rgb(120 245 200 / 42%) 0%,
+    transparent 60%
+  );
+  --canvas-blob-4: radial-gradient(
+    40% 50% at 20% 85%,
+    rgb(255 150 205 / 40%) 0%,
+    transparent 60%
+  );
+  --canvas-solid: #eef1fb;
+
+  /*
+   * `brightness` im Filter hebt den Untergrund unter der Karte an, statt eine
+   * deckende Schicht darüberzulegen. Farbe und Verlauf des Nebels bleiben
+   * dadurch durch das Glas sichtbar.
+   */
+  --blur-glass: blur(18px) saturate(1.3) brightness(1.06);
+  --glass: rgb(255 255 255 / 52%);
+  --glass-strong: rgb(255 255 255 / 72%);
+  --glass-opaque: #f4f7ff;
+  --field: rgb(255 255 255 / 92%);
+  --edge: rgb(255 255 255 / 85%);
+  --edge-strong: rgb(27 36 54 / 52%);
+  --hairline: rgb(27 36 54 / 12%);
+  --overlay: rgb(20 26 40 / 45%);
+
+  --text: #1b2436;
+  --text-muted: rgb(27 36 54 / 70%);
+
+  --accent-1: #0a7a55;
+  --accent-2: #0369a1;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --accent-contrast: #ffffff;
+  --accent-glow: rgb(14 164 114 / 35%);
+  --accent-soft: rgb(10 122 85 / 14%);
+  --focus-ring: #0369a1;
+
+  --danger: #8f3025;
+  --danger-soft: rgb(143 48 37 / 12%);
+  --danger-surface: #8f3025;
+  --danger-contrast: #ffffff;
+
+  --data-1: #0a7a55;
+  --data-2: #0369a1;
+  --data-3: #7c3aed;
+  --data-4: #b45309;
+  --data-5: #0d9488;
+  --data-6: #be185d;
+  --data-1-soft: rgb(10 122 85 / 16%);
+  --data-2-soft: rgb(3 105 161 / 16%);
+  --data-3-soft: rgb(124 58 237 / 16%);
+  --data-4-soft: rgb(180 83 9 / 16%);
+  --data-5-soft: rgb(13 148 136 / 16%);
+  --data-6-soft: rgb(190 24 93 / 16%);
+
+  --chart-grid: rgb(27 36 54 / 12%);
+  --chart-track: rgb(27 36 54 / 14%);
+  --chart-area-opacity: 0.28;
+
+  --skeleton: rgb(27 36 54 / 10%);
+  --skeleton-highlight: rgb(255 255 255 / 70%);
+
+  --shadow-sm: 0 0.5rem 2rem rgb(20 26 40 / 14%);
+  --shadow-md: 0 1.25rem 3rem rgb(20 26 40 / 18%);
+  --shadow-lg: 0 2rem 5rem rgb(20 26 40 / 26%);
   --shadow: var(--shadow-md);
+}
 
-  --dashboard-card-raised: #1c2531;
+/* Abendrot. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  color: #f4f6ff;
+  background: #2a1030;
 
-  --data-1: #4ade80;
-  --data-2: #38bdf8;
-  --data-3: #a78bfa;
-  --data-4: #fbbf24;
-  --data-5: #2dd4bf;
-  --data-6: #f472b6;
-  --data-1-soft: #10291a;
-  --data-2-soft: #0d2536;
-  --data-3-soft: #221a3d;
-  --data-4-soft: #33240a;
-  --data-5-soft: #0c2b2a;
-  --data-6-soft: #331327;
+  --canvas-base: linear-gradient(160deg, #2a1030 0%, #3a1226 45%, #241030 100%);
+  /*
+   * Jeder Fleck hat einen breiten Kern und erst danach den Abfall. Ohne diesen
+   * zweiten Farbstopp liegt die volle Farbe nur im Mittelpunkt und der Nebel
+   * verschwindet zu einem kaum sichtbaren Hauch.
+   */
+  --canvas-blob-1: radial-gradient(
+    75% 85% at 12% 8%,
+    rgb(255 178 125 / 50%) 0%,
+    rgb(255 178 125 / 30%) 32%,
+    transparent 72%
+  );
+  --canvas-blob-2: radial-gradient(
+    70% 80% at 88% 12%,
+    rgb(255 143 179 / 52%) 0%,
+    rgb(255 143 179 / 32%) 32%,
+    transparent 72%
+  );
+  --canvas-blob-3: radial-gradient(
+    80% 85% at 78% 92%,
+    rgb(199 139 255 / 46%) 0%,
+    rgb(199 139 255 / 28%) 32%,
+    transparent 72%
+  );
+  --canvas-blob-4: radial-gradient(
+    65% 75% at 15% 88%,
+    rgb(255 216 138 / 40%) 0%,
+    rgb(255 216 138 / 24%) 32%,
+    transparent 72%
+  );
+  --canvas-solid: #2c1234;
 
-  --chart-grid: #212c3a;
-  --chart-track: #232f3e;
-  --chart-area-opacity: 0.32;
+  /*
+   * Das Glas ist der weiße Schleier der Vorlage. Lesbar wird er dadurch, dass
+   * `brightness` im Filter den Nebel unter der Karte abdunkelt, statt eine
+   * graue Schicht darüberzulegen: Farbe und Verlauf bleiben sichtbar, nur die
+   * Helligkeit sinkt. Ohne diesen Schritt trägt die Karte auf der hellsten
+   * Nebelstelle keinen Text mit 4,5:1.
+   */
+  --blur-glass: blur(18px) saturate(1.45) brightness(0.6);
+  --glass: rgb(255 255 255 / 9%);
+  --glass-strong: rgb(255 255 255 / 11%);
+  --glass-opaque: #3a2040;
+  --field: rgb(46 24 55 / 92%);
+  --edge: rgb(255 255 255 / 22%);
+  --edge-strong: rgb(255 255 255 / 60%);
+  --hairline: rgb(255 255 255 / 12%);
+  --overlay: rgb(12 4 16 / 62%);
 
-  --gradient-hero: linear-gradient(135deg, #16283c 0%, #241d3f 100%);
+  --text: #f4f6ff;
+  --text-muted: #e2e8ff;
+
+  --accent-1: #ffb27d;
+  --accent-2: #ff8fb3;
+  --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+  --accent-contrast: #33130a;
+  --accent-glow: rgb(255 178 125 / 55%);
+  --accent-soft: rgb(255 178 125 / 18%);
+  --focus-ring: #bae6fd;
+
+  /*
+   * `--danger` ist Fehlertext auf Glas und deshalb hell. Ein destruktiver
+   * Button braucht dagegen eine kräftige Fläche, sonst wirkt er harmlos.
+   */
+  --danger: #ffe8e3;
+  --danger-soft: rgb(255 232 227 / 16%);
+  --danger-surface: #ff8f7a;
+  --danger-contrast: #24100d;
+
+  --data-1: #ffd88a;
+  --data-2: #ffb27d;
+  --data-3: #ff9dbd;
+  --data-4: #d5a6ff;
+  --data-5: #ff9d9d;
+  --data-6: #f0e08a;
+  --data-1-soft: rgb(255 216 138 / 22%);
+  --data-2-soft: rgb(255 178 125 / 22%);
+  --data-3-soft: rgb(255 157 189 / 22%);
+  --data-4-soft: rgb(213 166 255 / 22%);
+  --data-5-soft: rgb(255 157 157 / 22%);
+  --data-6-soft: rgb(240 224 138 / 22%);
+
+  --chart-grid: rgb(255 255 255 / 14%);
+  --chart-track: rgb(255 255 255 / 16%);
+  --chart-area-opacity: 0.34;
+
+  --skeleton: rgb(255 255 255 / 12%);
+  --skeleton-highlight: rgb(255 255 255 / 26%);
+
+  --shadow-sm: 0 0.5rem 2rem rgb(10 8 40 / 30%);
+  --shadow-md: 0 1.25rem 3rem rgb(10 8 40 / 40%);
+  --shadow-lg: 0 2rem 5rem rgb(10 8 40 / 55%);
+  --shadow: var(--shadow-md);
+}
+
+/*
+ * Kompatibilitäts-Aliase auf die Glas-Familie. Sie halten noch nicht
+ * migrierte Flächen lesbar und verweisen auf dieselben Werte; neue Regeln
+ * verwenden direkt `--glass`, `--edge` und `--hairline`.
+ */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+  --surface: var(--glass);
+  --surface-muted: transparent;
+  --surface-strong: var(--glass-strong);
+  --border: var(--hairline);
+  --border-strong: var(--edge-strong);
+  --accent: var(--accent-1);
+  --accent-hover: var(--accent-2);
+  --danger-hover: var(--danger);
+  --dashboard-canvas: transparent;
+  --dashboard-card: var(--glass);
+  --dashboard-card-raised: var(--glass-strong);
+  --dashboard-hairline: var(--hairline);
+  --gradient-hero: var(--accent-gradient);
 }

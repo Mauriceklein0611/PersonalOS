@@ -25,7 +25,11 @@ test("creates a habit, checks it in and reflects it in the week view", async ({
   await expect(card.getByText("Erledigt", { exact: true })).toBeVisible();
 
   await page.getByRole("tab", { name: /^Woche/ }).click();
-  const weekTable = page.getByRole("table");
+  // Das Wochendiagramm bringt seine Werte als eigene Tabelle mit; gemeint ist
+  // hier das Raster.
+  const weekTable = page.getByRole("table", {
+    name: /Zeichen und als Text in der Zelle/,
+  });
   await expect(weekTable).toBeVisible();
   await expect(
     weekTable.getByRole("button", { name: /Abendspaziergang.*Erledigt/ }),

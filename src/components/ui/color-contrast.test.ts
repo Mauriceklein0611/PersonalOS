@@ -1,169 +1,232 @@
 import { describe, expect, it } from "vitest";
 
-const textPairs = [
-  ["#16202e", "#ffffff"],
-  ["#4d5a6c", "#ffffff"],
-  ["#ffffff", "#285c3a"],
-  ["#ffffff", "#1f492e"],
-  ["#8f3025", "#ffffff"],
-  ["#ffffff", "#70241c"],
-  ["#285c3a", "#dcebe0"],
-  ["#e7eef7", "#131a24"],
-  ["#9fb0c3", "#131a24"],
-  ["#06210f", "#8bc89c"],
-  ["#06210f", "#a4d8b1"],
-  ["#8bc89c", "#14301f"],
-  ["#ffb1a5", "#131a24"],
-  ["#ffb1a5", "#3d211d"],
-  ["#24100d", "#ffb1a5"],
-  ["#24100d", "#ffd0c8"],
-] as const;
+/**
+ * Glas hat keinen festen Hintergrund. Jede Prüfung rechnet deshalb die
+ * tatsächliche Schichtung nach: Nebelfleck über Grundverlauf, darüber das
+ * Glas-Alpha, darüber der Text. Geprüft wird immer der ungünstigste Fleck.
+ * Erreicht ein Wert die Schwelle nicht, wird das Token geändert, nicht die
+ * Schwelle. Die Werte stammen aus `src/styles/tokens.css`.
+ */
 
-const focusPairs = [
-  ["#176b87", "#ffffff"],
-  ["#176b87", "#e8ecf2"],
-  ["#75d5f2", "#131a24"],
-  ["#75d5f2", "#0b0f16"],
-] as const;
+type Rgba = { alpha: number; blue: number; green: number; red: number };
 
-/** Rahmen tragen UI-Grenzen und erreichen deshalb mindestens 3:1. */
-const borderPairs = [
-  ["#6e7c90", "#ffffff"],
-  ["#6e7c90", "#e8ecf2"],
-  ["#63728c", "#131a24"],
-  ["#63728c", "#0b0f16"],
-] as const;
+const themes = {
+  dark: {
+    /** Farbstopps des Grundverlaufs; der hellste trägt den Nebel. */
+    canvasStops: ["#2a1030", "#3a1226", "#241030"],
+    /** Nebelflecken; sie überlappen einander nicht. */
+    blobs: [
+      rgba(255, 178, 125, 0.5),
+      rgba(255, 143, 179, 0.52),
+      rgba(199, 139, 255, 0.44),
+      rgba(255, 216, 138, 0.4),
+    ],
+    /** `brightness` aus `--blur-glass`; der Filter dimmt den Untergrund. */
+    backdropBrightness: 0.6,
+    glass: rgba(255, 255, 255, 0.09),
+    glassStrong: rgba(255, 255, 255, 0.11),
+    glassOpaque: "#3a2040",
+    field: rgba(46, 24, 55, 0.92),
+    text: "#f4f6ff",
+    textMuted: rgba(226, 232, 255, 1),
+    accents: ["#ffb27d", "#ff8fb3"],
+    accentContrast: "#33130a",
+    danger: "#ffe8e3",
+    dangerSurface: "#ff8f7a",
+    dangerContrast: "#24100d",
+    focusRing: "#bae6fd",
+    edgeStrong: rgba(255, 255, 255, 0.6),
+    data: ["#ffd88a", "#ffb27d", "#ff9dbd", "#d5a6ff", "#ff9d9d", "#f0e08a"],
+  },
+  light: {
+    canvasStops: ["#e8ecfb", "#f2e9f8", "#e4f2f0"],
+    blobs: [
+      rgba(90, 210, 255, 0.45),
+      rgba(178, 150, 255, 0.45),
+      rgba(120, 245, 200, 0.42),
+      rgba(255, 150, 205, 0.4),
+    ],
+    /** Hier hebt der Filter den Untergrund an, statt ihn zu dimmen. */
+    backdropBrightness: 1.06,
+    glass: rgba(255, 255, 255, 0.52),
+    glassStrong: rgba(255, 255, 255, 0.72),
+    glassOpaque: "#f4f7ff",
+    field: rgba(255, 255, 255, 0.92),
+    text: "#1b2436",
+    textMuted: rgba(27, 36, 54, 0.7),
+    accents: ["#0a7a55", "#0369a1"],
+    accentContrast: "#ffffff",
+    danger: "#8f3025",
+    dangerSurface: "#8f3025",
+    dangerContrast: "#ffffff",
+    focusRing: "#0369a1",
+    edgeStrong: rgba(27, 36, 54, 0.52),
+    data: ["#0a7a55", "#0369a1", "#7c3aed", "#b45309", "#0d9488", "#be185d"],
+  },
+} as const;
 
-/** Text, gedämpfter Text und Fehlertext auf allen Dashboard-Flächen. */
-const dashboardTextPairs = [
-  ["#16202e", "#ffffff"],
-  ["#4d5a6c", "#ffffff"],
-  ["#8f3025", "#ffffff"],
-  ["#16202e", "#f3f6fa"],
-  ["#4d5a6c", "#f3f6fa"],
-  ["#16202e", "#e8ecf2"],
-  ["#4d5a6c", "#e8ecf2"],
-  ["#16202e", "#d8f0e0"],
-  ["#16202e", "#d7ecfb"],
-  ["#e7eef7", "#131a24"],
-  ["#9fb0c3", "#131a24"],
-  ["#ffb1a5", "#131a24"],
-  ["#e7eef7", "#1c2531"],
-  ["#9fb0c3", "#1c2531"],
-  ["#e7eef7", "#0b0f16"],
-  ["#9fb0c3", "#0b0f16"],
-  ["#e7eef7", "#16283c"],
-  ["#e7eef7", "#241d3f"],
-] as const;
+type ThemeName = keyof typeof themes;
+const themeNames = Object.keys(themes) as ThemeName[];
 
 /**
- * Die Datenpalette trägt keine Aussage allein, erreicht als grafisches
- * Element auf der Kartenfläche aber mindestens 3:1.
+ * Für helle Schrift auf dunklem Glas ist der hellste Untergrund der schlimmste
+ * Fall, für dunkle Schrift auf hellem Glas der dunkelste.
  */
-const dataPalettePairs = [
-  ["#1f7a3d", "#ffffff"],
-  ["#0f6fbd", "#ffffff"],
-  ["#6d3fd4", "#ffffff"],
-  ["#8a5a12", "#ffffff"],
-  ["#0d6d6a", "#ffffff"],
-  ["#c02566", "#ffffff"],
-  ["#1f7a3d", "#e8ecf2"],
-  ["#0f6fbd", "#e8ecf2"],
-  ["#6d3fd4", "#e8ecf2"],
-  ["#8a5a12", "#e8ecf2"],
-  ["#0d6d6a", "#e8ecf2"],
-  ["#c02566", "#e8ecf2"],
-  ["#4ade80", "#131a24"],
-  ["#38bdf8", "#131a24"],
-  ["#a78bfa", "#131a24"],
-  ["#fbbf24", "#131a24"],
-  ["#2dd4bf", "#131a24"],
-  ["#f472b6", "#131a24"],
-  ["#4ade80", "#0b0f16"],
-  ["#38bdf8", "#0b0f16"],
-  ["#a78bfa", "#0b0f16"],
-  ["#fbbf24", "#0b0f16"],
-  ["#2dd4bf", "#0b0f16"],
-  ["#f472b6", "#0b0f16"],
-] as const;
-
-/** Zeichen in Tracker-Zellen stehen auf den weichen Flächen der Palette. */
-const trackerCellPairs = [
-  ["#16202e", "#d8f0e0"],
-  ["#16202e", "#d7ecfb"],
-  ["#16202e", "#e6dcfb"],
-  ["#16202e", "#f8e7c8"],
-  ["#16202e", "#d3eeed"],
-  ["#16202e", "#fbdde9"],
-  ["#e7eef7", "#10291a"],
-  ["#e7eef7", "#0d2536"],
-  ["#e7eef7", "#221a3d"],
-  ["#e7eef7", "#33240a"],
-  ["#e7eef7", "#0c2b2a"],
-  ["#e7eef7", "#331327"],
-] as const;
-
-/** Die farbige Zellkante trennt die weiche Fläche sichtbar vom Umfeld. */
-const trackerBorderPairs = [
-  ["#4ade80", "#10291a"],
-  ["#38bdf8", "#0d2536"],
-  ["#a78bfa", "#221a3d"],
-  ["#fbbf24", "#33240a"],
-  ["#2dd4bf", "#0c2b2a"],
-  ["#f472b6", "#331327"],
-] as const;
-
-describe("semantic color tokens", () => {
-  it.each(textPairs)("keeps %s on %s above 4.5:1", (foreground, background) => {
-    expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+function worstBackdrop(theme: ThemeName): Rgba {
+  const { blobs, canvasStops } = themes[theme];
+  const compositions = canvasStops.flatMap((stop) => {
+    const base = parseHex(stop);
+    return [base, ...blobs.map((blob) => composite(blob, base))];
   });
 
-  it.each(focusPairs)(
-    "keeps focus %s on %s above 3:1",
-    (foreground, background) => {
-      expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(3);
+  return pickExtreme(theme, compositions);
+}
+
+function pickExtreme(theme: ThemeName, colors: readonly Rgba[]): Rgba {
+  return colors.reduce((worst, color) =>
+    theme === "dark"
+      ? relativeLuminance(color) > relativeLuminance(worst)
+        ? color
+        : worst
+      : relativeLuminance(color) < relativeLuminance(worst)
+        ? color
+        : worst,
+  );
+}
+
+/**
+ * Alle Flächen, auf denen in dieser Ansicht Text oder Grafik landen kann,
+ * in derselben Reihenfolge geschichtet wie im Browser: Der Filter dimmt oder
+ * hebt den Nebel unter der Karte, darüber liegt der weiße Schleier.
+ *
+ * `--glass-strong` erscheint ausschließlich innerhalb einer Karte und liegt
+ * deshalb auf der bereits gefilterten Glasfläche, nicht auf dem rohen Nebel.
+ */
+function surfaces(theme: ThemeName): Array<{ color: Rgba; name: string }> {
+  const backdrop = worstBackdrop(theme);
+  const { backdropBrightness, field, glass, glassOpaque, glassStrong } =
+    themes[theme];
+  const filtered = scale(backdrop, backdropBrightness);
+  const glassSurface = composite(glass, filtered);
+
+  return [
+    { color: glassSurface, name: "glass" },
+    { color: composite(glassStrong, glassSurface), name: "glass-strong" },
+    { color: parseHex(glassOpaque), name: "glass-opaque" },
+    { color: composite(field, backdrop), name: "field" },
+  ];
+}
+
+/** `brightness()` multipliziert jeden Farbkanal, siehe Filter-Effects-Spec. */
+function scale(color: Rgba, factor: number): Rgba {
+  const clamp = (channel: number) =>
+    Math.min(255, Math.max(0, channel * factor));
+  return rgba(clamp(color.red), clamp(color.green), clamp(color.blue), 1);
+}
+
+describe.each(themeNames)("glass palette %s", (theme) => {
+  const { accentContrast, accents, danger, dangerContrast, text, textMuted } =
+    themes[theme];
+
+  it.each(surfaces(theme))("keeps body text readable on $name", ({ color }) => {
+    expect(contrastRatio(parseHex(text), color)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // Gedämpfter Text ist selbst durchscheinend und mischt sich mit der Fläche.
+  it.each(surfaces(theme))(
+    "keeps muted text readable on $name",
+    ({ color }) => {
+      expect(
+        contrastRatio(composite(textMuted, color), color),
+      ).toBeGreaterThanOrEqual(4.5);
     },
   );
 
-  it.each(borderPairs)(
-    "keeps border %s on %s above 3:1",
-    (foreground, background) => {
-      expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(3);
+  it.each(surfaces(theme))(
+    "keeps error text readable on $name",
+    ({ color }) => {
+      expect(contrastRatio(parseHex(danger), color)).toBeGreaterThanOrEqual(
+        4.5,
+      );
     },
   );
+
+  it.each(accents)("keeps accent contrast on the gradient stop %s", (stop) => {
+    expect(
+      contrastRatio(parseHex(accentContrast), parseHex(stop)),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps the danger button label readable", () => {
+    expect(
+      contrastRatio(
+        parseHex(dangerContrast),
+        parseHex(themes[theme].dangerSurface),
+      ),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  /*
+   * Überschriften und Meldungen liegen zwischen den Karten direkt auf dem
+   * Nebel. Gedämpfte Schrift gehört dort nicht hin und wird deshalb auch nicht
+   * geprüft: Sie steht laut `docs/UI_GUIDELINES.md` ausschließlich auf Glas.
+   */
+  it("keeps a heading readable directly on the fog", () => {
+    expect(
+      contrastRatio(parseHex(text), worstBackdrop(theme)),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
 });
 
-describe("dashboard visualisation tokens", () => {
-  it.each(dashboardTextPairs)(
-    "keeps dashboard text %s on %s above 4.5:1",
-    (foreground, background) => {
-      expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+describe.each(themeNames)("glass non-text contrast %s", (theme) => {
+  const { data, edgeStrong, focusRing } = themes[theme];
+  const backdrop = worstBackdrop(theme);
+
+  // Der Fokus-Ring liegt auf Karten und direkt auf dem Seitengrund.
+  it.each([...surfaces(theme), { color: backdrop, name: "canvas" }])(
+    "keeps the focus ring visible on $name",
+    ({ color }) => {
+      expect(contrastRatio(parseHex(focusRing), color)).toBeGreaterThanOrEqual(
+        3,
+      );
     },
   );
 
-  it.each(dataPalettePairs)(
-    "keeps data colour %s on %s above 3:1",
-    (foreground, background) => {
-      expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(3);
+  it.each(surfaces(theme))(
+    "keeps a control border visible on $name",
+    ({ color }) => {
+      expect(
+        contrastRatio(composite(edgeStrong, color), color),
+      ).toBeGreaterThanOrEqual(3);
     },
   );
 
-  it.each(trackerCellPairs)(
-    "keeps tracker sign %s on %s above 4.5:1",
-    (foreground, background) => {
-      expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
-    },
-  );
-
-  it.each(trackerBorderPairs)(
-    "keeps tracker border %s on %s above 3:1",
-    (foreground, background) => {
-      expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(3);
-    },
-  );
+  it.each(data)("keeps the data colour %s visible on glass", (value) => {
+    const [glassSurface] = surfaces(theme);
+    expect(
+      contrastRatio(parseHex(value), glassSurface!.color),
+    ).toBeGreaterThanOrEqual(3);
+  });
 });
 
-function contrastRatio(foreground: string, background: string): number {
+function rgba(red: number, green: number, blue: number, alpha: number): Rgba {
+  return { alpha, blue, green, red };
+}
+
+function parseHex(color: string): Rgba {
+  const value = Number.parseInt(color.slice(1), 16);
+  return rgba((value >> 16) & 255, (value >> 8) & 255, value & 255, 1);
+}
+
+/** Quelle über Ziel, wie der Browser durchscheinende Schichten zeichnet. */
+function composite(source: Rgba, target: Rgba): Rgba {
+  const mix = (channel: keyof Omit<Rgba, "alpha">) =>
+    source[channel] * source.alpha + target[channel] * (1 - source.alpha);
+
+  return rgba(mix("red"), mix("green"), mix("blue"), 1);
+}
+
+function contrastRatio(foreground: Rgba, background: Rgba): number {
   const foregroundLuminance = relativeLuminance(foreground);
   const backgroundLuminance = relativeLuminance(background);
   const lighter = Math.max(foregroundLuminance, backgroundLuminance);
@@ -171,9 +234,8 @@ function contrastRatio(foreground: string, background: string): number {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-function relativeLuminance(color: string): number {
-  const value = Number.parseInt(color.slice(1), 16);
-  const channels = [(value >> 16) & 255, (value >> 8) & 255, value & 255].map(
+function relativeLuminance(color: Rgba): number {
+  const [red, green, blue] = [color.red, color.green, color.blue].map(
     (channel) => {
       const normalized = channel / 255;
       return normalized <= 0.04045
@@ -182,5 +244,5 @@ function relativeLuminance(color: string): number {
     },
   );
 
-  return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
+  return red! * 0.2126 + green! * 0.7152 + blue! * 0.0722;
 }

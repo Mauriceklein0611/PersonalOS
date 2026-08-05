@@ -2,11 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   Button,
-  ChartFrame,
+  Chart,
   EmptyState,
   RankedBarList,
   Select,
-  Sparkline,
   Toast,
 } from "../../../components/ui";
 import {
@@ -350,18 +349,23 @@ export function HabitsPage({
 
   return (
     <section aria-labelledby="page-title" className="route-page habits-page">
-      <p className="page-eyebrow">Routinen</p>
-      <h1 id="page-title">Gewohnheiten</h1>
-      <p className="page-description">
-        Begleite wiederkehrende Routinen ohne Druck oder versteckte Bewertung.
-      </p>
+      <header className="page-header">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">Routinen</p>
+          <h1 id="page-title">Gewohnheiten</h1>
+          <p className="page-description">
+            Begleite wiederkehrende Routinen ohne Druck oder versteckte
+            Bewertung.
+          </p>
+        </div>
+      </header>
 
       <div className="habit-page-actions">
         <Button onClick={() => setEditor({})}>Neue Gewohnheit</Button>
       </div>
 
       {error ? (
-        <p className="habit-page-error" role="alert">
+        <p className="page-alert habit-page-error" role="alert">
           {error}
         </p>
       ) : null}
@@ -516,50 +520,47 @@ export function HabitsPage({
             ) : (
               <>
                 <div className="habit-week-dashboard">
-                  <ChartFrame
-                    emptyMessage="In dieser Woche war an keinem Tag etwas geplant."
-                    legend={[
-                      { id: "done", label: "Erledigt", tone: 1 },
-                      { id: "due", label: "Geplant", tone: 2 },
-                    ]}
-                    period={`${formatCalendarDay(weekStart)} bis ${formatCalendarDay(weekEnd)}`}
-                    source={`Grundlage: ${weekHabits.length} in dieser Woche aktive Gewohnheiten. Übersprungene Tage zählen nicht als erledigt.`}
-                    title="Wochenverlauf"
-                  >
+                  <div className="habit-week-chart">
+                    <Chart
+                      categories={weekCourse.map((entry) =>
+                        formatCalendarDayShort(entry.day),
+                      )}
+                      emptyMessage="In dieser Woche war an keinem Tag etwas geplant."
+                      period={`${formatCalendarDay(weekStart)} bis ${formatCalendarDay(weekEnd)}`}
+                      series={
+                        weekHasPlannedDays
+                          ? [
+                              {
+                                id: "done",
+                                label: "Erledigt",
+                                tone: 1,
+                                values: weekCourse.map((entry) => entry.done),
+                              },
+                              {
+                                id: "due",
+                                label: "Geplant",
+                                tone: 2,
+                                values: weekCourse.map((entry) => entry.due),
+                              },
+                            ]
+                          : []
+                      }
+                      source={`Grundlage: ${weekHabits.length} in dieser Woche aktive Gewohnheiten. Übersprungene Tage zählen nicht als erledigt.`}
+                      title="Wochenverlauf"
+                    />
                     {weekHasPlannedDays ? (
-                      <>
-                        <Sparkline
-                          filled
-                          series={[
-                            {
-                              id: "done",
-                              label: "Erledigt",
-                              points: weekCourse.map((entry) => entry.done),
-                              tone: 1,
-                            },
-                            {
-                              id: "due",
-                              label: "Geplant",
-                              points: weekCourse.map((entry) => entry.due),
-                              tone: 2,
-                            },
-                          ]}
-                          showGrid
-                          variant="chart"
-                        />
-                        <ul className="habit-week-course">
-                          {weekCourse.map((entry) => (
-                            <li key={entry.day}>
-                              <span>{formatCalendarDayShort(entry.day)}</span>
-                              <span>
-                                {entry.done} von {entry.due}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : undefined}
-                  </ChartFrame>
+                      <ul className="habit-week-course">
+                        {weekCourse.map((entry) => (
+                          <li key={entry.day}>
+                            <span>{formatCalendarDayShort(entry.day)}</span>
+                            <span>
+                              {entry.done} von {entry.due}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                   <RankedBarList
                     caption="Orientierung, keine Rangordnung."
                     emptyMessage="Noch keine laufende Serie."
@@ -568,14 +569,16 @@ export function HabitsPage({
                     tone={2}
                   />
                 </div>
-                <HabitWeekGrid
-                  busyHabitId={busyHabitId}
-                  days={weekDays}
-                  entriesByHabit={entriesByHabit}
-                  habits={weekHabits}
-                  onToggle={toggleWeekDay}
-                  today={today}
-                />
+                <div className="habit-week-card">
+                  <HabitWeekGrid
+                    busyHabitId={busyHabitId}
+                    days={weekDays}
+                    entriesByHabit={entriesByHabit}
+                    habits={weekHabits}
+                    onToggle={toggleWeekDay}
+                    today={today}
+                  />
+                </div>
               </>
             )}
           </>

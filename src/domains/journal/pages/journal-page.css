@@ -9,9 +9,9 @@
   gap: var(--space-2);
   margin-top: clamp(2rem, 7vw, 4rem);
   padding: var(--space-4);
-  border: 1px solid var(--border);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
-  background: var(--surface-muted);
+  background: var(--glass-strong);
 }
 
 .journal-day-picker .ui-button {
@@ -51,7 +51,7 @@
   gap: var(--space-2);
   margin: 0;
   padding: var(--space-3);
-  border: 1px solid var(--border);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
 }
 
@@ -75,9 +75,9 @@
   justify-content: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--edge-strong);
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: var(--glass-strong);
   cursor: pointer;
 }
 
@@ -86,8 +86,8 @@
 }
 
 .journal-scale-option:has(input:checked) {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--accent-1);
+  color: var(--accent-1);
   background: var(--accent-soft);
   font-weight: var(--font-weight-bold);
 }
@@ -99,7 +99,7 @@
 
 /**
  * Das Radio bleibt fokussierbar und deckt die gesamte Fläche ab. Dadurch ist
- * das Ziel mindestens 44 x 44 CSS-Pixel groß, obwohl der Zustand über die
+ * das Ziel mindestens 44 × 44 CSS-Pixel groß, obwohl der Zustand über die
  * umgebende Beschriftung dargestellt wird.
  */
 .journal-scale-option input {
@@ -134,9 +134,9 @@
   justify-content: space-between;
   gap: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid var(--border);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: var(--glass-strong);
 }
 
 .journal-history-copy {
@@ -164,5 +164,31 @@
 
   .journal-scale-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Oberste Ebene über dem Seitengrund, Issue #55. Listenzeilen bleiben eine
+ * solide Abstufung ohne eigenen Blur, damit keine zweite Ebene entsteht.
+ */
+.journal-day-picker {
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-xl);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+  backdrop-filter: var(--blur-glass);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .journal-day-picker {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .journal-day-picker {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
   }
 }

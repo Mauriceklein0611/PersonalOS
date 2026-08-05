@@ -199,12 +199,16 @@ export function TasksPage({
 
   return (
     <section className="route-page tasks-page" aria-labelledby="page-title">
-      <p className="page-eyebrow">Planung</p>
-      <h1 id="page-title">Aufgaben</h1>
-      <p className="page-description">
-        Erfasse schnell, plane bewusst und behalte nur den passenden Zeitraum im
-        Blick.
-      </p>
+      <header className="page-header">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">Planung</p>
+          <h1 id="page-title">Aufgaben</h1>
+          <p className="page-description">
+            Erfasse schnell, plane bewusst und behalte nur den passenden
+            Zeitraum im Blick.
+          </p>
+        </div>
+      </header>
 
       <form
         className="task-quick-capture"
@@ -227,7 +231,7 @@ export function TasksPage({
       </form>
 
       {error ? (
-        <p className="task-page-error" role="alert">
+        <p className="page-alert task-page-error" role="alert">
           {error}
         </p>
       ) : null}

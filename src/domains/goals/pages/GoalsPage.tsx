@@ -339,15 +339,19 @@ export function GoalsPage({
 
   return (
     <section aria-labelledby="page-title" className="route-page goals-page">
-      <p className="page-eyebrow">Ausrichtung</p>
-      <h1 id="page-title">Ziele</h1>
-      <p className="page-description">
-        Zerlege ein Vorhaben in überprüfbare Schritte. Ein Ziel beschreibt eine
-        Absicht, keine Bewertung.
-      </p>
+      <header className="page-header">
+        <div className="page-header-copy">
+          <p className="page-eyebrow">Ausrichtung</p>
+          <h1 id="page-title">Ziele</h1>
+          <p className="page-description">
+            Zerlege ein Vorhaben in überprüfbare Schritte. Ein Ziel beschreibt
+            eine Absicht, keine Bewertung.
+          </p>
+        </div>
+      </header>
 
       {error ? (
-        <p className="goal-error" role="alert">
+        <p className="page-alert goal-error" role="alert">
           {error}
         </p>
       ) : null}

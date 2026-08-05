@@ -1,3 +1,10 @@
+/*
+ * Basisbausteine in Glas-Optik, Issue #55. `backdrop-filter` steht nur auf
+ * Bausteinen, die als oberste Ebene über dem Seitengrund liegen: Karte,
+ * Dialog und Toast. Alles, was in einer Karte liegt, ist eine solide
+ * Abstufung über `--glass-strong`.
+ */
+
 .ui-button,
 .ui-icon-button,
 .ui-control {
@@ -18,7 +25,7 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-round);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
   cursor: pointer;
@@ -40,41 +47,44 @@
   opacity: 0.52;
 }
 
+/* Der Verlauf ist Flächenschmuck der primären Aktion, kein Statusträger. */
 .ui-button-primary {
   color: var(--accent-contrast);
-  background: var(--accent);
+  background: var(--accent-gradient);
+  box-shadow: var(--glass-highlight);
 }
 
 .ui-button-primary:hover:not(:disabled),
 .preview-force-hover .ui-button-primary:not(:disabled) {
-  background: var(--accent-hover);
+  box-shadow:
+    var(--glass-highlight),
+    0 0 0 1px var(--edge);
 }
 
 .ui-button-secondary {
-  border-color: var(--border-strong);
+  border-color: var(--edge-strong);
   color: var(--text);
-  background: var(--surface);
+  background: var(--glass-strong);
 }
 
 .ui-button-secondary:hover:not(:disabled),
 .preview-force-hover .ui-button-secondary:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--accent-1);
   background: var(--accent-soft);
 }
 
 .ui-button-danger {
   color: var(--danger-contrast);
-  background: var(--danger);
+  background: var(--danger-surface);
 }
 
 .ui-button-danger:hover:not(:disabled),
 .preview-force-hover .ui-button-danger:not(:disabled) {
-  background: var(--danger-hover);
+  box-shadow: 0 0 0 1px var(--edge-strong);
 }
 
 .ui-button-ghost {
-  color: var(--accent);
+  color: var(--accent-1);
   background: transparent;
 }
 
@@ -98,10 +108,10 @@
   min-width: var(--control-height);
   place-items: center;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-round);
   color: var(--text);
-  background: var(--surface);
+  background: var(--glass-strong);
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
@@ -109,8 +119,8 @@
 
 .ui-icon-button:hover:not(:disabled),
 .preview-force-hover .ui-icon-button:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--accent-1);
+  color: var(--accent-1);
   background: var(--accent-soft);
 }
 
@@ -130,13 +140,14 @@
   font-weight: var(--font-weight-bold);
 }
 
+/* Eingabefelder sind deckend. Schrift über dem Nebel wäre nicht lesbar. */
 .ui-control {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--edge-strong);
   border-radius: var(--radius-md);
   color: var(--text);
-  background: var(--surface);
+  background: var(--field);
   line-height: var(--line-height-normal);
 }
 
@@ -147,7 +158,7 @@
 
 .ui-control:hover:not(:disabled),
 .preview-force-hover .ui-control:not(:disabled) {
-  border-color: var(--accent);
+  border-color: var(--accent-1);
 }
 
 .ui-control[aria-invalid="true"] {
@@ -182,9 +193,9 @@
 .ui-checkbox-label {
   display: inline-flex;
   min-height: var(--control-height);
+  width: fit-content;
   align-items: center;
   gap: var(--space-3);
-  width: fit-content;
   color: var(--text);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
@@ -195,15 +206,46 @@
   opacity: 0.55;
 }
 
+/*
+ * Runde Glas-Checkbox. Das Häkchen bleibt ein eigenes Zeichen, damit der
+ * Zustand nicht allein an der Farbe hängt.
+ */
 .ui-checkbox {
-  width: 1.35rem;
-  height: 1.35rem;
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+  place-items: center;
   margin: 0;
-  accent-color: var(--accent);
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--radius-sm);
+  background: var(--glass-strong);
+  appearance: none;
+  cursor: inherit;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.ui-checkbox::after {
+  color: transparent;
+  content: "✓";
+  font-size: 0.9rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.ui-checkbox:checked {
+  border-color: transparent;
+  background: var(--accent-gradient);
+}
+
+.ui-checkbox:checked::after {
+  color: var(--accent-contrast);
 }
 
 .ui-checkbox-message {
-  margin-left: calc(1.35rem + var(--space-3));
+  margin-left: calc(1.5rem + var(--space-3));
 }
 
 .ui-dialog {
@@ -211,16 +253,16 @@
   max-height: min(42rem, calc(100vh - 2rem));
   padding: 0;
   overflow: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--edge);
   border-radius: var(--radius-xl);
   color: var(--text);
-  background: var(--surface);
-  box-shadow: var(--shadow-lg);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-lg);
+  backdrop-filter: var(--blur-glass);
 }
 
 .ui-dialog::backdrop {
   background: var(--overlay);
-  backdrop-filter: blur(0.2rem);
 }
 
 .ui-dialog-header {
@@ -229,7 +271,7 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-6);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .ui-dialog-header h2,
@@ -258,21 +300,24 @@
   justify-content: flex-end;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--border);
-  background: var(--surface-muted);
+  border-top: 1px solid var(--hairline);
 }
 
 .ui-card {
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-xl);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+  backdrop-filter: var(--blur-glass);
 }
 
+/* Eine Karte in einer Karte bekommt keine zweite Blur-Ebene. */
 .ui-card-muted {
-  background: var(--surface-muted);
+  border-color: var(--hairline);
+  background: var(--glass-strong);
   box-shadow: none;
+  backdrop-filter: none;
 }
 
 .ui-card-header,
@@ -292,43 +337,42 @@
 }
 
 .ui-card-footer {
-  border-top: 1px solid var(--border);
-  background: var(--surface-muted);
+  border-top: 1px solid var(--hairline);
 }
 
 .ui-toast {
   display: grid;
   width: min(100%, 38rem);
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: var(--space-3);
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--edge);
+  border-left: 4px solid var(--accent-1);
+  border-radius: var(--radius-xl);
   color: var(--text);
-  background: var(--surface);
-  box-shadow: var(--shadow-md);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-md);
+  backdrop-filter: var(--blur-glass);
 }
 
 .ui-toast-success {
-  border-left-color: var(--accent);
+  border-left-color: var(--accent-1);
 }
 
 .ui-toast-error {
   border-left-color: var(--danger);
-  background: var(--danger-soft);
 }
 
 .ui-toast-visual {
-  color: var(--accent);
+  color: var(--accent-1);
   font-size: var(--font-size-xl);
 }
 
 .ui-toast-copy {
   display: grid;
-  gap: var(--space-1);
   min-width: 0;
+  gap: var(--space-1);
 }
 
 .ui-toast-copy span {
@@ -338,8 +382,8 @@
 
 .ui-skeleton-group {
   display: grid;
-  gap: var(--space-2);
   width: 100%;
+  gap: var(--space-2);
 }
 
 .ui-skeleton {
@@ -367,12 +411,12 @@
 .ui-empty-state {
   display: grid;
   justify-items: center;
-  gap: var(--space-4);
-  padding: var(--space-8);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-lg);
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border: 1px dashed var(--edge-strong);
+  border-radius: var(--radius-xl);
   color: var(--text);
-  background: var(--surface-muted);
+  background: var(--glass-strong);
   text-align: center;
 }
 
@@ -382,8 +426,8 @@
   height: 3rem;
   place-items: center;
   border-radius: var(--radius-round);
-  color: var(--accent);
-  background: var(--accent-soft);
+  color: var(--accent-contrast);
+  background: var(--accent-gradient);
   font-size: var(--font-size-xl);
 }
 
@@ -394,7 +438,8 @@
 
 .preview-force-focus .ui-button,
 .preview-force-focus .ui-icon-button,
-.preview-force-focus .ui-control {
+.preview-force-focus .ui-control,
+.preview-force-focus .ui-checkbox {
   outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
 }
@@ -430,10 +475,29 @@
   }
 }
 
+@supports not (backdrop-filter: blur(1px)) {
+  .ui-card,
+  .ui-dialog,
+  .ui-toast {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .ui-card,
+  .ui-dialog,
+  .ui-toast {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ui-button,
   .ui-icon-button,
-  .ui-control {
+  .ui-control,
+  .ui-checkbox {
     transition: none;
   }
 

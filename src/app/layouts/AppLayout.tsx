@@ -11,6 +11,9 @@ export function AppLayout() {
 
   return (
     <div className="app-frame">
+      {/* Der Farbnebel liegt hinter allem und ist rein dekorativ. */}
+      <div aria-hidden="true" className="app-canvas" />
+
       <a className="skip-link" href="#main-content">
         Zum Inhalt springen
       </a>

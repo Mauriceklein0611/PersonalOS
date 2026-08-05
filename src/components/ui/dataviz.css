@@ -1,32 +1,31 @@
-/* Dashboard-Bausteine. Farbe ist immer Zusatz zu Zeichen, Muster oder Text. */
+/*
+ * Dashboard-Bausteine in Glas-Optik, Issue #55. Farbe ist immer Zusatz zu
+ * Zeichen, Muster oder Text. Kennzahl-Kachel, Rangliste und Diagramm liegen
+ * als oberste Ebene über dem Seitengrund und tragen deshalb den Blur;
+ * Fortschrittsring und -balken sind Inhalte innerhalb einer Karte.
+ */
 
 .ui-dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (min-width: 48rem) {
   .ui-dashboard-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-4);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 .ui-metric-tile,
-.ui-progress-ring,
-.ui-progress-bar,
 .ui-ranked-bar-list,
-.ui-chart-frame {
+.ui-chart {
+  border: 1px solid var(--edge);
   color: var(--text);
-  background: var(--dashboard-card);
-}
-
-.ui-metric-tile,
-.ui-ranked-bar-list,
-.ui-chart-frame {
-  border: 1px solid var(--dashboard-hairline);
-  box-shadow: var(--shadow-sm);
+  background: var(--glass);
+  box-shadow: var(--glass-highlight), var(--shadow-sm);
+  backdrop-filter: var(--blur-glass);
 }
 
 .ui-metric-tile {
@@ -35,12 +34,21 @@
   align-content: start;
   gap: var(--space-1);
   padding: var(--space-4);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-tile);
   animation: ui-dataviz-appear var(--duration-fast) var(--ease-standard) both;
 }
 
 .ui-metric-tile[data-tone="hero"] {
-  background: var(--gradient-hero);
+  border-color: transparent;
+  color: var(--accent-contrast);
+  background: var(--accent-gradient);
+  backdrop-filter: none;
+}
+
+.ui-metric-tile[data-tone="hero"] .ui-metric-tile-label,
+.ui-metric-tile[data-tone="hero"] .ui-metric-tile-context {
+  color: inherit;
+  opacity: 0.82;
 }
 
 .ui-metric-tile-label,
@@ -51,7 +59,7 @@
   color: var(--text-muted);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.05em;
+  letter-spacing: var(--letter-spacing-label);
   line-height: var(--line-height-normal);
   text-transform: uppercase;
 }
@@ -59,8 +67,8 @@
 .ui-metric-tile-value {
   margin: 0;
   overflow-wrap: anywhere;
-  font-size: clamp(1.75rem, 8vw, 2.5rem);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-kpi);
+  font-weight: var(--font-weight-kpi);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
   line-height: var(--line-height-tight);
@@ -80,9 +88,9 @@
 .ui-progress-bar-caption,
 .ui-ranked-bar-list-caption,
 .ui-ranked-bar-list-empty,
-.ui-chart-frame-period,
-.ui-chart-frame-source,
-.ui-chart-frame-empty {
+.ui-chart-period,
+.ui-chart-source,
+.ui-chart-empty {
   margin: 0;
   color: var(--text-muted);
   font-size: var(--font-size-sm);
@@ -97,120 +105,11 @@
   line-height: var(--line-height-normal);
 }
 
-.ui-sparkline {
-  display: block;
-  width: 100%;
-  height: 2.25rem;
-  margin-top: var(--space-2);
-  overflow: visible;
-}
-
-.ui-sparkline[data-variant="chart"] {
-  height: clamp(6rem, 28vw, 10rem);
-  margin-top: 0;
-}
-
-.ui-sparkline-line {
-  fill: none;
-  stroke: var(--data-1);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-}
-
-.ui-sparkline-grid {
-  stroke: var(--chart-grid);
-  stroke-width: 1;
-}
-
-.ui-sparkline-line[data-tone="1"],
-.ui-progress-ring-value[data-tone="1"],
-.ui-progress-ring-gradient-start,
-.ui-chart-frame-legend-marker[data-tone="1"] {
-  stroke: var(--data-1);
-  color: var(--data-1);
-  stop-color: var(--data-1);
-}
-
-.ui-sparkline-line[data-tone="2"],
-.ui-progress-ring-value[data-tone="2"],
-.ui-chart-frame-legend-marker[data-tone="2"] {
-  stroke: var(--data-2);
-  color: var(--data-2);
-}
-
-.ui-sparkline-line[data-tone="3"],
-.ui-progress-ring-value[data-tone="3"],
-.ui-chart-frame-legend-marker[data-tone="3"] {
-  stroke: var(--data-3);
-  color: var(--data-3);
-}
-
-.ui-sparkline-line[data-tone="4"],
-.ui-progress-ring-value[data-tone="4"],
-.ui-chart-frame-legend-marker[data-tone="4"] {
-  stroke: var(--data-4);
-  color: var(--data-4);
-}
-
-.ui-sparkline-line[data-tone="5"],
-.ui-progress-ring-value[data-tone="5"],
-.ui-progress-ring-gradient-end,
-.ui-chart-frame-legend-marker[data-tone="5"] {
-  stroke: var(--data-5);
-  color: var(--data-5);
-  stop-color: var(--data-5);
-}
-
-.ui-sparkline-line[data-tone="6"],
-.ui-progress-ring-value[data-tone="6"],
-.ui-chart-frame-legend-marker[data-tone="6"] {
-  stroke: var(--data-6);
-  color: var(--data-6);
-}
-
-.ui-sparkline-area-start[data-tone="1"],
-.ui-sparkline-area-end[data-tone="1"] {
-  stop-color: var(--data-1);
-}
-
-.ui-sparkline-area-start[data-tone="2"],
-.ui-sparkline-area-end[data-tone="2"] {
-  stop-color: var(--data-2);
-}
-
-.ui-sparkline-area-start[data-tone="3"],
-.ui-sparkline-area-end[data-tone="3"] {
-  stop-color: var(--data-3);
-}
-
-.ui-sparkline-area-start[data-tone="4"],
-.ui-sparkline-area-end[data-tone="4"] {
-  stop-color: var(--data-4);
-}
-
-.ui-sparkline-area-start[data-tone="5"],
-.ui-sparkline-area-end[data-tone="5"] {
-  stop-color: var(--data-5);
-}
-
-.ui-sparkline-area-start[data-tone="6"],
-.ui-sparkline-area-end[data-tone="6"] {
-  stop-color: var(--data-6);
-}
-
-.ui-sparkline-area-start {
-  stop-opacity: var(--chart-area-opacity);
-}
-
-.ui-sparkline-area-end {
-  stop-opacity: 0;
-}
-
 .ui-progress-ring {
   display: grid;
   justify-items: center;
   gap: var(--space-2);
+  color: var(--text);
   text-align: center;
 }
 
@@ -235,6 +134,11 @@
   transform: rotate(-90deg);
 }
 
+/* Genau ein Glow je Ansicht: der primäre Fortschritt trägt ihn. */
+.ui-progress-ring[data-glow="true"] svg {
+  filter: drop-shadow(0 0 1.25rem var(--accent-glow));
+}
+
 .ui-progress-ring-track {
   stroke: var(--chart-track);
   stroke-width: 10;
@@ -247,10 +151,18 @@
   transition: stroke-dashoffset var(--duration-fast) var(--ease-standard);
 }
 
+.ui-progress-ring-gradient-start {
+  stop-color: var(--accent-1);
+}
+
+.ui-progress-ring-gradient-end {
+  stop-color: var(--accent-2);
+}
+
 .ui-progress-ring-text {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-kpi);
+  font-weight: var(--font-weight-kpi);
   font-variant-numeric: tabular-nums;
   line-height: var(--line-height-tight);
   white-space: nowrap;
@@ -263,6 +175,7 @@
 .ui-progress-bar {
   display: grid;
   gap: var(--space-2);
+  color: var(--text);
 }
 
 .ui-progress-bar-head {
@@ -298,13 +211,13 @@
 
 .ui-progress-bar-track::-webkit-progress-value {
   border-radius: var(--radius-round);
-  background: var(--data-1);
+  background: var(--accent-gradient);
   transition: width var(--duration-fast) var(--ease-standard);
 }
 
 .ui-progress-bar-track::-moz-progress-bar {
   border-radius: var(--radius-round);
-  background: var(--data-1);
+  background: var(--accent-gradient);
 }
 
 .ui-progress-bar-track[data-tone="2"]::-webkit-progress-value {
@@ -351,7 +264,7 @@
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
 }
 
 .ui-ranked-bar-list-items {
@@ -364,9 +277,9 @@
 
 .ui-ranked-bar-list-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-1) var(--space-3);
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .ui-ranked-bar-list-name {
@@ -419,18 +332,25 @@
   width: 2rem;
   height: 2rem;
   place-items: center;
-  border: 1px solid var(--dashboard-hairline);
-  border-radius: var(--radius-sm);
-  background: var(--dashboard-card-raised);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-cell);
   color: var(--text-muted);
+  background: var(--glass);
   font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-kpi);
   line-height: 1;
 }
 
+button.ui-tracker-cell:hover:not(:disabled),
+.preview-force-hover button.ui-tracker-cell:not(:disabled) {
+  background: var(--glass-strong);
+}
+
+/* Erledigt trägt den Verlauf; das Zeichen bleibt der eigentliche Träger. */
 .ui-tracker-cell[data-state="done"] {
-  border-color: var(--data-1);
-  color: var(--text);
-  background: var(--data-1-soft);
+  border-color: transparent;
+  color: var(--accent-contrast);
+  background: var(--accent-gradient);
 }
 
 .ui-tracker-cell[data-state="partial"] {
@@ -440,7 +360,9 @@
 }
 
 .ui-tracker-cell[data-state="skipped"] {
+  border-color: var(--edge-strong);
   border-style: dashed;
+  background: transparent;
 }
 
 .ui-tracker-cell[data-state="none"] {
@@ -448,28 +370,33 @@
   background: transparent;
 }
 
-.ui-tracker-cell[data-tone="2"] {
+.ui-tracker-cell[data-state="done"][data-tone="2"] {
   border-color: var(--data-2);
+  color: var(--text);
   background: var(--data-2-soft);
 }
 
-.ui-tracker-cell[data-tone="3"] {
+.ui-tracker-cell[data-state="done"][data-tone="3"] {
   border-color: var(--data-3);
+  color: var(--text);
   background: var(--data-3-soft);
 }
 
-.ui-tracker-cell[data-tone="4"] {
+.ui-tracker-cell[data-state="done"][data-tone="4"] {
   border-color: var(--data-4);
+  color: var(--text);
   background: var(--data-4-soft);
 }
 
-.ui-tracker-cell[data-tone="5"] {
+.ui-tracker-cell[data-state="done"][data-tone="5"] {
   border-color: var(--data-5);
+  color: var(--text);
   background: var(--data-5-soft);
 }
 
-.ui-tracker-cell[data-tone="6"] {
+.ui-tracker-cell[data-state="done"][data-tone="6"] {
   border-color: var(--data-6);
+  color: var(--text);
   background: var(--data-6-soft);
 }
 
@@ -482,14 +409,13 @@ button.ui-tracker-cell {
   width: var(--control-height);
   height: var(--control-height);
   padding: 0;
-  color: var(--text-muted);
   font-size: var(--font-size-md);
   cursor: pointer;
   transition: border-color var(--duration-fast) var(--ease-standard);
 }
 
 button.ui-tracker-cell:hover:not(:disabled) {
-  border-color: var(--accent);
+  border-color: var(--accent-1);
 }
 
 button.ui-tracker-cell:disabled {
@@ -539,14 +465,22 @@ button.ui-tracker-cell:disabled {
   text-align: center;
 }
 
+/* Die heutige Spalte ist zusätzlich zur Farbe beschriftet. */
+.ui-tracker-grid thead th[data-today="true"] {
+  color: var(--text);
+  border-radius: var(--radius-cell);
+  background: var(--accent-soft);
+}
+
 .ui-tracker-grid tbody th {
   padding-right: var(--space-2);
   color: var(--text);
   font-size: var(--font-size-sm);
 }
 
-.ui-chart-frame {
+.ui-chart {
   display: grid;
+  min-width: 0;
   gap: var(--space-3);
   margin: 0;
   padding: var(--space-4);
@@ -554,23 +488,28 @@ button.ui-tracker-cell:disabled {
   animation: ui-dataviz-appear var(--duration-fast) var(--ease-standard) both;
 }
 
-.ui-chart-frame-head {
+.ui-chart-head {
   display: grid;
   gap: var(--space-1);
 }
 
-.ui-chart-frame-title {
+.ui-chart-title {
   margin: 0;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
 }
 
-.ui-chart-frame-plot {
+/* Die Bibliothek setzt eine Pixelbreite; der Container begrenzt sie hart,
+   damit ein Diagramm nie das Dokument überlaufen lässt. */
+.ui-chart-plot {
   min-width: 0;
+  max-width: 100%;
+  height: clamp(9rem, 34vw, 15rem);
+  overflow: hidden;
 }
 
-.ui-chart-frame-legend {
+.ui-chart-legend {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
@@ -580,16 +519,36 @@ button.ui-tracker-cell:disabled {
   list-style: none;
 }
 
-.ui-chart-frame-legend-item {
+.ui-chart-legend-item {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.ui-chart-frame-legend-marker {
+.ui-chart-legend-marker {
   color: var(--data-1);
   font-size: var(--font-size-xs);
   line-height: 1;
+}
+
+.ui-chart-legend-marker[data-tone="2"] {
+  color: var(--data-2);
+}
+
+.ui-chart-legend-marker[data-tone="3"] {
+  color: var(--data-3);
+}
+
+.ui-chart-legend-marker[data-tone="4"] {
+  color: var(--data-4);
+}
+
+.ui-chart-legend-marker[data-tone="5"] {
+  color: var(--data-5);
+}
+
+.ui-chart-legend-marker[data-tone="6"] {
+  color: var(--data-6);
 }
 
 @keyframes ui-dataviz-appear {
@@ -602,10 +561,32 @@ button.ui-tracker-cell:disabled {
   }
 }
 
+@supports not (backdrop-filter: blur(1px)) {
+  .ui-metric-tile,
+  .ui-ranked-bar-list,
+  .ui-chart {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .ui-metric-tile,
+  .ui-ranked-bar-list,
+  .ui-chart {
+    background: var(--glass-opaque);
+    backdrop-filter: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ui-metric-tile,
-  .ui-chart-frame {
+  .ui-chart {
     animation: none;
+  }
+
+  .ui-progress-ring[data-glow="true"] svg {
+    filter: none;
   }
 
   .ui-progress-ring-value,

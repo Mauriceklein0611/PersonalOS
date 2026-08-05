@@ -13,6 +13,23 @@ configure({ asyncUtilTimeout: 5000 });
 
 afterEach(() => cleanup());
 
+/**
+ * ECharts misst Textbreiten über eine Zeichenfläche, auch mit dem
+ * SVG-Renderer. jsdom bringt keine mit. Der Stub liefert eine grobe Breite;
+ * die Tests prüfen Text und Tabelle, nicht das Layout der Grafik.
+ */
+if (typeof HTMLCanvasElement.prototype.getContext === "function") {
+  HTMLCanvasElement.prototype.getContext = ((contextId: string) =>
+    contextId === "2d"
+      ? {
+          measureText: (text: string) => ({ width: text.length * 6 }),
+          fillText: () => undefined,
+          restore: () => undefined,
+          save: () => undefined,
+        }
+      : null) as HTMLCanvasElement["getContext"];
+}
+
 if (typeof window.matchMedia !== "function") {
   Object.defineProperty(window, "matchMedia", {
     configurable: true,
