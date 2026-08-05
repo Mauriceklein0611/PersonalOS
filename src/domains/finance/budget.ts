@@ -1,3 +1,4 @@
+import { MixedCurrencyError } from "./mixed-currency";
 import type { MonthlyBudget, Transaction } from "./model";
 
 export type BudgetUsageState = "within" | "reached" | "exceeded";
@@ -16,15 +17,6 @@ export type BudgetUsage = {
   summary: string;
   transactionCount: number;
 };
-
-export class MixedCurrencyError extends Error {
-  constructor() {
-    super(
-      "Budget und Buchungen verwenden verschiedene Währungen. Eine Summe wäre nur mit einer Umrechnung möglich.",
-    );
-    this.name = "MixedCurrencyError";
-  }
-}
 
 export function monthOfDay(day: string): string {
   return day.slice(0, 7);
@@ -50,7 +42,9 @@ export function calculateBudgetUsage(
     (transaction) => transaction.money.currency !== budget.limit.currency,
   );
   if (foreign) {
-    throw new MixedCurrencyError();
+    throw new MixedCurrencyError(
+      "Budget und Buchungen verwenden verschiedene Währungen. Eine Summe wäre nur mit einer Umrechnung möglich.",
+    );
   }
 
   const spentMinor = relevant.reduce(

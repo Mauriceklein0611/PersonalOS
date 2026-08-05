@@ -231,6 +231,12 @@ Invarianten:
 - Weicht die Währung einer Buchung vom Budgetlimit ab, wird die Aggregation verweigert und benannt, statt umzurechnen.
 - Ein Limit von null ist zulässig; die Quote bleibt dann ohne Angabe statt durch null zu teilen.
 - Sparbeiträge sind eigene Datensätze und keine normalen Ausgaben, sofern der Nutzer dies nicht ausdrücklich anders modelliert.
+- Der aktuelle Betrag eines Sparziels wird ausschließlich aus seinen Beiträgen berechnet und nie gespeichert. Ein zurückgenommener, also archivierter, Beitrag zählt nicht mehr mit, bleibt aber wiederherstellbar.
+- Sparziel und Beiträge verwenden dieselbe Währung. Prüfung und Schreiben laufen in derselben Transaktion; eine Währungsänderung am Ziel wird abgelehnt, solange Beiträge existieren. Weicht ein importierter Beitrag trotzdem ab, wird die Aggregation verweigert und benannt, statt umzurechnen.
+- Ein Zielbetrag von null ist zulässig; die Quote bleibt dann ohne Angabe statt durch null zu teilen. Über 100 Prozent wird nicht gekappt: Der offene Betrag ist die ganzzahlige Differenz und wird negativ.
+- `targetDate` ist optional. Ein Sparziel ohne Frist ist ein gültiger Zustand und keine unvollständige Eingabe.
+- `savingsGoals` und `savingsContributions` existieren seit Schema v1. Der Umsetzungsstand in #19 brauchte deshalb keine Migration.
+- Das endgültige Löschen eines Sparziels entfernt seine Beiträge in derselben Transaktion und nennt vorher deren Anzahl. Verwaiste Beiträge entstehen dadurch nicht; der Restore prüft diese Referenz zusätzlich.
 
 ## Score-Konfiguration und Snapshots
 

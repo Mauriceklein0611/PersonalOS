@@ -109,3 +109,75 @@ test("records income and expenses and protects used categories", async ({
   );
   expect(hasHorizontalOverflow).toBe(false);
 });
+
+test("tracks a savings goal only through its contributions", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/finanzen");
+
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Sparziele" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 3, name: "Kein Sparziel" }),
+  ).toBeVisible();
+
+  // Ein Sparziel ohne Frist ist ein gültiger Zustand.
+  await page
+    .getByRole("textbox", { name: /Name des Sparziels/ })
+    .fill("Synthetische Rücklage");
+  await page
+    .getByRole("textbox", { name: /Zielbetrag in Euro/ })
+    .fill("1.000,00");
+  await page.getByRole("button", { name: "Sparziel anlegen" }).click();
+  await expect(page.getByText("Das Sparziel wurde angelegt.")).toBeVisible();
+  await expect(page.getByText(/0 Beiträge · Ohne Frist/)).toBeVisible();
+
+  await page
+    .getByRole("button", {
+      name: "Verlauf von „Synthetische Rücklage“ anzeigen",
+    })
+    .click();
+  await page.getByRole("textbox", { name: /Beitrag in Euro/ }).fill("250,00");
+  await page.getByRole("button", { name: "Beitrag hinzufügen" }).click();
+
+  await expect(page.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+  await expect(page.getByText(/Noch offen: .*750,00/)).toBeVisible();
+
+  // Der Stand kommt aus den Beiträgen und überlebt einen Neustart.
+  await page.reload();
+  await expect(page.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+
+  await page
+    .getByRole("button", {
+      name: "Verlauf von „Synthetische Rücklage“ anzeigen",
+    })
+    .click();
+  await page
+    .getByRole("button", { name: /Beitrag vom .* zurücknehmen/ })
+    .click();
+  await expect(page.getByText(/0,00.*von.*1\.000,00/)).toBeVisible();
+  await page.getByRole("button", { name: "Rückgängig" }).click();
+  await expect(page.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+
+  // Endgültiges Löschen nennt vorher die betroffenen Beiträge.
+  await page
+    .getByRole("button", { name: "Sparziel endgültig löschen" })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Sparziel endgültig löschen",
+  });
+  await expect(dialog).toContainText("1 Beitrag wird mitgelöscht");
+  await dialog.getByRole("button", { name: "Endgültig löschen" }).click();
+  await expect(
+    page.getByRole("heading", { level: 3, name: "Kein Sparziel" }),
+  ).toBeVisible();
+
+  const hasHorizontalOverflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth,
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+});
