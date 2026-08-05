@@ -7,7 +7,14 @@ import {
 } from "react";
 import { Link } from "react-router";
 
-import { Button, EmptyState, Input, Toast } from "../../../components/ui";
+import {
+  Button,
+  EmptyState,
+  Input,
+  MetricTile,
+  ProgressRing,
+  Toast,
+} from "../../../components/ui";
 import { getIsoWeekBounds } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import type { Habit, HabitEntryStatus } from "../../habits/model";
@@ -21,7 +28,6 @@ import {
 } from "../../journal/service";
 import type { Task } from "../../tasks/model";
 import { personalOsTaskService, type TaskService } from "../../tasks/service";
-import { TodayMetricTile } from "../components/TodayMetricTile";
 import {
   buildTodayOverview,
   createTodayContext,
@@ -212,11 +218,13 @@ export function TodayPage({
 
   return (
     <section aria-labelledby="page-title" className="route-page today-page">
-      <p className="page-eyebrow">Tagesübersicht</p>
-      <h1 id="page-title">Heute</h1>
-      <p className="page-description">
-        {greetings[overview.greeting]} {formatToday(context.today)}
-      </p>
+      <div className="today-hero">
+        <p className="page-eyebrow">Tagesübersicht</p>
+        <h1 id="page-title">Heute</h1>
+        <p className="page-description">
+          {greetings[overview.greeting]} {formatToday(context.today)}
+        </p>
+      </div>
 
       {error ? (
         <p className="today-error" role="alert">
@@ -236,33 +244,54 @@ export function TodayPage({
               : "Für heute steht keine Aufgabe an. Du kannst den Tag frei einteilen."}
           </p>
 
-          <div className="today-metrics">
-            <TodayMetricTile
-              context={
-                overview.overdueTaskCount > 0
-                  ? `${overview.overdueTaskCount} davon überfällig`
-                  : "Nichts überfällig"
-              }
-              label="Aufgaben heute"
-              value={`${overview.openTasks.length} offen`}
-            />
-            <TodayMetricTile
-              context={
+          <div className="today-dashboard">
+            <div className="today-metrics">
+              <MetricTile
+                context={
+                  overview.overdueTaskCount > 0
+                    ? `${overview.overdueTaskCount} davon überfällig`
+                    : "Nichts überfällig"
+                }
+                label="Aufgaben heute"
+                value={`${overview.openTasks.length} offen`}
+              />
+              <MetricTile
+                context={
+                  overview.habitDueCount === 0
+                    ? "Heute ist nichts geplant"
+                    : `${overview.habitSettledCount} von ${overview.habitDueCount} erfasst`
+                }
+                label="Gewohnheiten heute"
+                value={`${overview.dueHabits.length} offen`}
+              />
+              <MetricTile
+                context={
+                  overview.journal.hasEntryToday
+                    ? `${overview.journal.filledFieldCount} Felder ausgefüllt`
+                    : "Freiwillig und jederzeit nachtragbar"
+                }
+                label="Abendreflexion"
+                value={overview.journal.hasEntryToday ? "Erfasst" : "Offen"}
+              />
+            </div>
+            <ProgressRing
+              caption={
                 overview.habitDueCount === 0
-                  ? "Heute ist nichts geplant"
-                  : `${overview.habitSettledCount} von ${overview.habitDueCount} erfasst`
+                  ? "Heute ist keine Gewohnheit fällig."
+                  : `${overview.habitSettledCount} von ${overview.habitDueCount} Gewohnheiten erfasst`
               }
-              label="Gewohnheiten heute"
-              value={`${overview.dueHabits.length} offen`}
-            />
-            <TodayMetricTile
-              context={
-                overview.journal.hasEntryToday
-                  ? `${overview.journal.filledFieldCount} Felder ausgefüllt`
-                  : "Freiwillig und jederzeit nachtragbar"
+              label="Tagesfortschritt"
+              size="sm"
+              value={
+                overview.habitDueCount === 0
+                  ? null
+                  : overview.habitSettledCount / overview.habitDueCount
               }
-              label="Abendreflexion"
-              value={overview.journal.hasEntryToday ? "Erfasst" : "Offen"}
+              valueText={
+                overview.habitDueCount === 0
+                  ? undefined
+                  : `${overview.habitSettledCount} von ${overview.habitDueCount}`
+              }
             />
           </div>
 

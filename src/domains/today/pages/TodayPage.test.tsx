@@ -175,7 +175,7 @@ describe("TodayPage", () => {
     ).not.toBeInTheDocument();
     const tile = screen
       .getByText("Abendreflexion")
-      .closest(".today-metric-tile") as HTMLElement;
+      .closest(".ui-metric-tile") as HTMLElement;
     expect(within(tile).getByText("Erfasst")).toBeInTheDocument();
     expect(within(tile).getByText("2 Felder ausgefüllt")).toBeInTheDocument();
   });

@@ -30,7 +30,9 @@ test("creates a habit, checks it in and reflects it in the week view", async ({
   await expect(
     weekTable.getByRole("button", { name: /Abendspaziergang.*Erledigt/ }),
   ).toBeVisible();
-  await expect(weekTable.getByText("Nicht fällig").first()).toBeVisible();
+  // Nicht fällige Tage sind keine Schaltfläche, nennen ihren Zustand aber als
+  // Text für assistive Technik.
+  await expect(weekTable.getByText(/: Nicht fällig$/).first()).toBeAttached();
 
   await page.getByRole("tab", { name: /^Fortschritt/ }).click();
   await expect(page.getByText(/Zeitraum: /)).toBeVisible();

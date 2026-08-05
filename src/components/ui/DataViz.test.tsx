@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { ChartFrame } from "./ChartFrame";
 import { MetricTile } from "./MetricTile";
@@ -177,6 +178,25 @@ describe("TrackerCell", () => {
     render(<TrackerCell dayLabel="Mi, 5. August" state="none" />);
 
     expect(screen.getByText("Mi, 5. August: Keine Angabe")).toBeInTheDocument();
+  });
+
+  it("becomes a button that names state and action", async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <TrackerCell
+        actionLabel="Als erledigt eintragen"
+        dayLabel="Lesen am 3. August 2026"
+        onClick={onClick}
+        state="open"
+      />,
+    );
+
+    const cell = screen.getByRole("button", {
+      name: "Lesen am 3. August 2026: Offen. Als erledigt eintragen",
+    });
+    await user.click(cell);
+    expect(onClick).toHaveBeenCalledOnce();
   });
 
   it("applies a week colour only on top of a positive state", () => {

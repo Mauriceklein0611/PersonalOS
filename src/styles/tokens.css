@@ -1,6 +1,6 @@
 :root {
-  color: #1c241f;
-  background: #eef2ee;
+  color: #16202e;
+  background: #e8ecf2;
   font-family:
     Inter,
     ui-sans-serif,
@@ -47,38 +47,39 @@
   --duration-normal: 200ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
+  /* Eine Flächenfamilie für Shell und Dashboard, siehe ADR 0007. */
   --surface: #ffffff;
-  --surface-muted: #f5f7f5;
-  --surface-strong: #e1e8e2;
-  --overlay: rgb(12 20 15 / 55%);
-  --text: #1c241f;
-  --text-muted: #5b675f;
-  --border: #cbd5cd;
-  --border-strong: #87958b;
+  --surface-muted: #e8ecf2;
+  --surface-strong: #d5dce6;
+  --overlay: rgb(11 15 22 / 55%);
+  --text: #16202e;
+  --text-muted: #4d5a6c;
+  --border: #d5dce6;
+  --border-strong: #6e7c90;
   --accent: #285c3a;
   --accent-hover: #1f492e;
-  --accent-soft: #dceade;
+  --accent-soft: #dcebe0;
   --accent-contrast: #ffffff;
   --danger-soft: #f8e4df;
   --danger: #8f3025;
   --danger-hover: #70241c;
   --danger-contrast: #ffffff;
   --focus-ring: #176b87;
-  --skeleton: #dfe6e0;
-  --skeleton-highlight: #f7f9f7;
-  --shadow-sm: 0 0.25rem 0.8rem rgb(28 50 34 / 8%);
-  --shadow-md: 0 1.25rem 3rem rgb(28 50 34 / 10%);
-  --shadow-lg: 0 2rem 5rem rgb(20 37 25 / 18%);
+  --skeleton: #dde3ec;
+  --skeleton-highlight: #f3f6fa;
+  --shadow-sm: 0 0.25rem 0.8rem rgb(16 24 40 / 8%);
+  --shadow-md: 0 1.25rem 3rem rgb(16 24 40 / 10%);
+  --shadow-lg: 0 2rem 5rem rgb(11 15 22 / 18%);
   --shadow: var(--shadow-md);
 
   --control-height: 2.75rem;
   --mobile-nav-height: 4.5rem;
 
-  /* Dashboard-Flächen: Trennung über Helligkeit, Radius und Schatten. */
-  --dashboard-canvas: #e8ecf2;
-  --dashboard-card: #ffffff;
+  /* Dashboard-Flächen: sprechende Namen auf derselben Familie, ADR 0007. */
+  --dashboard-canvas: var(--surface-muted);
+  --dashboard-card: var(--surface);
   --dashboard-card-raised: #f3f6fa;
-  --dashboard-hairline: #d5dce6;
+  --dashboard-hairline: var(--border);
 
   /* Datenpalette: nur Zusatz zu Text und Muster, niemals alleiniger Träger. */
   --data-1: #1f7a3d;
@@ -103,36 +104,35 @@
 }
 
 :root[data-theme="dark"] {
-  color: #e7eee9;
-  background: #111713;
-  --surface: #18211b;
-  --surface-muted: #202b24;
-  --surface-strong: #2d3b31;
+  color: #e7eef7;
+  background: #0b0f16;
+
+  /* Der Seitengrund ist die dunkelste Fläche, Karten liegen darüber. */
+  --surface: #131a24;
+  --surface-muted: #0b0f16;
+  --surface-strong: #1c2531;
   --overlay: rgb(0 0 0 / 70%);
-  --text: #e7eee9;
-  --text-muted: #aab8ae;
-  --border: #3c4b40;
-  --border-strong: #718077;
+  --text: #e7eef7;
+  --text-muted: #9fb0c3;
+  --border: #27313f;
+  --border-strong: #63728c;
   --accent: #8bc89c;
   --accent-hover: #a4d8b1;
-  --accent-soft: #253c2c;
-  --accent-contrast: #102016;
-  --danger-soft: #442723;
+  --accent-soft: #14301f;
+  --accent-contrast: #06210f;
+  --danger-soft: #3d211d;
   --danger: #ffb1a5;
   --danger-hover: #ffd0c8;
   --danger-contrast: #24100d;
   --focus-ring: #75d5f2;
-  --skeleton: #2c3930;
-  --skeleton-highlight: #435248;
+  --skeleton: #1c2531;
+  --skeleton-highlight: #2b3646;
   --shadow-sm: 0 0.25rem 0.8rem rgb(0 0 0 / 18%);
   --shadow-md: 0 1.25rem 3rem rgb(0 0 0 / 25%);
   --shadow-lg: 0 2rem 5rem rgb(0 0 0 / 45%);
   --shadow: var(--shadow-md);
 
-  --dashboard-canvas: #0b0f16;
-  --dashboard-card: #131a24;
   --dashboard-card-raised: #1c2531;
-  --dashboard-hairline: #27313f;
 
   --data-1: #4ade80;
   --data-2: #38bdf8;

@@ -107,9 +107,11 @@ describe("HabitsPage", () => {
     expect(
       within(table).queryByRole("button", { name: /4\. August 2026/ }),
     ).not.toBeInTheDocument();
-    expect(within(table).getAllByText("Nicht fällig").length).toBeGreaterThan(
-      0,
-    );
+    // Die Zelle nennt Tag und Zustand in einem Text, damit der Zustand ohne
+    // Farbe lesbar bleibt.
+    expect(
+      within(table).getAllByText(/: Nicht fällig$/).length,
+    ).toBeGreaterThan(0);
 
     await user.click(
       within(table).getByRole("button", {

@@ -46,6 +46,7 @@ Eine Domain darf keine UI-Komponente einer anderen Domain importieren. Domänen�
 - Nutzertexte auf Deutsch; Code, Typen und Commit-Nachrichten auf Englisch.
 - Keine neue Laufzeitabhängigkeit ohne Begründung im PR.
 - Keine vorzeitige Abstraktion: Erst nach einem zweiten realen Anwendungsfall verallgemeinern.
+- Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker- oder Diagramm-Bausteine. Sie verwenden die gemeinsamen Bausteine aus `src/components/ui`. Fehlt eine Variante, wird der gemeinsame Baustein erweitert, nicht lokal nachgebaut.
 
 ## 5. Definition of Done
 

@@ -23,47 +23,38 @@
   line-height: var(--line-height-normal);
 }
 
+/* Ruhige Hero-Karte: Datum, Begrüßung und genau eine primäre Aktion. */
+.today-hero {
+  padding: clamp(var(--space-4), 5vw, var(--space-6));
+  border: 1px solid var(--dashboard-hairline);
+  border-radius: var(--radius-xl);
+  background: var(--gradient-hero);
+}
+
+.today-hero > :first-child {
+  margin-top: 0;
+}
+
+.today-hero > :last-child {
+  margin-bottom: 0;
+}
+
+.today-dashboard {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
 .today-metrics {
   display: grid;
   min-width: 0;
   gap: var(--space-3);
-  margin-top: var(--space-4);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.today-metric-tile {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-1);
-  padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface-muted);
-}
-
-.today-metric-label {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.today-metric-value {
-  margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  font-variant-numeric: tabular-nums;
-  line-height: var(--line-height-tight);
-  overflow-wrap: anywhere;
-}
-
-.today-metric-context {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-normal);
+.today-dashboard .ui-progress-ring {
+  justify-self: center;
 }
 
 .today-quick-capture {
@@ -171,6 +162,11 @@
 @media (min-width: 40rem) {
   .today-metrics {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .today-dashboard {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
   }
 
   .today-quick-capture {

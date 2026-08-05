@@ -210,15 +210,41 @@
   margin-bottom: var(--space-3);
 }
 
-.habit-week-scroll {
-  max-width: 100%;
-  padding-bottom: var(--space-2);
-  overflow-x: auto;
+.habit-week-dashboard {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
-.habit-week-table {
-  min-width: 100%;
-  border-collapse: collapse;
+/* Der Verlauf nennt jeden Tag zusätzlich als Text, damit die Kurve nur
+   ergänzt und nicht die einzige Aussage trägt. */
+.habit-week-course {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  list-style: none;
+}
+
+.habit-week-course li {
+  display: grid;
+  gap: 0.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.habit-week-scroll {
+  padding-bottom: var(--space-2);
+}
+
+@media (min-width: 52rem) {
+  .habit-week-dashboard {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
 }
 
 .habit-week-caption {
@@ -226,19 +252,6 @@
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   text-align: left;
-}
-
-.habit-week-table th,
-.habit-week-table td {
-  padding: var(--space-1);
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  vertical-align: top;
-}
-
-.habit-week-table thead th {
-  display: table-cell;
-  font-size: var(--font-size-xs);
 }
 
 .habit-week-table thead th span {
@@ -249,60 +262,6 @@
   min-width: 7rem;
   max-width: 10rem;
   overflow-wrap: anywhere;
-  font-size: var(--font-size-sm);
-}
-
-.habit-day-cell {
-  display: grid;
-  width: 100%;
-  min-width: 5rem;
-  min-height: 2.75rem;
-  align-content: center;
-  justify-items: center;
-  gap: 0.1rem;
-  padding: var(--space-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font: inherit;
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-tight);
-  text-align: center;
-}
-
-.habit-day-cell > span:first-child {
-  font-size: var(--font-size-md);
-}
-
-.habit-day-button {
-  color: var(--text);
-  background: var(--surface);
-  cursor: pointer;
-}
-
-.habit-day-static {
-  color: var(--text-muted);
-  background: var(--surface-muted);
-}
-
-.habit-day-done {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.habit-day-open {
-  border-style: dashed;
-  border-color: var(--border-strong);
-}
-
-.habit-day-not-due {
-  border-style: dotted;
-  color: var(--text-muted);
-  background: var(--surface-muted);
-}
-
-.habit-day-note {
-  color: var(--text-muted);
 }
 
 .habit-progress-card h3 {
@@ -337,21 +296,6 @@
   margin: 0;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
-}
-
-.habit-progress-bar {
-  height: 0.6rem;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-round);
-  background: var(--surface-muted);
-}
-
-.habit-progress-bar > span {
-  display: block;
-  width: var(--habit-progress, 0%);
-  height: 100%;
-  border-radius: var(--radius-round);
-  background: var(--accent);
 }
 
 .habit-editor-form,
