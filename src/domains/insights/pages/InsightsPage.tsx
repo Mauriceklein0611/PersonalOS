@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
 
 import {
   Button,
@@ -12,13 +13,19 @@ import {
 } from "../../../components/ui";
 import { calendarDayForInstant } from "../../../lib/dates/calendar-days";
 import { applyScoreWeights } from "../score-engine";
+import { insightStrengthLabels, type Insight } from "../insight-model";
+import { getWeekPeriod, shiftWeek, type WeeklyFigure } from "../weekly-review";
+import {
+  personalOsInsightService,
+  type InsightService,
+  type WeeklyReviewOverview,
+} from "../service";
 import {
   resolveScoreComponents,
   scoreComponentKeys,
-  type LifeScoreResult,
   type ScoreComponentConfig,
   type ScoreComponentKey,
-  type ScoreSettings,
+  type ScorePeriod,
 } from "../score-model";
 import {
   buildComponentViews,
@@ -34,6 +41,7 @@ import { personalOsScoreService, type ScoreService } from "../service";
 import "./insights-page.css";
 
 export type InsightsPageProps = {
+  insightService?: InsightService;
   now?: () => Date;
   service?: ScoreService;
   timeZone?: string;
@@ -41,7 +49,10 @@ export type InsightsPageProps = {
 
 type WeightDraft = Record<ScoreComponentKey, string>;
 
+const loadFailure = "Die Wochenübersicht konnte nicht geladen werden.";
+
 export function InsightsPage({
+  insightService = personalOsInsightService,
   now = () => new Date(),
   service = personalOsScoreService,
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -55,27 +66,22 @@ export function InsightsPage({
   const [expanded, setExpanded] = useState<ScoreComponentKey>();
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState<string>();
-  const [overview, setOverview] = useState<{
-    result: LifeScoreResult;
-    settings: ScoreSettings;
-  }>();
+  const [overview, setOverview] = useState<WeeklyReviewOverview>();
+  const [week, setWeek] = useState<ScorePeriod>(() => getWeekPeriod(today));
   const [draft, setDraft] = useState<ScoreComponentConfig[]>();
   const [weightText, setWeightText] = useState<WeightDraft>();
   const [weightError, setWeightError] = useState<string>();
 
-  const applyOverview = useCallback(
-    (next: { result: LifeScoreResult; settings: ScoreSettings }) => {
-      const components = resolveScoreComponents(next.settings.components);
-      setOverview(next);
-      setDraft(components);
-      setWeightText(toWeightDraft(components));
-    },
-    [],
-  );
+  const applyOverview = useCallback((next: WeeklyReviewOverview) => {
+    const components = resolveScoreComponents(next.settings.components);
+    setOverview(next);
+    setDraft(components);
+    setWeightText(toWeightDraft(components));
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
-    void service.load(today, timeZone).then(
+    void insightService.loadWeek(week, today, timeZone).then(
       (next) => {
         if (!isCurrent) return;
         applyOverview(next);
@@ -83,23 +89,37 @@ export function InsightsPage({
       },
       () => {
         if (!isCurrent) return;
-        setError("Der Life Score konnte nicht geladen werden.");
+        setError(loadFailure);
         setIsLoading(false);
       },
     );
     return () => {
       isCurrent = false;
     };
-  }, [applyOverview, service, timeZone, today]);
+  }, [applyOverview, insightService, timeZone, today, week]);
 
   async function reload() {
     setError(undefined);
     try {
-      applyOverview(await service.load(today, timeZone));
+      applyOverview(await insightService.loadWeek(week, today, timeZone));
       return true;
     } catch {
-      setError("Der Life Score konnte nicht geladen werden.");
+      setError(loadFailure);
       return false;
+    }
+  }
+
+  async function hideInsight(insight: Insight) {
+    try {
+      await insightService.hide(insight);
+    } catch {
+      setError("Der Insight konnte nicht ausgeblendet werden.");
+      return;
+    }
+    if (await reload()) {
+      setNotice(
+        "Die Beobachtung ist ausgeblendet. Deine Einträge bleiben unverändert.",
+      );
     }
   }
 
@@ -145,13 +165,25 @@ export function InsightsPage({
     if (!overview || !draft || !weightText) return undefined;
     const parsed = parseWeights(draft, weightText);
     if (parsed === undefined) return undefined;
-    return applyScoreWeights(overview.result, parsed);
+    return applyScoreWeights(overview.score, parsed);
   }, [draft, overview, weightText]);
+
+  const weeklyFigures = useMemo(() => {
+    if (!overview) return [];
+    const review = overview.review;
+    return [
+      { figure: review.tasks, label: "Aufgaben" },
+      { figure: review.habits, label: "Gewohnheiten" },
+      { figure: review.journal, label: "Journal" },
+      { figure: review.goals, label: "Ziele" },
+      { figure: review.finance, label: "Ausgaben" },
+    ] satisfies { figure: WeeklyFigure; label: string }[];
+  }, [overview]);
 
   const views = useMemo(
     () =>
       overview && draft
-        ? buildComponentViews(overview.result, draft)
+        ? buildComponentViews(overview.score, draft)
         : undefined,
     [draft, overview],
   );
@@ -163,9 +195,10 @@ export function InsightsPage({
           <p className="page-eyebrow">Nachvollziehbar</p>
           <h1 id="page-title">Insights</h1>
           <p className="page-description">
-            Der Life Score ist eine persönliche Orientierung aus deinen eigenen
-            Einträgen – keine Bewertung deines Lebens und kein Vergleich mit
-            anderen. Du entscheidest, welche Bereiche einfließen und wie stark.
+            Deine Woche aus deinen eigenen Einträgen – keine Bewertung deines
+            Lebens und kein Vergleich mit anderen. Der Life Score ist eine
+            persönliche Orientierung; du entscheidest, welche Bereiche
+            einfließen und wie stark.
           </p>
         </div>
       </header>
@@ -184,6 +217,82 @@ export function InsightsPage({
 
       {!isLoading && overview && views && draft && weightText ? (
         <>
+          <section
+            aria-labelledby="insights-week-title"
+            className="page-section insights-week"
+          >
+            <h2 id="insights-week-title">Woche vom {describePeriod(week)}</h2>
+            <div className="insights-week-navigation">
+              <Button
+                onClick={() => setWeek(shiftWeek(week, -1))}
+                variant="secondary"
+              >
+                Vorherige Woche
+              </Button>
+              <Button
+                disabled={week.to >= today}
+                onClick={() => setWeek(shiftWeek(week, 1))}
+                variant="secondary"
+              >
+                Nächste Woche
+              </Button>
+              {week.to >= today ? (
+                <p className="insights-note">
+                  Dies ist die laufende Woche. Ausgewertet wird bis heute.
+                </p>
+              ) : null}
+            </div>
+
+            <ul className="insights-week-figures">
+              {weeklyFigures.map(({ figure, label }) => (
+                <li key={label}>
+                  <MetricTile
+                    context={figure.basis}
+                    label={label}
+                    value={figure.sourceCount === 0 ? null : figure.valueText}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section
+            aria-labelledby="insights-observations-title"
+            className="page-section insights-observations"
+          >
+            <h2 id="insights-observations-title">Beobachtungen</h2>
+            {overview.insights.length === 0 ? (
+              <EmptyState
+                description="Sobald genug Einträge vorliegen, erscheint hier eine Beobachtung mit ihrer Datenbasis. Ohne ausreichende Grundlage wird bewusst nichts behauptet."
+                title="Noch keine Beobachtung"
+              />
+            ) : (
+              <ul className="insights-observation-list">
+                {overview.insights.map((insight) => (
+                  <li key={insight.id}>
+                    <InsightCard
+                      insight={insight}
+                      onHide={() => void hideInsight(insight)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+            {overview.hiddenCount > 0 ? (
+              <p className="insights-note">
+                {overview.hiddenCount} Beobachtung
+                {overview.hiddenCount === 1 ? "" : "en"} ausgeblendet. Die
+                zugrunde liegenden Einträge sind unverändert.
+              </p>
+            ) : null}
+            {overview.failedRuleIds.length > 0 ? (
+              <p className="insights-field-error" role="alert">
+                Diese Regeln konnten nicht ausgewertet werden:{" "}
+                {overview.failedRuleIds.join(", ")}.
+              </p>
+            ) : null}
+          </section>
+
           {overview.settings.enabled ? (
             <>
               <section
@@ -193,26 +302,26 @@ export function InsightsPage({
                 <h2 id="insights-total-title">Life Score</h2>
                 <div className="insights-total-body">
                   <ProgressRing
-                    caption={describePeriod(overview.result.period)}
+                    caption={describePeriod(overview.score.period)}
                     glow
                     label="Gesamtwert"
-                    value={toScoreRatio(overview.result.total)}
-                    valueText={formatScoreValue(overview.result.total)}
+                    value={toScoreRatio(overview.score.total)}
+                    valueText={formatScoreValue(overview.score.total)}
                   />
                   <div className="insights-total-facts">
                     <MetricTile
                       context="Bereiche mit ausreichender Datenbasis"
                       label="Datenvollständigkeit"
-                      value={describeCompleteness(overview.result)}
+                      value={describeCompleteness(overview.score)}
                     />
                     <MetricTile
                       context="Historische Werte behalten ihre Version."
                       label="Berechnung"
-                      value={overview.result.version}
+                      value={overview.score.version}
                     />
                   </div>
                 </div>
-                {overview.result.total === null ? (
+                {overview.score.total === null ? (
                   <p className="insights-note">
                     Für diesen Zeitraum liegt noch zu wenig vor. Sobald ein
                     Bereich genug Einträge hat, erscheint hier ein Wert.
@@ -343,6 +452,92 @@ export function InsightsPage({
       ) : null}
     </section>
   );
+}
+
+const actionTargets: Record<string, { label: string; to: string }> = {
+  "open-budget": { label: "Budgets öffnen", to: "/finanzen" },
+};
+
+type InsightCardProps = {
+  insight: Insight;
+  onHide: () => void;
+};
+
+/**
+ * Eine Beobachtung nennt immer Zeitraum und Datenbasis. Die empfohlene Aktion
+ * ist optional und führt in einen bestehenden Ablauf, nicht in eine neue
+ * Oberfläche.
+ */
+function InsightCard({ insight, onHide }: InsightCardProps) {
+  const target = insight.action
+    ? actionTargets[insight.action.kind]
+    : undefined;
+
+  return (
+    <article className="insights-observation">
+      <p className="insights-observation-strength">
+        {insightStrengthLabels[insight.strength]}
+      </p>
+      <p className="insights-observation-message">{insight.message}</p>
+      <p className="insights-observation-period">
+        Zeitraum: {describePeriod(insight.period)}
+      </p>
+      {insight.evidence.length > 0 ? (
+        <ul className="insights-evidence">
+          {insight.evidence.map((entry) => (
+            <li key={entry.metric}>
+              <span className="insights-evidence-label">
+                {insightMetricLabels[entry.metric] ?? entry.metric}
+              </span>
+              <span className="insights-evidence-value">
+                {formatEvidenceValue(entry.metric, entry.value)}
+              </span>
+              <span className="insights-evidence-source">
+                {entry.sourceCount}{" "}
+                {entry.sourceCount === 1 ? "Datensatz" : "Datensätze"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="insights-observation-actions">
+        {target ? (
+          <Link className="ui-button ui-button-secondary" to={target.to}>
+            {target.label}
+          </Link>
+        ) : null}
+        <Button onClick={onHide} variant="ghost">
+          Beobachtung ausblenden
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+const insightMetricLabels: Record<string, string> = {
+  comparableWeeks: "Vergleichbare Wochen",
+  comparableWeekdays: "Vergleichbare Wochentage",
+  elapsedShare: "Vergangener Monatsanteil",
+  highestWeekdayRate: "Höchste Abschlussquote",
+  lowestWeekdayRate: "Niedrigste Abschlussquote",
+  plannedTasks: "Geplante Aufgaben",
+  plannedUnits: "Geplante Einheiten",
+  spentShare: "Gebuchter Budgetanteil",
+  weeksWeekdayHigher: "Wochen mit höheren Werktagen",
+  weeksWeekendHigher: "Wochen mit höherem Wochenende",
+};
+
+const shareMetrics = new Set([
+  "elapsedShare",
+  "highestWeekdayRate",
+  "lowestWeekdayRate",
+  "spentShare",
+]);
+
+function formatEvidenceValue(metric: string, value: number): string {
+  return shareMetrics.has(metric)
+    ? `${Math.round(value * 100)} %`
+    : String(value);
 }
 
 type ComponentRowProps = {

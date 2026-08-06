@@ -17,12 +17,19 @@ import {
   personalOsScoreSources,
   readInsightInput,
   readLifeScoreInput,
+  readWeeklyReviewInput,
   type ScoreSources,
 } from "./score-input";
+import {
+  buildWeeklyReview,
+  getReviewAnchorDay,
+  type WeeklyReview,
+} from "./weekly-review";
 import {
   resolveScoreComponents,
   type LifeScoreResult,
   type ScoreComponentConfig,
+  type ScorePeriod,
   type ScoreSettings,
 } from "./score-model";
 
@@ -38,19 +45,68 @@ export type InsightOverview = {
   hiddenCount: number;
 };
 
+export type WeeklyReviewOverview = InsightOverview & {
+  anchorDay: CalendarDay;
+  review: WeeklyReview;
+  score: LifeScoreResult;
+  settings: ScoreSettings;
+};
+
 export type InsightService = {
   hide(insight: Insight): Promise<void>;
   load(today: CalendarDay, timeZone: string): Promise<InsightOverview>;
+  /**
+   * Verdichtet eine ISO-Woche. Score und Regeln rechnen für den Ankertag der
+   * Woche — das Wochenende, aber nie in der Zukunft.
+   */
+  loadWeek(
+    period: ScorePeriod,
+    today: CalendarDay,
+    timeZone: string,
+  ): Promise<WeeklyReviewOverview>;
   showAgain(insightId: string): Promise<boolean>;
 };
 
 export function createInsightService(
   hidden: HiddenInsightRepository = personalOsHiddenInsightRepository,
   sources: ScoreSources = personalOsScoreSources,
+  settings: ScoreSettingsRepository = personalOsScoreSettingsRepository,
 ): InsightService {
   return {
     async hide(insight) {
       await hidden.hide(insight.id, insight.ruleId);
+    },
+    async loadWeek(period, today, timeZone) {
+      const anchorDay = getReviewAnchorDay(period, today);
+      const [reviewInput, insightInput, hiddenIds, stored] = await Promise.all([
+        readWeeklyReviewInput(sources, period),
+        readInsightInput(sources, anchorDay),
+        hidden.listIds(),
+        settings.loadOrCreate(),
+      ]);
+      const scoreInput = await readLifeScoreInput(sources, {
+        month: monthOfDay(getFinancePeriod(anchorDay).from),
+        period: getLifeScorePeriod(anchorDay),
+      });
+      const run = runInsightRules(insightInput, {
+        timeZone,
+        today: anchorDay,
+      });
+      const visible = withoutHiddenInsights(run.insights, hiddenIds);
+
+      return {
+        anchorDay,
+        failedRuleIds: run.failedRuleIds,
+        hiddenCount: run.insights.length - visible.length,
+        insights: visible,
+        review: buildWeeklyReview(reviewInput, period),
+        score: calculateLifeScore(scoreInput, {
+          components: stored.components,
+          timeZone,
+          today: anchorDay,
+        }),
+        settings: stored,
+      };
     },
     async load(today, timeZone) {
       const [input, hiddenIds] = await Promise.all([
