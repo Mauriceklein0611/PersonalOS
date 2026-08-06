@@ -313,6 +313,23 @@ export const scoreSnapshotSchema = entityMetaSchema.safeExtend({
   ),
 });
 
+/**
+ * Der einzige persistierte Teil eines Insights. Alles andere wird bei jedem
+ * Aufruf neu gerechnet; siehe [ADR 0010](../../../docs/decisions/0010-deterministic-insights-v1.md).
+ */
+const hiddenInsightFields = {
+  insightId: z.string().min(1).max(300),
+  ruleId: z.string().min(1).max(100),
+  hiddenAt: isoInstantSchema,
+};
+
+export const hiddenInsightDetailsSchema = z
+  .object(hiddenInsightFields)
+  .strict();
+
+export const hiddenInsightSchema =
+  entityMetaSchema.safeExtend(hiddenInsightFields);
+
 export const backupDataSchema = z
   .object({
     settings: z.array(settingsSchema),
@@ -329,6 +346,9 @@ export const backupDataSchema = z
     savingsContributions: z.array(savingsContributionSchema),
     scoreSettings: z.array(scoreSettingsSchema),
     scoreSnapshots: z.array(scoreSnapshotSchema),
+    // Ein Export im Format 1 kennt die Tabelle noch nicht. Er bleibt gültig
+    // und wird als „nichts ausgeblendet“ gelesen.
+    hiddenInsights: z.array(hiddenInsightSchema).default([]),
   })
   .strict();
 

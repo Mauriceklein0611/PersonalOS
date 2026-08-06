@@ -46,6 +46,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Einheitliche Dashboard-Flächen](docs/decisions/0007-unified-dashboard-surfaces.md)
 - [Apache ECharts für Diagramme](docs/decisions/0008-echarts-for-charts.md)
 - [Erklärbarer Life Score v1](docs/decisions/0009-life-score-v1.md)
+- [Deterministische Insights v1](docs/decisions/0010-deterministic-insights-v1.md)
 
 ## Mit Codex und Claude Code arbeiten
 

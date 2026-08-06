@@ -13,6 +13,9 @@ import {
   type JournalService,
 } from "../journal/service";
 import { personalOsTaskService, type TaskService } from "../tasks/service";
+import { monthOfDay } from "../finance/budget";
+import type { CalendarDay } from "../../lib/dates/date-values";
+import { getHabitRulePeriod, type InsightInput } from "./insight-rules";
 import type { LifeScoreInput } from "./score-engine";
 import type { ScorePeriod } from "./score-model";
 
@@ -94,4 +97,35 @@ async function collect<TValue>(
   requests: readonly Promise<TValue[]>[],
 ): Promise<TValue[]> {
   return (await Promise.all(requests)).flat();
+}
+
+/**
+ * Die Regeln brauchen ein längeres Fenster als der Score: sechs Wochen für
+ * Gewohnheiten, 28 Tage für Aufgaben, den laufenden Monat für Budgets.
+ * Journaleinträge werden bewusst nicht gelesen — keine Regel wertet sie aus.
+ */
+export async function readInsightInput(
+  sources: ScoreSources,
+  today: CalendarDay,
+): Promise<InsightInput> {
+  const habitPeriod = getHabitRulePeriod(today);
+  const month = monthOfDay(today);
+
+  const [habits, tasks, budgets, transactions] = await Promise.all([
+    sources.habits.list(),
+    sources.tasks.list(),
+    sources.finance.listBudgets(month),
+    sources.finance.listTransactions({ month }),
+  ]);
+
+  const habitEntries = await collect(
+    habits.map((habit) =>
+      sources.habits.listEntries(habit.id, {
+        from: habitPeriod.from,
+        to: habitPeriod.to,
+      }),
+    ),
+  );
+
+  return { budgets, habitEntries, habits, tasks, transactions };
 }

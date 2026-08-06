@@ -1,6 +1,10 @@
-export const personalOsSchemaVersion = 3;
+export const personalOsSchemaVersion = 4;
 
-export const personalOsTableNames = [
+/**
+ * Die Tabellen der Versionen 1 bis 3. Sie stehen getrennt, damit eine neue
+ * Tabelle nicht rückwirkend in einer alten Schemaversion auftaucht.
+ */
+export const personalOsTableNamesV1 = [
   "settings",
   "tasks",
   "habits",
@@ -17,6 +21,12 @@ export const personalOsTableNames = [
   "scoreSnapshots",
 ] as const;
 
+export const personalOsTableNames = [
+  ...personalOsTableNamesV1,
+  "hiddenInsights",
+] as const;
+
+export type PersonalOsTableNameV1 = (typeof personalOsTableNamesV1)[number];
 export type PersonalOsTableName = (typeof personalOsTableNames)[number];
 
 export const personalOsSchemaV1 = {
@@ -40,12 +50,22 @@ export const personalOsSchemaV1 = {
   scoreSettings: "id, updatedAt",
   scoreSnapshots:
     "id, &[localDate+engineVersion], localDate, engineVersion, archivedAt, updatedAt",
-} satisfies Record<PersonalOsTableName, string>;
+} satisfies Record<PersonalOsTableNameV1, string>;
 
 export const personalOsSchemaV2 = {
   ...personalOsSchemaV1,
-} satisfies Record<PersonalOsTableName, string>;
+} satisfies Record<PersonalOsTableNameV1, string>;
 
 export const personalOsSchemaV3 = {
   ...personalOsSchemaV2,
+} satisfies Record<PersonalOsTableNameV1, string>;
+
+/**
+ * `insightId` ist eindeutig: Derselbe Insight kann nicht zweimal ausgeblendet
+ * sein. `ruleId` bleibt indiziert, damit ein späteres Stummschalten je Regel
+ * ohne Migration möglich ist.
+ */
+export const personalOsSchemaV4 = {
+  ...personalOsSchemaV3,
+  hiddenInsights: "id, &insightId, ruleId, archivedAt, updatedAt",
 } satisfies Record<PersonalOsTableName, string>;
