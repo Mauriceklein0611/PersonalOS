@@ -277,6 +277,8 @@ Invarianten:
 - `engineVersion` ist Pflicht. Historische Snapshots werden niemals nachgerechnet; eine Formeländerung erzeugt eine neue Version.
 - Der Snapshot speichert die tatsächlich verwendeten Gewichte, damit ein alter Wert auch nach einer Umgewichtung erklärbar bleibt. Eine Gewichtsänderung durch den Nutzer ist keine Versionsänderung.
 
+Die Berechnung liegt in `src/domains/insights/score-engine.ts`, die Verträge in `src/domains/insights/score-model.ts`. Sie ist eine reine Leseauswertung: Sie liest über die Domainfunktionen der Quellbereiche, verändert keinen Datensatz und kennt keine Uhrzeit außerhalb des übergebenen Tages und der übergebenen Zeitzone. `toScoreSnapshotDetails` schreibt den ungerundeten Gesamtwert; gerundet wird ausschließlich für die Anzeige, damit ein alter Snapshot später genauso gerundet wird wie heute.
+
 ## Insight-Präsentation
 
 ```ts
