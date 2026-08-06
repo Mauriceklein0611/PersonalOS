@@ -1,0 +1,175 @@
+/*
+ * Die Seite selbst bleibt reines Layout; die Glas-Flächen kommen aus
+ * `.page-header` und `.page-section`. Innerhalb einer Karte wird nur
+ * `--glass-strong` verwendet, damit keine zweite Blur-Ebene entsteht.
+ */
+.insights-status {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.insights-note {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.insights-total-body {
+  display: grid;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.insights-total-facts {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* Eine Zeile je Teilwert, getrennt durch Fläche statt durch eigene Karte. */
+.insights-component {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--glass-strong);
+  justify-items: start;
+}
+
+.insights-component-period {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.insights-component > .ui-progress-bar {
+  width: 100%;
+}
+
+.insights-explanation {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.insights-explanation h3 {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-kpi);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.insights-explanation p {
+  max-width: 60ch;
+  margin: 0;
+  line-height: var(--line-height-normal);
+}
+
+.insights-evidence {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.insights-evidence li {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-cell);
+  background: var(--field);
+}
+
+.insights-evidence-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.insights-evidence-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-kpi);
+}
+
+.insights-evidence-source {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.insights-weight-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.insights-weight-row {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--glass-strong);
+}
+
+.insights-preview {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-tile);
+  background: var(--field);
+  font-variant-numeric: tabular-nums;
+}
+
+.insights-field-error {
+  margin: 0;
+  color: var(--danger);
+  font-weight: var(--font-weight-medium);
+}
+
+.insights-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Wie auf den übrigen Seiten: fest über dem Inhalt, nie über der Navigation. */
+.insights-toast-region {
+  position: fixed;
+  z-index: 80;
+  right: 1rem;
+  bottom: calc(var(--mobile-nav-height) + 1rem + env(safe-area-inset-bottom));
+  width: min(38rem, calc(100vw - 2rem));
+}
+
+@media (min-width: 40rem) {
+  .insights-toast-region {
+    bottom: 1rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  .insights-total-body {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .insights-total-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .insights-evidence li {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  .insights-weight-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 14rem);
+    align-items: end;
+    gap: var(--space-4);
+  }
+}

@@ -142,12 +142,7 @@ function buildComponent(
   // sondern eine Entscheidung, und darf deshalb auch keine Evidenz zeigen.
   const evidence = config.enabled
     ? calculateComponent(config.key, input, scope)
-    : {
-        basis: "Diese Komponente ist abgeschaltet.",
-        inputs: [],
-        sourceCount: 0,
-        value: null,
-      };
+    : disabledEvidence();
 
   return {
     basis: evidence.basis,
@@ -159,6 +154,19 @@ function buildComponent(
     sourceCount: evidence.sourceCount,
     value: evidence.value === null ? null : clampScore(evidence.value),
     weight: config.weight,
+  };
+}
+
+/**
+ * Eine abgeschaltete Komponente wird nicht gerechnet und zeigt auch keine
+ * Evidenz. Sie ist keine Lücke, sondern eine Entscheidung.
+ */
+function disabledEvidence(): ComponentEvidence {
+  return {
+    basis: "Diese Komponente ist abgeschaltet.",
+    inputs: [],
+    sourceCount: 0,
+    value: null,
   };
 }
 
@@ -580,6 +588,41 @@ function calculateCompleteness(components: readonly ScoreComponent[]): number {
 
 function mean(values: readonly number[]): number {
   return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
+/**
+ * Wendet andere Gewichte auf bereits berechnete Teilwerte an. Die Teilwerte
+ * selbst hängen nicht von der Gewichtung ab, deshalb braucht eine Vorschau
+ * keinen erneuten Lesezugriff auf die Quelldaten. Gerechnet wird mit denselben
+ * Regeln wie in `calculateLifeScore`, damit Vorschau und gespeicherter Stand
+ * nicht auseinanderlaufen können.
+ */
+export function applyScoreWeights(
+  result: LifeScoreResult,
+  components: readonly ScoreComponentConfig[],
+): LifeScoreResult {
+  const configs = resolveScoreComponents(components);
+  const next = result.components.map((component) => {
+    const config = configs.find((entry) => entry.key === component.key);
+    const enabled = config?.enabled ?? component.enabled;
+    const weight = config?.weight ?? component.weight;
+    const evidence = enabled ? component : disabledEvidence();
+    return {
+      ...component,
+      ...evidence,
+      contributes: enabled && weight > 0 && evidence.value !== null,
+      enabled,
+      weight,
+    };
+  });
+
+  return {
+    completeness: calculateCompleteness(next),
+    components: next,
+    period: result.period,
+    total: calculateTotal(next),
+    version: result.version,
+  };
 }
 
 /** Findet einen Teilwert im Ergebnis; die Reihenfolge ist immer dieselbe. */
