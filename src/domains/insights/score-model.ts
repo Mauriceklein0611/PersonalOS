@@ -1,15 +1,17 @@
 import { z } from "zod";
 
 import {
+  scoreSettingsDetailsSchema,
   scoreSettingsSchema,
   scoreSnapshotSchema,
 } from "../../db/schemas/domain-records";
 import type { EntityMeta } from "../../db/types";
 import type { CalendarDay } from "../../lib/dates/date-values";
 
-export { scoreSettingsSchema, scoreSnapshotSchema };
+export { scoreSettingsDetailsSchema, scoreSettingsSchema, scoreSnapshotSchema };
 
 export type ScoreSettings = z.infer<typeof scoreSettingsSchema>;
+export type ScoreSettingsDetails = z.infer<typeof scoreSettingsDetailsSchema>;
 export type ScoreSnapshot = z.infer<typeof scoreSnapshotSchema>;
 export type ScoreSnapshotDetails = Omit<ScoreSnapshot, keyof EntityMeta>;
 

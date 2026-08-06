@@ -276,7 +276,7 @@ export const savingsContributionSchema = entityMetaSchema.safeExtend(
   savingsContributionFields,
 );
 
-export const scoreSettingsSchema = entityMetaSchema.safeExtend({
+const scoreSettingsFields = {
   enabled: z.boolean(),
   components: z.array(
     z
@@ -287,7 +287,14 @@ export const scoreSettingsSchema = entityMetaSchema.safeExtend({
       })
       .strict(),
   ),
-});
+};
+
+export const scoreSettingsDetailsSchema = z
+  .object(scoreSettingsFields)
+  .strict();
+
+export const scoreSettingsSchema =
+  entityMetaSchema.safeExtend(scoreSettingsFields);
 
 export const scoreSnapshotSchema = entityMetaSchema.safeExtend({
   localDate: calendarDaySchema,

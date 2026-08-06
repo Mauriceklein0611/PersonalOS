@@ -277,7 +277,9 @@ Invarianten:
 - `engineVersion` ist Pflicht. Historische Snapshots werden niemals nachgerechnet; eine Formeländerung erzeugt eine neue Version.
 - Der Snapshot speichert die tatsächlich verwendeten Gewichte, damit ein alter Wert auch nach einer Umgewichtung erklärbar bleibt. Eine Gewichtsänderung durch den Nutzer ist keine Versionsänderung.
 
-Die Berechnung liegt in `src/domains/insights/score-engine.ts`, die Verträge in `src/domains/insights/score-model.ts`. Sie ist eine reine Leseauswertung: Sie liest über die Domainfunktionen der Quellbereiche, verändert keinen Datensatz und kennt keine Uhrzeit außerhalb des übergebenen Tages und der übergebenen Zeitzone. `toScoreSnapshotDetails` schreibt den ungerundeten Gesamtwert; gerundet wird ausschließlich für die Anzeige, damit ein alter Snapshot später genauso gerundet wird wie heute.
+`scoreSettings` enthält genau einen Datensatz. Er entsteht beim ersten Zugriff mit den Standardgewichten und wird immer vollständig gespeichert, damit eine Teilliste nicht später stillschweigend aus den Standards ergänzt wird. `enabled` ist eine reine Anzeigeentscheidung: Ein ausgeblendeter Score wird weiter berechnet und es wird kein Eintrag verändert.
+
+Die Berechnung liegt in `src/domains/insights/score-engine.ts`, die Verträge in `src/domains/insights/score-model.ts`. Die Oberfläche liest die Quelldaten über `src/domains/insights/score-input.ts`; dieser Vertrag nennt ausschließlich Lesefunktionen der Domänen. Sie ist eine reine Leseauswertung: Sie liest über die Domainfunktionen der Quellbereiche, verändert keinen Datensatz und kennt keine Uhrzeit außerhalb des übergebenen Tages und der übergebenen Zeitzone. `toScoreSnapshotDetails` schreibt den ungerundeten Gesamtwert; gerundet wird ausschließlich für die Anzeige, damit ein alter Snapshot später genauso gerundet wird wie heute.
 
 ## Insight-Präsentation
 

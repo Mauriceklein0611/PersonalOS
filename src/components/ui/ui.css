@@ -340,12 +340,18 @@
   border-top: 1px solid var(--hairline);
 }
 
+/*
+ * Zeile statt Raster: Visual, Aktion und Schließen sind optional. In einem
+ * festen Vierspalten-Raster rutscht der Text sonst in eine `auto`-Spalte,
+ * wächst auf seine volle Breite und schiebt den Schließen-Button aus der
+ * Karte. Als Flex-Zeile schrumpft immer der Text, egal was gerendert wird.
+ */
 .ui-toast {
-  display: grid;
+  display: flex;
   width: min(100%, 38rem);
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
   padding: var(--space-3);
   border: 1px solid var(--edge);
   border-left: 4px solid var(--accent-1);
@@ -372,6 +378,7 @@
 .ui-toast-copy {
   display: grid;
   min-width: 0;
+  flex: 1 1 8rem;
   gap: var(--space-1);
 }
 

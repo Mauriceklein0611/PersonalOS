@@ -19,6 +19,7 @@ import type { MonthlyBudget, SavingsGoal } from "../finance/model";
 import type { Goal } from "../goals/model";
 import type { Task } from "../tasks/model";
 import {
+  applyScoreWeights,
   calculateLifeScore,
   findScoreComponent,
   getFinancePeriod,
@@ -426,6 +427,29 @@ describe("calculateLifeScore – Gewichte", () => {
     expect(finance.contributes).toBe(false);
     expect(result.total).toBeCloseTo(64.773_330_384_785_5, 10);
     expect(result.completeness).toBe(1);
+  });
+
+  // Die Vorschau darf nicht anders rechnen als der gespeicherte Stand, sonst
+  // verspricht sie eine Wirkung, die nach dem Speichern nicht eintritt.
+  it("reweights an existing result exactly like a fresh calculation", () => {
+    const components = withComponent("finance", { enabled: false });
+
+    expect(applyScoreWeights(run(), components)).toEqual(
+      run({}, { components }),
+    );
+  });
+
+  it("reweights without touching the sub values themselves", () => {
+    const reweighted = applyScoreWeights(
+      run(),
+      withComponent("focus", { weight: 60 }),
+    );
+
+    expect(findScoreComponent(reweighted, "focus").value).toBeCloseTo(
+      expectedLifeScore.focus,
+      10,
+    );
+    expect(findScoreComponent(reweighted, "focus").weight).toBe(60);
   });
 
   it("does not shift the ratio of the remaining components", () => {
