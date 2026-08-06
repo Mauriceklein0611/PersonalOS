@@ -16,6 +16,7 @@ import { personalOsTaskService, type TaskService } from "../tasks/service";
 import { monthOfDay } from "../finance/budget";
 import type { CalendarDay } from "../../lib/dates/date-values";
 import { getHabitRulePeriod, type InsightInput } from "./insight-rules";
+import type { WeeklyReviewInput } from "./weekly-review";
 import type { LifeScoreInput } from "./score-engine";
 import type { ScorePeriod } from "./score-model";
 
@@ -128,4 +129,51 @@ export async function readInsightInput(
   );
 
   return { budgets, habitEntries, habits, tasks, transactions };
+}
+
+/**
+ * Die Wochenübersicht liest je Bereich genau so viel, wie eine Woche braucht.
+ * Journaleinträge gehen nur als Anzahl der Tage ein; Reflexionstexte werden
+ * weder gelesen noch angezeigt.
+ */
+export async function readWeeklyReviewInput(
+  sources: ScoreSources,
+  period: ScorePeriod,
+): Promise<WeeklyReviewInput> {
+  // Eine Woche kann über einen Monatswechsel laufen; dann werden beide
+  // Monate gelesen, sonst fehlten die Buchungen der ersten Tage.
+  const months = [...new Set([monthOfDay(period.from), monthOfDay(period.to)])];
+
+  const [tasks, habits, journalEntries, goals, transactions] =
+    await Promise.all([
+      sources.tasks.list(),
+      sources.habits.list(),
+      sources.journal.list({ from: period.from, to: period.to }),
+      sources.goals.list(),
+      collect(
+        months.map((month) => sources.finance.listTransactions({ month })),
+      ),
+    ]);
+
+  const [habitEntries, milestones] = await Promise.all([
+    collect(
+      habits.map((habit) =>
+        sources.habits.listEntries(habit.id, {
+          from: period.from,
+          to: period.to,
+        }),
+      ),
+    ),
+    collect(goals.map((goal) => sources.goals.listMilestones(goal.id))),
+  ]);
+
+  return {
+    goals,
+    habitEntries,
+    habits,
+    journalEntries,
+    milestones,
+    tasks,
+    transactions,
+  };
 }

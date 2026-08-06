@@ -2,12 +2,24 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
+import { MemoryRouter } from "react-router";
+
 import { buildEntityMeta } from "../../../test/factories/entity";
 import {
+  lifeScoreGoals,
+  lifeScoreHabitEntries,
+  lifeScoreHabits,
   lifeScoreInput,
+  lifeScoreJournalEntries,
+  lifeScoreMilestones,
+  lifeScoreTasks,
   lifeScoreTimeZone,
   lifeScoreToday,
+  lifeScoreTransactions,
 } from "../../../test/fixtures/life-score";
+import type { Insight } from "../insight-model";
+import { buildWeeklyReview, getReviewAnchorDay } from "../weekly-review";
+import type { InsightService } from "../service";
 import { calculateLifeScore, type LifeScoreInput } from "../score-engine";
 import {
   createDefaultScoreComponents,
@@ -35,9 +47,32 @@ const emptyInput: LifeScoreInput = {
  * Die Seite bekommt einen Stub des Dienstes. Die Rechnung selbst ist in
  * `score-engine.test.ts` gegen das ADR geprüft; hier geht es um die Darstellung.
  */
+const reviewInput = {
+  goals: lifeScoreGoals,
+  habitEntries: lifeScoreHabitEntries,
+  habits: lifeScoreHabits,
+  journalEntries: lifeScoreJournalEntries,
+  milestones: lifeScoreMilestones,
+  tasks: lifeScoreTasks,
+  transactions: lifeScoreTransactions,
+};
+
+const period = { from: "2026-08-01", to: "2026-08-20" };
+const budgetInsight: Insight = {
+  action: { kind: "open-budget", targetId: "kategorie" },
+  evidence: [{ metric: "spentShare", sourceCount: 3, value: 0.9 }],
+  id: "budget-pace:budget-pace-v1:2026-08-01:2026-08-20:kategorie",
+  message: "Nach 20 von 31 Tagen sind 90 % dieses Budgets gebucht.",
+  period,
+  ruleId: "budget-pace",
+  ruleVersion: "budget-pace-v1",
+  strength: "medium",
+};
+
 function createStubService(
   input: LifeScoreInput = lifeScoreInput,
   initial: ScoreComponentConfig[] = createDefaultScoreComponents(),
+  insights: Insight[] = [budgetInsight],
 ) {
   let settings: ScoreSettings = {
     ...buildEntityMeta(),
@@ -70,16 +105,44 @@ function createStubService(
     },
   };
 
-  return { getSettings: () => settings, service };
+  const hiddenIds = new Set<string>();
+  const insightService: InsightService = {
+    hide: (insight) => {
+      hiddenIds.add(insight.id);
+      return Promise.resolve();
+    },
+    load: () =>
+      Promise.resolve({ failedRuleIds: [], hiddenCount: 0, insights: [] }),
+    loadWeek: (period, day) => {
+      const anchorDay = getReviewAnchorDay(period, day);
+      const all = insights.filter(() => true);
+      const visible = all.filter((entry) => !hiddenIds.has(entry.id));
+      return Promise.resolve({
+        anchorDay,
+        failedRuleIds: [],
+        hiddenCount: all.length - visible.length,
+        insights: visible,
+        review: buildWeeklyReview(reviewInput, period),
+        score: overview().result,
+        settings,
+      });
+    },
+    showAgain: () => Promise.resolve(true),
+  };
+
+  return { getSettings: () => settings, insightService, service };
 }
 
-function renderPage(service: ScoreService) {
+function renderPage(stub: ReturnType<typeof createStubService>) {
   render(
-    <InsightsPage
-      now={() => new Date("2026-08-06T10:00:00.000Z")}
-      service={service}
-      timeZone={lifeScoreTimeZone}
-    />,
+    <MemoryRouter>
+      <InsightsPage
+        insightService={stub.insightService}
+        now={() => new Date("2026-08-06T10:00:00.000Z")}
+        service={stub.service}
+        timeZone={lifeScoreTimeZone}
+      />
+    </MemoryRouter>,
   );
 }
 
@@ -89,20 +152,20 @@ async function findWeightField(name: string) {
 
 describe("InsightsPage – vollständige Daten", () => {
   it("describes the score as a personal orientation, not a judgement", async () => {
-    renderPage(createStubService().service);
+    renderPage(createStubService());
 
     expect(
       await screen.findByRole("heading", { level: 1, name: "Insights" }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Der Life Score ist eine persönliche Orientierung aus deinen eigenen Einträgen/,
+        /Deine Woche aus deinen eigenen Einträgen – keine Bewertung deines Lebens und kein Vergleich mit anderen\./,
       ),
     ).toBeInTheDocument();
   });
 
   it("shows the total, its basis and the calculation version", async () => {
-    renderPage(createStubService().service);
+    renderPage(createStubService());
 
     expect(await screen.findByText("66 von 100")).toBeInTheDocument();
     expect(screen.getByText("5 von 5 Bereichen")).toBeInTheDocument();
@@ -112,7 +175,7 @@ describe("InsightsPage – vollständige Daten", () => {
 
   it("leads from a sub value to its data basis and formula in one step", async () => {
     const user = userEvent.setup();
-    renderPage(createStubService().service);
+    renderPage(createStubService());
 
     await user.click(
       await screen.findByRole("button", { name: "Warum? Erklärung zu Fokus" }),
@@ -127,7 +190,7 @@ describe("InsightsPage – vollständige Daten", () => {
   });
 
   it("names the deviating period on the finance component", async () => {
-    renderPage(createStubService().service);
+    renderPage(createStubService());
 
     await screen.findByText("66 von 100");
     expect(
@@ -136,7 +199,7 @@ describe("InsightsPage – vollständige Daten", () => {
   });
 
   it("gives every sub value as text, not only as a bar", async () => {
-    renderPage(createStubService().service);
+    renderPage(createStubService());
 
     const focus = await screen.findByRole("progressbar", { name: "Fokus" });
     expect(focus).toHaveValue(63);
@@ -145,11 +208,118 @@ describe("InsightsPage – vollständige Daten", () => {
   });
 });
 
+describe("InsightsPage – Woche", () => {
+  it("names the week and marks the running one", async () => {
+    renderPage(createStubService());
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 2,
+        name: "Woche vom 03.08.2026 bis 09.08.2026",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Dies ist die laufende Woche. Ausgewertet wird bis heute.",
+      ),
+    ).toBeInTheDocument();
+    // In die Zukunft führt kein Weg.
+    expect(
+      screen.getByRole("button", { name: "Nächste Woche" }),
+    ).toBeDisabled();
+  });
+
+  it("steps back a week and keeps every figure with its basis", async () => {
+    const user = userEvent.setup();
+    renderPage(createStubService());
+    await screen.findByRole("heading", { level: 2, name: /Woche vom/ });
+
+    await user.click(screen.getByRole("button", { name: "Vorherige Woche" }));
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 2,
+        name: "Woche vom 27.07.2026 bis 02.08.2026",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nächste Woche" })).toBeEnabled();
+  });
+
+  it("gives every weekly figure a basis instead of a bare number", async () => {
+    renderPage(createStubService());
+
+    await screen.findByRole("heading", { level: 2, name: /Woche vom/ });
+    expect(
+      screen.getByText("Grundlage: 6 geplante Aufgaben."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2 von 6")).toBeInTheDocument();
+    expect(screen.getByText("4 von 7 Tagen")).toBeInTheDocument();
+  });
+});
+
+describe("InsightsPage – Beobachtungen", () => {
+  it("shows an observation with its period and data basis", async () => {
+    renderPage(createStubService());
+
+    expect(
+      await screen.findByText(
+        "Nach 20 von 31 Tagen sind 90 % dieses Budgets gebucht.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Erkennbar")).toBeInTheDocument();
+    expect(screen.getByText("Gebuchter Budgetanteil")).toBeInTheDocument();
+    expect(
+      screen.getByText("Zeitraum: 01.08.2026 bis 20.08.2026"),
+    ).toBeInTheDocument();
+  });
+
+  it("offers an optional action into an existing flow", async () => {
+    renderPage(createStubService());
+
+    const link = await screen.findByRole("link", { name: "Budgets öffnen" });
+    expect(link).toHaveAttribute("href", "/finanzen");
+  });
+
+  it("hides an observation without touching the entries", async () => {
+    const user = userEvent.setup();
+    renderPage(createStubService());
+    await screen.findByText(
+      "Nach 20 von 31 Tagen sind 90 % dieses Budgets gebucht.",
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Beobachtung ausblenden" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Die Beobachtung ist ausgeblendet. Deine Einträge bleiben unverändert.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /1 Beobachtung ausgeblendet\. Die zugrunde liegenden Einträge sind unverändert\./,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("explains an empty week instead of leaving a blank area", async () => {
+    renderPage(createStubService(lifeScoreInput, undefined, []));
+
+    expect(
+      await screen.findByText("Noch keine Beobachtung"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Ohne ausreichende Grundlage wird bewusst nichts behauptet/,
+      ),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("InsightsPage – unvollständige Daten", () => {
   it("shows a missing value as no statement and never as zero", async () => {
-    renderPage(
-      createStubService({ ...lifeScoreInput, journalEntries: [] }).service,
-    );
+    renderPage(createStubService({ ...lifeScoreInput, journalEntries: [] }));
 
     await screen.findByText("64 von 100");
     expect(screen.getByText("4 von 5 Bereichen")).toBeInTheDocument();
@@ -165,7 +335,7 @@ describe("InsightsPage – unvollständige Daten", () => {
   });
 
   it("explains an empty database instead of showing a zero score", async () => {
-    renderPage(createStubService(emptyInput).service);
+    renderPage(createStubService(emptyInput));
 
     expect(
       await screen.findByText(/Für diesen Zeitraum liegt noch zu wenig vor/),
@@ -180,7 +350,7 @@ describe("InsightsPage – unvollständige Daten", () => {
 
 describe("InsightsPage – Bereiche und Gewichtung", () => {
   it("shows the share of every weight instead of a bare number", async () => {
-    renderPage(createStubService().service);
+    renderPage(createStubService());
 
     await screen.findByText("66 von 100");
     expect(screen.getAllByText("25 % der Gewichtung")).toHaveLength(2);
@@ -189,8 +359,9 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
 
   it("previews the effect of a weight before it is saved", async () => {
     const user = userEvent.setup();
-    const { getSettings, service } = createStubService();
-    renderPage(service);
+    const stub = createStubService();
+    const getSettings = stub.getSettings;
+    renderPage(stub);
 
     const field = await findWeightField("Gewicht für Fokus");
     await user.clear(field);
@@ -209,8 +380,9 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
 
   it("saves a valid configuration and recalculates with it", async () => {
     const user = userEvent.setup();
-    const { getSettings, service } = createStubService();
-    renderPage(service);
+    const stub = createStubService();
+    const getSettings = stub.getSettings;
+    renderPage(stub);
 
     const field = await findWeightField("Gewicht für Fokus");
     await user.clear(field);
@@ -232,8 +404,9 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
 
   it("refuses an invalid weight with a correction hint", async () => {
     const user = userEvent.setup();
-    const { getSettings, service } = createStubService();
-    renderPage(service);
+    const stub = createStubService();
+    const getSettings = stub.getSettings;
+    renderPage(stub);
 
     const field = await findWeightField("Gewicht für Fokus");
     await user.clear(field);
@@ -255,7 +428,7 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
 
   it("treats a switched-off area as a decision, not as a gap", async () => {
     const user = userEvent.setup();
-    renderPage(createStubService().service);
+    renderPage(createStubService());
 
     await user.click(
       await screen.findByRole("checkbox", { name: "Finanzen einbeziehen" }),
@@ -270,7 +443,7 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
 
   it("hides the score without deleting anything and offers it back", async () => {
     const user = userEvent.setup();
-    renderPage(createStubService().service);
+    renderPage(createStubService());
 
     await user.click(
       await screen.findByRole("button", { name: "Life Score ausblenden" }),

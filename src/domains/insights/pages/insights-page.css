@@ -137,6 +137,60 @@
   gap: var(--space-3);
 }
 
+.insights-week-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.insights-week-figures,
+.insights-observation-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Eine Beobachtung ist eine Zeile in der Karte, keine eigene Glas-Ebene. */
+.insights-observation {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--glass-strong);
+}
+
+.insights-observation-strength {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: var(--font-weight-kpi);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.insights-observation-message {
+  max-width: 60ch;
+  margin: 0;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+}
+
+.insights-observation-period {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.insights-observation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 /* Wie auf den übrigen Seiten: fest über dem Inhalt, nie über der Navigation. */
 .insights-toast-region {
   position: fixed;
@@ -171,5 +225,9 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 14rem);
     align-items: end;
     gap: var(--space-4);
+  }
+
+  .insights-week-figures {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   }
 }
