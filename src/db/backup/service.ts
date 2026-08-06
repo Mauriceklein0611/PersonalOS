@@ -8,6 +8,7 @@ import { toPersistenceError } from "../errors";
 import { personalOsTableNames } from "../schema";
 import { backupDataSchema, type BackupData } from "../schemas/domain-records";
 import {
+  countedTableNames,
   createBackupEnvelope,
   maximumBackupBytes,
   personalOsBackupSchema,
@@ -113,9 +114,21 @@ async function readAllTables(
   return backupDataSchema.parse(rawData);
 }
 
+/**
+ * Geprüft wird gegen die Tabellen, die die Formatversion des Backups kennt.
+ * Ein Export im Format 1 nennt keine Zahl für `hiddenInsights`; dafür darf
+ * die Tabelle dort auch keine Datensätze enthalten.
+ */
 function assertCounts(backup: PersonalOsBackup): void {
-  for (const tableName of personalOsTableNames) {
+  const counted = countedTableNames(backup.formatVersion);
+  for (const tableName of counted) {
     if (backup.counts[tableName] !== backup.data[tableName].length) {
+      throw new BackupIntegrityError();
+    }
+  }
+
+  for (const tableName of personalOsTableNames) {
+    if (!counted.includes(tableName) && backup.data[tableName].length > 0) {
       throw new BackupIntegrityError();
     }
   }

@@ -4,7 +4,7 @@ import { createTestDatabase, deleteTestDatabase } from "../../test/database";
 import { backupDataFixture } from "../../test/fixtures/backup";
 import type { PersonalOsDatabase } from "../database";
 import { personalOsTableNames } from "../schema";
-import { createBackupFilename } from "./format";
+import { backupFormatVersion, createBackupFilename } from "./format";
 import { createBackupService } from "./service";
 
 const exportInstant = "2026-08-04T08:30:00.000Z";
@@ -127,7 +127,7 @@ describe("backup service", () => {
 
     expect(preview).toMatchObject({
       exportedAt: exportInstant,
-      formatVersion: 1,
+      formatVersion: backupFormatVersion,
       totalRecords: 0,
       warnings: [
         "Das Backup enthält keine Datensätze.",

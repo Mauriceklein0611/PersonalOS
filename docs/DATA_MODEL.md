@@ -34,6 +34,7 @@ Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Qu
 | `financeCategories`, `transactions`, `monthlyBudgets` | Finanzkategorien, Buchungen und Budgets |
 | `savingsGoals`, `savingsContributions` | Sparziele und Beiträge |
 | `scoreSettings`, `scoreSnapshots` | versionierte Score-Konfiguration und optionale Snapshots |
+| `hiddenInsights` | ausgeblendete Insights; die einzige persistierte Spur einer Regel |
 
 Alle Stores verwenden die clientseitig erzeugte UUID `id` als Primärschlüssel. Fachlich eindeutige Kombinationen wie Habit/Tag, Journal/Tag und Budgetmonat/Kategorie besitzen zusätzlich einen eindeutigen Index. Domain-Repositories erweitern den gemeinsamen Metadatenvertrag um ihr eigenes Zod-Schema; rohe Dexie-Zugriffe bleiben auf `src/db/` beschränkt.
 
@@ -285,18 +286,33 @@ Die Berechnung liegt in `src/domains/insights/score-engine.ts`, die Verträge in
 
 ```ts
 type Insight = {
-  id: string; // stabil aus Regel + Zeitraum ableitbar
+  id: string; // `${ruleId}:${ruleVersion}:${from}:${to}:${subject}`
+  ruleId: string;
   ruleVersion: string;
-  kind: string;
   period: { from: string; to: string };
   evidence: Array<{ metric: string; value: number; sourceCount: number }>;
   strength: 'low' | 'medium' | 'high';
-  messageKey: string;
+  message: string;
   action?: { kind: string; targetId?: string };
+};
+
+type HiddenInsight = EntityMeta & {
+  insightId: string;
+  ruleId: string;
+  hiddenAt: string;
 };
 ```
 
-Insights können überwiegend zur Laufzeit berechnet werden. Nur Nutzeraktionen wie „ausblenden“ benötigen einen persistierten Datensatz.
+Insights werden bei jedem Aufruf neu gerechnet und nie gespeichert. Nur das Ausblenden braucht einen Datensatz; `hiddenInsights` ist die einzige persistierte Spur. Formeln, Mindestdaten und Schwellen der Regeln stehen in [ADR 0010](decisions/0010-deterministic-insights-v1.md).
+
+Invarianten:
+
+- `strength` ist `low`, wenn die Mindestdaten einer Regel nicht erreicht sind. Unterhalb der Mindestdaten entsteht nie `medium` oder `high`.
+- Die ID ist stabil aus Regel, Regelversion, Zeitraum und Gegenstand abgeleitet. Eine neue Regelversion erzeugt neue IDs; eine alte Ausblendung wirkt dann nicht weiter.
+- `insightId` ist eindeutig. Ausblenden ist idempotent, und „wieder anzeigen“ entfernt den Datensatz endgültig, damit der Index nicht dauerhaft belegt bleibt.
+- Ausblenden entfernt ausschließlich die Darstellung. Es verändert keine Aufgabe, keinen Check-in und keine Buchung.
+
+Ein Regellauf liest ausschließlich. Eine Regel, die fehlschlägt, nimmt die übrigen nicht mit; ihr Bezeichner wird im Ergebnis genannt, statt als „keine Beobachtung“ durchzugehen.
 
 ## Referenzen und Löschregeln
 

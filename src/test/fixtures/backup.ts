@@ -134,4 +134,12 @@ export const backupDataFixture: BackupData = {
       components: [{ key: "focus", value: 70, weight: 1, sourceCount: 1 }],
     },
   ],
+  hiddenInsights: [
+    {
+      ...meta("000000000119"),
+      insightId: "synthetic-rule:v1:2026-01-01:2026-01-15:",
+      ruleId: "synthetic-rule",
+      hiddenAt: instant,
+    },
+  ],
 };
