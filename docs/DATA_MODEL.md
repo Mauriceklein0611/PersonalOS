@@ -268,7 +268,14 @@ type ScoreSnapshot = EntityMeta & {
 };
 ```
 
-Snapshots dienen der Nachvollziehbarkeit, nicht als Quelle für Domainberechnungen. Die genaue Formel wird vor `v0.4` in einem eigenen ADR festgelegt.
+Snapshots dienen der Nachvollziehbarkeit, nicht als Quelle für Domainberechnungen. Die Formel steht in [ADR 0009](decisions/0009-life-score-v1.md).
+
+Invarianten:
+
+- Ein Teilwert ist eine Zahl von 0 bis 100 oder `null`. `null` heißt „keine Aussage möglich“ und ist nie dasselbe wie `0`; es senkt den Gesamtwert nicht.
+- `total` ist `null`, wenn keine aktivierte Komponente einen Wert liefert. Eine Null würde eine Aussage über einen Zeitraum treffen, für den nichts vorliegt.
+- `engineVersion` ist Pflicht. Historische Snapshots werden niemals nachgerechnet; eine Formeländerung erzeugt eine neue Version.
+- Der Snapshot speichert die tatsächlich verwendeten Gewichte, damit ein alter Wert auch nach einer Umgewichtung erklärbar bleibt. Eine Gewichtsänderung durch den Nutzer ist keine Versionsänderung.
 
 ## Insight-Präsentation
 

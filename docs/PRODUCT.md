@@ -183,6 +183,8 @@ Der Life Score ist eine optionale, persönliche Orientierung – keine objektive
 - Ziele: Fortschritt aktiver Meilensteine;
 - Finanzen: Budgettreue und Sparfortschritt, niemals Vermögenshöhe.
 
+Eingaben, Formeln, Wertebereiche, Mindestdaten, Standardgewichte, Nicht-Ziele und Copy-Leitplanken stehen verbindlich in [ADR 0009](decisions/0009-life-score-v1.md).
+
 ## 9. Insights
 
 Im MVP sind Insights deterministische Regeln, keine generative KI.
