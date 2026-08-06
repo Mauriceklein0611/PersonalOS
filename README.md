@@ -43,6 +43,9 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Domänenspezifische Aufgabenkategorien](docs/decisions/0004-domain-specific-task-categories.md)
 - [Habits ohne Schedule-Historie](docs/decisions/0005-habit-schedule-without-history.md)
 - [Journal speichert ausdrücklich](docs/decisions/0006-journal-saves-explicitly.md)
+- [Einheitliche Dashboard-Flächen](docs/decisions/0007-unified-dashboard-surfaces.md)
+- [Apache ECharts für Diagramme](docs/decisions/0008-echarts-for-charts.md)
+- [Erklärbarer Life Score v1](docs/decisions/0009-life-score-v1.md)
 
 ## Mit Codex und Claude Code arbeiten
 
