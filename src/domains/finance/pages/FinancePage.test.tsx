@@ -172,6 +172,67 @@ describe("FinancePage", () => {
     expect(within(balanceTile).getByText(/−.*12,50/)).toBeInTheDocument();
   });
 
+  it("names period and currency on every figure of the month", async () => {
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Monatsübersicht" });
+
+    await addExpense("12,50", "Lebensmittel");
+
+    // Jede Kennzahl nennt Zeitraum und Währung in ihrem Kontexthinweis.
+    for (const label of ["Einnahmen", "Ausgaben", "Saldo", "Restbudget"]) {
+      const tile = screen
+        .getByText(label)
+        .closest(".ui-metric-tile") as HTMLElement;
+      expect(within(tile).getByText(/August 2026, in EUR/)).toBeVisible();
+    }
+  });
+
+  // Ohne Vormonatsdaten wird der Grund genannt statt 0 Prozent erfunden.
+  it("explains a missing comparison instead of showing zero percent", async () => {
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Monatsübersicht" });
+
+    await addExpense("12,50", "Lebensmittel");
+
+    expect(
+      screen.getByText(
+        /Kein Vormonatsvergleich: Für den Vormonat ist keine Buchung erfasst\./,
+      ),
+    ).toBeVisible();
+  });
+
+  it("offers the expense categories as an accessible table", async () => {
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Monatsübersicht" });
+
+    await addExpense("12,50", "Lebensmittel");
+
+    const table = await screen.findByRole("table", {
+      name: "Größte Ausgabenkategorien: Werte als Tabelle",
+    });
+    const row = within(table).getByRole("row", { name: /Lebensmittel/ });
+    expect(within(row).getByRole("cell")).toHaveTextContent(/12,50/);
+  });
+
+  it("moves the whole month when the period changes", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Monatsübersicht" });
+
+    await addExpense("12,50", "Lebensmittel");
+    await user.click(screen.getByRole("button", { name: "Vorheriger Monat" }));
+
+    const expenseTile = screen
+      .getByText("Ausgaben")
+      .closest(".ui-metric-tile") as HTMLElement;
+    expect(within(expenseTile).getByText(/0,00/)).toBeVisible();
+    expect(screen.getByText(/Budgets für Juli 2026/)).toBeVisible();
+  });
+
   it("rejects an unreadable amount with a correction hint", async () => {
     const user = userEvent.setup();
     const service = createMemoryFinanceService();

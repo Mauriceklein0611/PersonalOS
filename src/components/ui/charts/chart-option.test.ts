@@ -22,7 +22,10 @@ type BuiltOption = {
   series: SeriesOption[];
   tooltip: { valueFormatter: (value: unknown) => string };
   xAxis: { data?: string[]; type: string };
-  yAxis: { type: string };
+  yAxis: {
+    axisLabel?: { formatter?: (value: number) => string };
+    type: string;
+  };
 };
 
 const theme: ChartTheme = {
@@ -119,6 +122,12 @@ describe("buildChartOption", () => {
 
     expect(valueFormatter(42)).toBe("42 %");
     expect(valueFormatter(null)).toBe("Keine Angabe");
+  });
+
+  // Ohne eigenen Formatter beschriftete die Achse die Rohwerte, bei Geld also
+  // Minor Units statt Beträgen.
+  it("formats the value axis with the same formatter", () => {
+    expect(build().yAxis.axisLabel?.formatter?.(42)).toBe("42 %");
   });
 
   it("switches the animation off for reduced motion", () => {
