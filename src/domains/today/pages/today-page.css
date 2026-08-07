@@ -29,6 +29,12 @@
   line-height: var(--line-height-normal);
 }
 
+.today-list-footer {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
 .today-metrics {
   display: grid;
   min-width: 0;
