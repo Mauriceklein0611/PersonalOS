@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -41,20 +42,29 @@ export function SettingsProvider({
   );
   const [isStored, setIsStored] = useState(false);
 
+  /*
+   * Zählt jede Änderung. Der erste Lesevorgang läuft asynchron; wer in dieser
+   * Zeit schon etwas umstellt, hat den neueren Stand. Ohne diesen Vergleich
+   * würde das eintreffende Leseergebnis die Änderung wieder überschreiben.
+   */
+  const revision = useRef(0);
+
   const applyStored = useCallback((stored: Settings) => {
     setSettings(toSettingsDetails(stored));
     setIsStored(true);
   }, []);
 
   const load = useCallback(async () => {
+    revision.current += 1;
     applyStored(await repository.loadOrCreate());
   }, [applyStored, repository]);
 
   useEffect(() => {
     let isCurrent = true;
+    const startedAt = revision.current;
     void repository.loadOrCreate().then(
       (stored) => {
-        if (isCurrent) applyStored(stored);
+        if (isCurrent && revision.current === startedAt) applyStored(stored);
       },
       () => {
         // Ohne lesbaren Datensatz bleibt die Oberfläche mit den erkannten
@@ -81,6 +91,7 @@ export function SettingsProvider({
 
   const update = useCallback(
     async (patch: Partial<SettingsDetails>) => {
+      revision.current += 1;
       setSettings((current) => ({ ...current, ...patch }));
       try {
         applyStored(await repository.save(patch));
@@ -97,16 +108,21 @@ export function SettingsProvider({
     [isStored, load, settings, update],
   );
 
-  const themeValue = useMemo(() => {
-    if (theme === null) return null;
-    return {
-      preference: theme.preference,
+  /*
+   * Der Theme-Kontext wird erneut bereitgestellt: Die Umschaltung in der
+   * Kopfzeile setzt weiterhin den Spiegel und schreibt zusätzlich in den
+   * Datensatz. Ohne ThemeProvider darüber bleibt der Baum unverändert.
+   */
+  const themeValue = useMemo(
+    () => ({
+      preference: theme?.preference ?? "system",
       setPreference: (preference: ThemePreference) => {
-        theme.setPreference(preference);
+        theme?.setPreference(preference);
         void update({ theme: preference }).catch(() => undefined);
       },
-    };
-  }, [theme, update]);
+    }),
+    [theme, update],
+  );
 
   const content = (
     <AppSettingsContext.Provider value={value}>
@@ -114,7 +130,7 @@ export function SettingsProvider({
     </AppSettingsContext.Provider>
   );
 
-  if (themeValue === null) {
+  if (theme === null) {
     return content;
   }
 
