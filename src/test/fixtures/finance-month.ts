@@ -197,6 +197,11 @@ export const expectedAugust = {
    * Der Sparstand ist kumulativ und nicht auf den Monat begrenzt: 250,00 aus
    * August plus 100,00 aus Juli. Das abgeschlossene Ziel zählt nicht mit.
    */
-  savings: { activeGoalCount: 1, savedMinor: 35_000, targetMinor: 100_000 },
+  savings: {
+    activeGoalCount: 1,
+    excludedGoalCount: 0,
+    savedMinor: 35_000,
+    targetMinor: 100_000,
+  },
   transactionCount: 5,
 };

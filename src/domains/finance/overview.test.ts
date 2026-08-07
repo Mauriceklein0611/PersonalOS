@@ -9,7 +9,7 @@ import {
   financeMonthTransactions,
 } from "../../test/fixtures/finance-month";
 import { MixedCurrencyError } from "./mixed-currency";
-import type { Transaction } from "./model";
+import type { SavingsContribution, SavingsGoal, Transaction } from "./model";
 import { buildMonthlyOverview, type MonthlyOverviewInput } from "./overview";
 
 function build(overrides: Partial<MonthlyOverviewInput> = {}) {
@@ -109,9 +109,46 @@ describe("buildMonthlyOverview", () => {
   it("counts only active savings goals in the short status", () => {
     expect(build().savings).toEqual({
       activeGoalCount: expectedAugust.savings.activeGoalCount,
+      excludedGoalCount: expectedAugust.savings.excludedGoalCount,
       ratio: 0.35,
       savedMinor: expectedAugust.savings.savedMinor,
       targetMinor: expectedAugust.savings.targetMinor,
+    });
+  });
+
+  /*
+   * Regression: Die Summe addierte zuvor Minor Units verschiedener Währungen.
+   * 50.000 JPY neben 35.000 von 100.000 EUR ergaben eine Zahl, die als Euro
+   * dargestellt wurde.
+   */
+  it("keeps a savings goal in another currency out of every sum", () => {
+    const overview = build(withYenGoal());
+
+    expect(overview.savings).toEqual({
+      activeGoalCount: 1,
+      excludedGoalCount: 1,
+      ratio: 0.35,
+      savedMinor: 35_000,
+      targetMinor: 100_000,
+    });
+  });
+
+  it("reports no counted goal when every active goal uses another currency", () => {
+    const { contributions, savingsGoals } = withYenGoal();
+
+    const overview = build({
+      contributions,
+      savingsGoals: savingsGoals.filter(
+        (goal) => goal.target.currency !== "EUR",
+      ),
+    });
+
+    expect(overview.savings).toEqual({
+      activeGoalCount: 0,
+      excludedGoalCount: 1,
+      ratio: null,
+      savedMinor: 0,
+      targetMinor: 0,
     });
   });
 
@@ -183,3 +220,31 @@ describe("buildMonthlyOverview", () => {
     expect(financeMonthCategories.rent).toBeDefined();
   });
 });
+
+/**
+ * Das abgeschlossene Ziel der Vorlage wird zum aktiven Ziel in JPY, sein
+ * Beitrag ebenfalls. Umgerechnet wird nichts.
+ */
+function withYenGoal(): Pick<
+  MonthlyOverviewInput,
+  "contributions" | "savingsGoals"
+> {
+  const yenGoal: SavingsGoal = {
+    ...financeMonthSavingsGoals[1]!,
+    status: "active",
+    target: { amountMinor: 100_000, currency: "JPY" },
+  };
+  const yenContribution: SavingsContribution = {
+    ...financeMonthContributions[2]!,
+    money: { amountMinor: 50_000, currency: "JPY" },
+  };
+
+  return {
+    contributions: [
+      financeMonthContributions[0]!,
+      financeMonthContributions[1]!,
+      yenContribution,
+    ],
+    savingsGoals: [financeMonthSavingsGoals[0]!, yenGoal],
+  };
+}

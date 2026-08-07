@@ -47,7 +47,10 @@ export type BudgetSummary = {
 };
 
 export type SavingsSummary = {
+  /** Nur die Ziele, die in `savedMinor` und `targetMinor` enthalten sind. */
   activeGoalCount: number;
+  /** Aktive Ziele in einer anderen Währung; sie sind in keiner Summe. */
+  excludedGoalCount: number;
   ratio: number | null;
   savedMinor: number;
   targetMinor: number;
@@ -110,7 +113,7 @@ export function buildMonthlyOverview({
     income,
     month,
     previousExpense: compareWithPreviousMonth(active, month, currency),
-    savings: summariseSavings(savingsGoals, contributions),
+    savings: summariseSavings(savingsGoals, contributions, currency),
     transactionCount: inMonth.length,
   };
 }
@@ -255,27 +258,33 @@ function compareWithPreviousMonth(
 }
 
 /**
- * Kurzstatus über alle aktiven Sparziele. Ziele in einer anderen Währung
- * bleiben außen vor, statt die Summe unbemerkt zu verfälschen.
+ * Kurzstatus über die aktiven Sparziele der Übersichtswährung. Ein Ziel in
+ * einer anderen Währung wird nicht umgerechnet und fließt in keine Summe ein;
+ * es wird als `excludedGoalCount` ausgewiesen, damit die Oberfläche den
+ * Ausschluss benennen kann. `activeGoalCount` zählt deshalb genau die Ziele
+ * hinter `savedMinor` und `targetMinor`.
  */
 function summariseSavings(
   goals: readonly SavingsGoal[],
   contributions: readonly SavingsContribution[],
+  currency: string,
 ): SavingsSummary {
   const active = goals.filter(
     (goal) => goal.archivedAt === undefined && goal.status === "active",
   );
+  const counted = active.filter((goal) => goal.target.currency === currency);
 
   let savedMinor = 0;
   let targetMinor = 0;
-  for (const goal of active) {
+  for (const goal of counted) {
     const progress = calculateSavingsProgress(goal, contributions);
     savedMinor += progress.savedMinor;
     targetMinor += progress.targetMinor;
   }
 
   return {
-    activeGoalCount: active.length,
+    activeGoalCount: counted.length,
+    excludedGoalCount: active.length - counted.length,
     ratio: targetMinor === 0 ? null : savedMinor / targetMinor,
     savedMinor,
     targetMinor,
