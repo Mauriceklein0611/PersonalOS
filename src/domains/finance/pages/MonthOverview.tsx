@@ -2,7 +2,6 @@ import {
   Button,
   Chart,
   MetricTile,
-  ProgressBar,
   formatRatio,
   noDataText,
 } from "../../../components/ui";
@@ -60,8 +59,13 @@ export function MonthOverview({
 
       {overview ? (
         <>
-          {/* Vier Kennzahlen: zwei Spalten ab 320 px, vier auf dem Desktop. */}
-          <div className="ui-dashboard-grid">
+          {/*
+            Nur monatsbezogene Zahlen desselben Umfangs. „Budget übrig" steht
+            beim Budgetblock, der Gesamt-Sparfortschritt bei den Sparzielen:
+            Beide messen etwas anderes als den Monat und widersprächen hier
+            der Reihe, ohne falsch zu sein.
+          */}
+          <div className="ui-dashboard-grid" data-columns="3">
             <MetricTile
               context={period}
               label="Einnahmen"
@@ -79,18 +83,6 @@ export function MonthOverview({
                 overview.balanceMinor,
                 overview.currency,
               )}
-            />
-            <MetricTile
-              context={describeBudgetContext(overview, period)}
-              label="Restbudget"
-              value={
-                overview.budget
-                  ? formatSignedMinorUnits(
-                      overview.budget.remainingMinor,
-                      overview.currency,
-                    )
-                  : null
-              }
             />
           </div>
 
@@ -169,24 +161,6 @@ export function MonthOverview({
               <p className="finance-hint">{describeSavingsFlow(overview)}</p>
             </section>
           ) : null}
-
-          <ProgressBar
-            caption={describeSavings(overview)}
-            label="Sparziele"
-            value={overview.savings.ratio}
-            valueText={
-              overview.savings.targetMinor === 0
-                ? undefined
-                : `${formatMoney(
-                    createMoney(overview.savings.savedMinor, overview.currency),
-                  )} von ${formatMoney(
-                    createMoney(
-                      overview.savings.targetMinor,
-                      overview.currency,
-                    ),
-                  )}`
-            }
-          />
         </>
       ) : null}
     </section>
@@ -195,19 +169,6 @@ export function MonthOverview({
 
 function topCategories(overview: MonthlyOverview) {
   return overview.expenseByCategory.slice(0, maximumCategories);
-}
-
-function describeBudgetContext(
-  overview: MonthlyOverview,
-  period: string,
-): string {
-  if (overview.budget === undefined) {
-    return `${period} · Für diesen Monat ist kein Budget gesetzt.`;
-  }
-  const { trackedCategoryCount } = overview.budget;
-  return `${period} · ${trackedCategoryCount} ${
-    trackedCategoryCount === 1 ? "Kategorie" : "Kategorien"
-  } mit Budget`;
 }
 
 /**
@@ -270,34 +231,4 @@ function describeSavingsFlow(overview: MonthlyOverview): string {
   return `${formatMoney(
     createMoney(unlinkedMinor, overview.currency),
   )} sind nicht mit einer Ausgabe verknüpft und deshalb hier zusätzlich abgezogen. ${basis}`;
-}
-
-function describeSavings(overview: MonthlyOverview): string {
-  const { activeGoalCount, excludedGoalCount, targetMinor } = overview.savings;
-  const excluded = describeExcludedGoals(excludedGoalCount);
-
-  if (activeGoalCount === 0) {
-    return excluded === ""
-      ? "Kein aktives Sparziel."
-      : `Kein aktives Sparziel in ${overview.currency}.${excluded}`;
-  }
-  if (targetMinor === 0) {
-    return `${activeGoalCount} ${
-      activeGoalCount === 1 ? "aktives Sparziel" : "aktive Sparziele"
-    } ohne Zielbetrag.${excluded}`;
-  }
-  return `${activeGoalCount} ${
-    activeGoalCount === 1 ? "aktives Sparziel" : "aktive Sparziele"
-  } in ${overview.currency}; der Stand zählt alle Beiträge, nicht nur die des Monats.${excluded}`;
-}
-
-/**
- * Ein ausgeschlossenes Ziel wird benannt, nicht umgerechnet und nicht still
- * weggelassen. Ohne Ausschluss bleibt der Satz unverändert kurz.
- */
-function describeExcludedGoals(excludedGoalCount: number): string {
-  if (excludedGoalCount === 0) return "";
-  return excludedGoalCount === 1
-    ? " Ein Sparziel in einer anderen Währung ist nicht enthalten."
-    : ` ${excludedGoalCount} Sparziele in einer anderen Währung sind nicht enthalten.`;
 }

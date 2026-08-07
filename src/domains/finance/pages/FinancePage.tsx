@@ -85,6 +85,7 @@ export function FinancePage(props: FinancePageProps) {
             month={page.budgetMonth}
             onRemove={(budget) => void page.removeBudget(budget)}
             onSave={page.setBudget}
+            summary={page.monthOverview.overview?.budget}
           />
 
           <SavingsPanel

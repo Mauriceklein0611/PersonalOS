@@ -5,15 +5,18 @@ import {
   EmptyState,
   IconButton,
   Input,
+  MetricTile,
   ProgressBar,
   Select,
 } from "../../../components/ui";
 import {
   createMoney,
   formatMoney,
+  formatSignedMinorUnits,
   parseMoneyInput,
 } from "../../../lib/money/money";
 import type { BudgetUsage } from "../budget";
+import type { BudgetSummary } from "../overview";
 import type {
   FinanceCategory,
   MonthlyBudget,
@@ -36,6 +39,8 @@ export type BudgetSectionProps = {
   month: string;
   onRemove: (budget: MonthlyBudget) => void;
   onSave: (details: MonthlyBudgetDetails) => Promise<boolean>;
+  /** Summe über alle Budgets des Monats; fehlt ohne verdichtete Übersicht. */
+  summary?: BudgetSummary;
 };
 
 export function BudgetSection({
@@ -46,6 +51,7 @@ export function BudgetSection({
   month,
   onRemove,
   onSave,
+  summary,
 }: BudgetSectionProps) {
   const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
@@ -78,6 +84,19 @@ export function BudgetSection({
     <section className="page-section">
       <h2>Budgets</h2>
       <p className="finance-hint">Budgets für {formatMonth(month)}.</p>
+
+      {/*
+        „Budget übrig" steht hier und nicht in der Monatsreihe: Der Wert misst
+        nur die Kategorien mit Budget, während Einnahmen, Ausgaben und Saldo
+        den ganzen Monat messen.
+      */}
+      {summary ? (
+        <MetricTile
+          context={describeBudgetContext(summary, month, currency)}
+          label="Budget übrig"
+          value={formatSignedMinorUnits(summary.remainingMinor, currency)}
+        />
+      ) : null}
 
       <form
         className="finance-category-form"
@@ -175,4 +194,16 @@ export function BudgetSection({
       )}
     </section>
   );
+}
+
+/** Nennt Zeitraum, Währung und den Umfang, über den der Rest gilt. */
+function describeBudgetContext(
+  summary: BudgetSummary,
+  month: string,
+  currency: string,
+): string {
+  const { trackedCategoryCount } = summary;
+  return `${formatMonth(month)}, in ${currency} · ${trackedCategoryCount} ${
+    trackedCategoryCount === 1 ? "Kategorie" : "Kategorien"
+  } mit Budget`;
 }

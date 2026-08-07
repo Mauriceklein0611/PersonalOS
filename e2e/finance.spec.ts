@@ -193,7 +193,7 @@ test("tracks a savings goal only through its contributions", async ({
   await page.setViewportSize({ width: 320, height: 720 });
   await page.goto("/finanzen");
 
-  // Die Monatsübersicht zeigt denselben Sparstand; gemeint ist hier das Panel.
+  // Der Gesamtstand steht seit #71 hier und nicht mehr in der Monatsreihe.
   const panel = page.locator(".savings-panel");
   await expect(
     panel.getByRole("heading", { level: 2, name: "Sparziele" }),
@@ -221,12 +221,16 @@ test("tracks a savings goal only through its contributions", async ({
   await page.getByRole("textbox", { name: /Beitrag in Euro/ }).fill("250,00");
   await page.getByRole("button", { name: "Beitrag hinzufügen" }).click();
 
-  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+  // Zweimal: als Gesamtstand über alle Ziele und am Ziel selbst.
+  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toHaveCount(2);
+  await expect(
+    panel.getByRole("progressbar", { name: "Gesamtstand" }),
+  ).toBeVisible();
   await expect(panel.getByText(/Noch offen: .*750,00/)).toBeVisible();
 
   // Der Stand kommt aus den Beiträgen und überlebt einen Neustart.
   await page.reload();
-  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toHaveCount(2);
 
   await page
     .getByRole("button", {
@@ -236,9 +240,9 @@ test("tracks a savings goal only through its contributions", async ({
   await page
     .getByRole("button", { name: /Beitrag vom .* zurücknehmen/ })
     .click();
-  await expect(panel.getByText(/0,00.*von.*1\.000,00/)).toBeVisible();
+  await expect(panel.getByText(/0,00.*von.*1\.000,00/)).toHaveCount(2);
   await page.getByRole("button", { name: "Rückgängig" }).click();
-  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+  await expect(panel.getByText(/250,00.*von.*1\.000,00/)).toHaveCount(2);
 
   // Endgültiges Löschen nennt vorher die betroffenen Beiträge.
   await page

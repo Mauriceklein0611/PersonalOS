@@ -31,6 +31,7 @@ import {
   parseMoneyInput,
 } from "../../../lib/money/money";
 import { MixedCurrencyError } from "../mixed-currency";
+import { summariseSavings, type SavingsSummary } from "../overview";
 import {
   savingsGoalStatusLabels,
   savingsGoalStatuses,
@@ -174,6 +175,20 @@ export function SavingsPanel({
     }
     return entries;
   }, [contributions, goals]);
+
+  /**
+   * Der Gesamtstand steht hier und nicht in der Monatsübersicht: Er zählt alle
+   * Beiträge seit dem Start, während die Monatsreihe nur diesen Monat misst.
+   * Gerechnet wird mit derselben Funktion wie in der Verdichtung, damit beide
+   * Seiten nicht auseinanderlaufen können.
+   */
+  const summary = useMemo<SavingsSummary | undefined>(() => {
+    try {
+      return summariseSavings(goals, contributions, currency);
+    } catch {
+      return undefined;
+    }
+  }, [contributions, currency, goals]);
 
   const runAction = useCallback(
     async (action: () => Promise<unknown>, failure: string) => {
@@ -461,249 +476,267 @@ export function SavingsPanel({
               title="Kein Sparziel"
             />
           ) : (
-            <ul className="savings-list">
-              {goals.map((goal) => {
-                const entry = progressByGoal.get(goal.id);
-                const deadline = describeSavingsDeadline(goal, today);
-                const isSelected = goal.id === selectedId;
-                const linkCandidates = isSelected
-                  ? linkCandidatesFor(goal)
-                  : [];
+            <>
+              {summary ? (
+                <ProgressBar
+                  caption={describeSavingsSummary(summary, currency)}
+                  label="Gesamtstand"
+                  value={summary.ratio}
+                  valueText={
+                    summary.targetMinor === 0
+                      ? undefined
+                      : `${formatMoney(
+                          createMoney(summary.savedMinor, currency),
+                        )} von ${formatMoney(
+                          createMoney(summary.targetMinor, currency),
+                        )}`
+                  }
+                />
+              ) : null}
+              <ul className="savings-list">
+                {goals.map((goal) => {
+                  const entry = progressByGoal.get(goal.id);
+                  const deadline = describeSavingsDeadline(goal, today);
+                  const isSelected = goal.id === selectedId;
+                  const linkCandidates = isSelected
+                    ? linkCandidatesFor(goal)
+                    : [];
 
-                return (
-                  <li key={goal.id}>
-                    <div className="savings-head">
-                      <h3>{goal.name}</h3>
-                      <span className="savings-status">
-                        {savingsGoalStatusLabels[goal.status]}
-                      </span>
-                    </div>
+                  return (
+                    <li key={goal.id}>
+                      <div className="savings-head">
+                        <h3>{goal.name}</h3>
+                        <span className="savings-status">
+                          {savingsGoalStatusLabels[goal.status]}
+                        </span>
+                      </div>
 
-                    {entry?.error ? (
-                      <p className="savings-error">{entry.error}</p>
-                    ) : entry?.progress ? (
-                      <>
-                        <ProgressBar
-                          caption={entry.progress.summary}
-                          label="Gespart"
-                          value={entry.progress.ratio}
-                          valueText={`${formatMoney(
-                            createMoney(
-                              entry.progress.savedMinor,
-                              entry.progress.currency,
-                            ),
-                          )} von ${formatMoney(goal.target)}`}
-                        />
-                        <p className="savings-hint">
-                          {describeOpenAmount(entry.progress)} ·{" "}
-                          {entry.progress.contributionCount}{" "}
-                          {entry.progress.contributionCount === 1
-                            ? "Beitrag"
-                            : "Beiträge"}{" "}
-                          · {deadline.text}
-                        </p>
-                      </>
-                    ) : null}
-
-                    <Button
-                      aria-expanded={isSelected}
-                      onClick={() => toggleGoal(goal)}
-                      variant="ghost"
-                    >
-                      {isSelected
-                        ? `Verlauf von „${goal.name}“ verbergen`
-                        : `Verlauf von „${goal.name}“ anzeigen`}
-                    </Button>
-
-                    {isSelected ? (
-                      <div className="savings-detail">
-                        <Select
-                          label={`Status von „${goal.name}“`}
-                          onChange={(event) =>
-                            void changeStatus(
-                              goal,
-                              event.currentTarget.value as SavingsGoalStatus,
-                            )
-                          }
-                          value={goal.status}
-                        >
-                          {savingsGoalStatuses.map((status) => (
-                            <option key={status} value={status}>
-                              {savingsGoalStatusLabels[status]}
-                            </option>
-                          ))}
-                        </Select>
-
-                        <form
-                          className="savings-form"
-                          noValidate
-                          onSubmit={(event) =>
-                            void submitContribution(event, goal)
-                          }
-                        >
-                          <Input
-                            error={contributionErrors.amount}
-                            hint="Zum Beispiel 50,00."
-                            inputMode="decimal"
-                            label="Beitrag in Euro"
-                            onChange={(event) => {
-                              const amount = event.currentTarget.value;
-                              setContributionValues((current) => ({
-                                ...current,
-                                amount,
-                              }));
-                            }}
-                            required
-                            value={contributionValues.amount}
+                      {entry?.error ? (
+                        <p className="savings-error">{entry.error}</p>
+                      ) : entry?.progress ? (
+                        <>
+                          <ProgressBar
+                            caption={entry.progress.summary}
+                            label="Gespart"
+                            value={entry.progress.ratio}
+                            valueText={`${formatMoney(
+                              createMoney(
+                                entry.progress.savedMinor,
+                                entry.progress.currency,
+                              ),
+                            )} von ${formatMoney(goal.target)}`}
                           />
-                          <Input
-                            error={contributionErrors.bookedOn}
-                            label="Datum des Beitrags"
-                            onChange={(event) => {
-                              const bookedOn = event.currentTarget.value;
-                              setContributionValues((current) => ({
-                                ...current,
-                                bookedOn,
-                              }));
-                            }}
-                            required
-                            type="date"
-                            value={contributionValues.bookedOn}
-                          />
+                          <p className="savings-hint">
+                            {describeOpenAmount(entry.progress)} ·{" "}
+                            {entry.progress.contributionCount}{" "}
+                            {entry.progress.contributionCount === 1
+                              ? "Beitrag"
+                              : "Beiträge"}{" "}
+                            · {deadline.text}
+                          </p>
+                        </>
+                      ) : null}
+
+                      <Button
+                        aria-expanded={isSelected}
+                        onClick={() => toggleGoal(goal)}
+                        variant="ghost"
+                      >
+                        {isSelected
+                          ? `Verlauf von „${goal.name}“ verbergen`
+                          : `Verlauf von „${goal.name}“ anzeigen`}
+                      </Button>
+
+                      {isSelected ? (
+                        <div className="savings-detail">
                           <Select
-                            hint={describeLinkOptions(
-                              linkCandidates.length,
-                              contributionValues.amount,
-                            )}
-                            label="Belegende Ausgabe"
-                            onChange={(event) => {
-                              const sourceTransactionId =
-                                event.currentTarget.value;
-                              setContributionValues((current) => ({
-                                ...current,
-                                sourceTransactionId,
-                              }));
-                            }}
-                            value={contributionValues.sourceTransactionId}
+                            label={`Status von „${goal.name}“`}
+                            onChange={(event) =>
+                              void changeStatus(
+                                goal,
+                                event.currentTarget.value as SavingsGoalStatus,
+                              )
+                            }
+                            value={goal.status}
                           >
-                            <option value="">Ohne Verknüpfung</option>
-                            {linkCandidates.map((transaction) => (
-                              <option
-                                key={transaction.id}
-                                value={transaction.id}
-                              >
-                                {describeTransactionOption(transaction)}
+                            {savingsGoalStatuses.map((status) => (
+                              <option key={status} value={status}>
+                                {savingsGoalStatusLabels[status]}
                               </option>
                             ))}
                           </Select>
-                          <Input
-                            hint="Optional, zum Beispiel ein kurzer Hinweis."
-                            label="Notiz zum Beitrag"
-                            onChange={(event) => {
-                              const note = event.currentTarget.value;
-                              setContributionValues((current) => ({
-                                ...current,
-                                note,
-                              }));
-                            }}
-                            value={contributionValues.note}
-                          />
-                          <Button type="submit" variant="secondary">
-                            {editedContributionId === undefined
-                              ? "Beitrag hinzufügen"
-                              : "Beitrag aktualisieren"}
-                          </Button>
-                          {editedContributionId === undefined ? null : (
+
+                          <form
+                            className="savings-form"
+                            noValidate
+                            onSubmit={(event) =>
+                              void submitContribution(event, goal)
+                            }
+                          >
+                            <Input
+                              error={contributionErrors.amount}
+                              hint="Zum Beispiel 50,00."
+                              inputMode="decimal"
+                              label="Beitrag in Euro"
+                              onChange={(event) => {
+                                const amount = event.currentTarget.value;
+                                setContributionValues((current) => ({
+                                  ...current,
+                                  amount,
+                                }));
+                              }}
+                              required
+                              value={contributionValues.amount}
+                            />
+                            <Input
+                              error={contributionErrors.bookedOn}
+                              label="Datum des Beitrags"
+                              onChange={(event) => {
+                                const bookedOn = event.currentTarget.value;
+                                setContributionValues((current) => ({
+                                  ...current,
+                                  bookedOn,
+                                }));
+                              }}
+                              required
+                              type="date"
+                              value={contributionValues.bookedOn}
+                            />
+                            <Select
+                              hint={describeLinkOptions(
+                                linkCandidates.length,
+                                contributionValues.amount,
+                              )}
+                              label="Belegende Ausgabe"
+                              onChange={(event) => {
+                                const sourceTransactionId =
+                                  event.currentTarget.value;
+                                setContributionValues((current) => ({
+                                  ...current,
+                                  sourceTransactionId,
+                                }));
+                              }}
+                              value={contributionValues.sourceTransactionId}
+                            >
+                              <option value="">Ohne Verknüpfung</option>
+                              {linkCandidates.map((transaction) => (
+                                <option
+                                  key={transaction.id}
+                                  value={transaction.id}
+                                >
+                                  {describeTransactionOption(transaction)}
+                                </option>
+                              ))}
+                            </Select>
+                            <Input
+                              hint="Optional, zum Beispiel ein kurzer Hinweis."
+                              label="Notiz zum Beitrag"
+                              onChange={(event) => {
+                                const note = event.currentTarget.value;
+                                setContributionValues((current) => ({
+                                  ...current,
+                                  note,
+                                }));
+                              }}
+                              value={contributionValues.note}
+                            />
+                            <Button type="submit" variant="secondary">
+                              {editedContributionId === undefined
+                                ? "Beitrag hinzufügen"
+                                : "Beitrag aktualisieren"}
+                            </Button>
+                            {editedContributionId === undefined ? null : (
+                              <Button
+                                onClick={() => resetContributionForm()}
+                                variant="ghost"
+                              >
+                                Bearbeiten abbrechen
+                              </Button>
+                            )}
+                          </form>
+
+                          {contributions.filter(
+                            (contribution) =>
+                              contribution.savingsGoalId === goal.id,
+                          ).length === 0 ? (
+                            <EmptyState
+                              description="Für dieses Sparziel ist noch kein Beitrag erfasst."
+                              title="Kein Beitrag"
+                            />
+                          ) : (
+                            <ul className="savings-history">
+                              {contributions
+                                .filter(
+                                  (contribution) =>
+                                    contribution.savingsGoalId === goal.id,
+                                )
+                                .map((contribution) => (
+                                  <li key={contribution.id}>
+                                    <div className="savings-history-copy">
+                                      <p className="savings-history-day">
+                                        {formatDay(contribution.bookedOn)}
+                                      </p>
+                                      {contribution.sourceTransactionId ? (
+                                        <p className="savings-history-link">
+                                          Mit einer Ausgabe verknüpft; im
+                                          Monatssaldo zählt der Betrag einmal.
+                                        </p>
+                                      ) : null}
+                                      {contribution.note ? (
+                                        <p>{contribution.note}</p>
+                                      ) : null}
+                                    </div>
+                                    <p className="savings-history-amount">
+                                      {formatMoney(contribution.money)}
+                                    </p>
+                                    <Button
+                                      onClick={() => startEditing(contribution)}
+                                      variant="ghost"
+                                    >
+                                      {`Beitrag vom ${formatDay(
+                                        contribution.bookedOn,
+                                      )} über ${formatMoney(
+                                        contribution.money,
+                                      )} bearbeiten`}
+                                    </Button>
+                                    <IconButton
+                                      label={`Beitrag vom ${formatDay(
+                                        contribution.bookedOn,
+                                      )} über ${formatMoney(
+                                        contribution.money,
+                                      )} zurücknehmen`}
+                                      onClick={() =>
+                                        void removeContribution(contribution)
+                                      }
+                                    >
+                                      ×
+                                    </IconButton>
+                                  </li>
+                                ))}
+                            </ul>
+                          )}
+
+                          <div className="savings-actions">
                             <Button
-                              onClick={() => resetContributionForm()}
+                              onClick={() => void archiveGoal(goal)}
                               variant="ghost"
                             >
-                              Bearbeiten abbrechen
+                              Sparziel archivieren
                             </Button>
-                          )}
-                        </form>
-
-                        {contributions.filter(
-                          (contribution) =>
-                            contribution.savingsGoalId === goal.id,
-                        ).length === 0 ? (
-                          <EmptyState
-                            description="Für dieses Sparziel ist noch kein Beitrag erfasst."
-                            title="Kein Beitrag"
-                          />
-                        ) : (
-                          <ul className="savings-history">
-                            {contributions
-                              .filter(
-                                (contribution) =>
-                                  contribution.savingsGoalId === goal.id,
-                              )
-                              .map((contribution) => (
-                                <li key={contribution.id}>
-                                  <div className="savings-history-copy">
-                                    <p className="savings-history-day">
-                                      {formatDay(contribution.bookedOn)}
-                                    </p>
-                                    {contribution.sourceTransactionId ? (
-                                      <p className="savings-history-link">
-                                        Mit einer Ausgabe verknüpft; im
-                                        Monatssaldo zählt der Betrag einmal.
-                                      </p>
-                                    ) : null}
-                                    {contribution.note ? (
-                                      <p>{contribution.note}</p>
-                                    ) : null}
-                                  </div>
-                                  <p className="savings-history-amount">
-                                    {formatMoney(contribution.money)}
-                                  </p>
-                                  <Button
-                                    onClick={() => startEditing(contribution)}
-                                    variant="ghost"
-                                  >
-                                    {`Beitrag vom ${formatDay(
-                                      contribution.bookedOn,
-                                    )} über ${formatMoney(
-                                      contribution.money,
-                                    )} bearbeiten`}
-                                  </Button>
-                                  <IconButton
-                                    label={`Beitrag vom ${formatDay(
-                                      contribution.bookedOn,
-                                    )} über ${formatMoney(
-                                      contribution.money,
-                                    )} zurücknehmen`}
-                                    onClick={() =>
-                                      void removeContribution(contribution)
-                                    }
-                                  >
-                                    ×
-                                  </IconButton>
-                                </li>
-                              ))}
-                          </ul>
-                        )}
-
-                        <div className="savings-actions">
-                          <Button
-                            onClick={() => void archiveGoal(goal)}
-                            variant="ghost"
-                          >
-                            Sparziel archivieren
-                          </Button>
-                          <Button
-                            onClick={() => void askForDeletion(goal)}
-                            variant="danger"
-                          >
-                            Sparziel endgültig löschen
-                          </Button>
+                            <Button
+                              onClick={() => void askForDeletion(goal)}
+                              variant="danger"
+                            >
+                              Sparziel endgültig löschen
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </>
       )}
@@ -756,6 +789,40 @@ export function SavingsPanel({
       ) : null}
     </section>
   );
+}
+
+/**
+ * Der Gesamtstand nennt seinen Umfang: alle Beiträge, nicht nur die des
+ * laufenden Monats. Ein Ziel in einer anderen Währung wird benannt, nicht
+ * umgerechnet und nicht still weggelassen.
+ */
+function describeSavingsSummary(
+  summary: SavingsSummary,
+  currency: string,
+): string {
+  const { activeGoalCount, excludedGoalCount, targetMinor } = summary;
+  const excluded = describeExcludedGoals(excludedGoalCount);
+
+  if (activeGoalCount === 0) {
+    return excluded === ""
+      ? "Kein aktives Sparziel."
+      : `Kein aktives Sparziel in ${currency}.${excluded}`;
+  }
+  if (targetMinor === 0) {
+    return `${activeGoalCount} ${
+      activeGoalCount === 1 ? "aktives Sparziel" : "aktive Sparziele"
+    } ohne Zielbetrag.${excluded}`;
+  }
+  return `${activeGoalCount} ${
+    activeGoalCount === 1 ? "aktives Sparziel" : "aktive Sparziele"
+  } in ${currency}; der Stand zählt alle Beiträge, nicht nur die des Monats.${excluded}`;
+}
+
+function describeExcludedGoals(excludedGoalCount: number): string {
+  if (excludedGoalCount === 0) return "";
+  return excludedGoalCount === 1
+    ? " Ein Sparziel in einer anderen Währung ist nicht enthalten."
+    : ` ${excludedGoalCount} Sparziele in einer anderen Währung sind nicht enthalten.`;
 }
 
 function describeOpenAmount(progress: SavingsProgress): string {

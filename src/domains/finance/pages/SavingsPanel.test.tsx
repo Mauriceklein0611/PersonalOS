@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { createMemorySavingsService } from "../../../test/factories/savings";
-import type { Transaction } from "../model";
+import type { SavingsContribution, SavingsGoal, Transaction } from "../model";
 import type { SavingsService } from "../savings-service";
 import { SavingsPanel } from "./SavingsPanel";
 
@@ -22,6 +22,43 @@ function renderPanel(
     />,
   );
 }
+
+/** Erfundene Sparziele für den Gesamtstand; 350,00 € von 1.000,00 € sind 35 %. */
+const euroGoal: SavingsGoal = {
+  createdAt: "2026-07-01T08:00:00.000Z",
+  id: "00000000-0000-4000-8000-000000009901",
+  name: "Synthetisches Eurosparziel",
+  status: "active",
+  target: { amountMinor: 100_000, currency: "EUR" },
+  updatedAt: "2026-07-01T08:00:00.000Z",
+};
+
+const yenGoal: SavingsGoal = {
+  createdAt: "2026-07-01T08:00:00.000Z",
+  id: "00000000-0000-4000-8000-000000009902",
+  name: "Synthetisches Yensparziel",
+  status: "active",
+  target: { amountMinor: 100_000, currency: "JPY" },
+  updatedAt: "2026-07-01T08:00:00.000Z",
+};
+
+const euroContribution: SavingsContribution = {
+  bookedOn: "2026-07-15",
+  createdAt: "2026-07-15T08:00:00.000Z",
+  id: "00000000-0000-4000-8000-000000009911",
+  money: { amountMinor: 35_000, currency: "EUR" },
+  savingsGoalId: euroGoal.id,
+  updatedAt: "2026-07-15T08:00:00.000Z",
+};
+
+const yenContribution: SavingsContribution = {
+  bookedOn: "2026-07-15",
+  createdAt: "2026-07-15T08:00:00.000Z",
+  id: "00000000-0000-4000-8000-000000009912",
+  money: { amountMinor: 50_000, currency: "JPY" },
+  savingsGoalId: yenGoal.id,
+  updatedAt: "2026-07-15T08:00:00.000Z",
+};
 
 const linkableExpense: Transaction = {
   bookedOn: "2026-08-04",
@@ -88,11 +125,66 @@ describe("SavingsPanel", () => {
     await openHistory();
     await addContribution("250,00");
 
-    expect(await screen.findByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+    // Zweimal: einmal als Gesamtstand, einmal am Ziel selbst.
+    expect(await screen.findAllByText(/250,00.*von.*1\.000,00/)).toHaveLength(
+      2,
+    );
     expect(
       screen.getByText("Ein Teil des Zielbetrags ist noch offen."),
     ).toBeVisible();
     expect(screen.getByText(/Noch offen: .*750,00/)).toBeVisible();
+  });
+
+  it("shows the overall amount here instead of in the monthly figures", async () => {
+    renderPanel(createMemorySavingsService());
+    await screen.findByRole("button", { name: "Sparziel anlegen" });
+
+    await addGoal("1.000,00");
+    await openHistory();
+    await addContribution("250,00");
+
+    expect(
+      await screen.findByRole("progressbar", { name: "Gesamtstand" }),
+    ).toHaveValue(25);
+    expect(
+      screen.getByText(
+        /1 aktives Sparziel in EUR; der Stand zählt alle Beiträge, nicht nur die des Monats\./,
+      ),
+    ).toBeVisible();
+  });
+
+  it("names a goal that another currency keeps out of the sum", async () => {
+    renderPanel(
+      createMemorySavingsService(
+        [euroGoal, yenGoal],
+        [euroContribution, yenContribution],
+      ),
+    );
+
+    expect(
+      await screen.findByText(
+        /Ein Sparziel in einer anderen Währung ist nicht enthalten\./,
+      ),
+    ).toBeVisible();
+    // Der Gesamtstand bleibt der des einen gezählten Ziels.
+    expect(
+      screen.getByRole("progressbar", { name: "Gesamtstand" }),
+    ).toHaveValue(35);
+  });
+
+  it("gives no overall amount when no goal uses the base currency", async () => {
+    renderPanel(createMemorySavingsService([yenGoal], [yenContribution]));
+
+    expect(
+      await screen.findByText(/Kein aktives Sparziel in EUR\./),
+    ).toBeVisible();
+    // Ohne Grundlage steht „Keine Angabe“, niemals eine erfundene Null.
+    expect(screen.getByText("Gesamtstand").parentElement).toHaveTextContent(
+      "Keine Angabe",
+    );
+    expect(
+      screen.queryByRole("progressbar", { name: "Gesamtstand" }),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps an exceeded target correct and free of judgement", async () => {
@@ -124,11 +216,13 @@ describe("SavingsPanel", () => {
       screen.getByRole("button", { name: /Beitrag vom .* zurücknehmen/ }),
     );
 
-    expect(await screen.findByText(/0,00.*von.*1\.000,00/)).toBeVisible();
+    expect(await screen.findAllByText(/0,00.*von.*1\.000,00/)).toHaveLength(2);
     expect(screen.getByText(/zählt nicht mehr zum Stand/)).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Rückgängig" }));
-    expect(await screen.findByText(/250,00.*von.*1\.000,00/)).toBeVisible();
+    expect(await screen.findAllByText(/250,00.*von.*1\.000,00/)).toHaveLength(
+      2,
+    );
   });
 
   it("updates the amount after editing a contribution", async () => {
@@ -152,7 +246,9 @@ describe("SavingsPanel", () => {
       screen.getByRole("button", { name: "Beitrag aktualisieren" }),
     );
 
-    expect(await screen.findByText(/400,00.*von.*1\.000,00/)).toBeVisible();
+    expect(await screen.findAllByText(/400,00.*von.*1\.000,00/)).toHaveLength(
+      2,
+    );
   });
 
   it("shows a savings goal without a deadline as a valid state", async () => {

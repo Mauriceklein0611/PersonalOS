@@ -9,9 +9,14 @@ import type { SavingsService } from "../../domains/finance/savings-service";
  * Kleiner In-Memory-Ersatz für Komponententests. Die Persistenz selbst ist im
  * Repository- und Servicetest abgedeckt.
  */
-export function createMemorySavingsService(): SavingsService {
-  const goals: SavingsGoal[] = [];
-  const contributions: SavingsContribution[] = [];
+export function createMemorySavingsService(
+  initialGoals: readonly SavingsGoal[] = [],
+  initialContributions: readonly SavingsContribution[] = [],
+): SavingsService {
+  const goals: SavingsGoal[] = initialGoals.map((goal) => ({ ...goal }));
+  const contributions: SavingsContribution[] = initialContributions.map(
+    (contribution) => ({ ...contribution }),
+  );
   let sequence = 0;
 
   const meta = () => ({
