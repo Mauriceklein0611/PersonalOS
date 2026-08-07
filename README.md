@@ -48,6 +48,13 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Erklärbarer Life Score v1](docs/decisions/0009-life-score-v1.md)
 - [Deterministische Insights v1](docs/decisions/0010-deterministic-insights-v1.md)
 
+### Externe Prüfungen
+
+Datierte Momentaufnahmen, keine normativen Spezifikationen. Bei Widerspruch gelten zuerst `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md` und die ADRs.
+
+- [Produkt-, UX/UI- und Wettbewerbs-Audit (07.08.2026)](docs/audits/personal-os-product-ux-audit.md)
+- [Umsetzungs-Roadmap zum Audit (07.08.2026)](docs/audits/personal-os-improvement-roadmap.md)
+
 ## Mit Codex und Claude Code arbeiten
 
 - Codex liest die Arbeitsregeln in [AGENTS.md](AGENTS.md).
