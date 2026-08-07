@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 
+import { AppPreferencesPanel } from "../settings/AppPreferencesPanel";
 import { BackupPanel } from "../settings/BackupPanel";
 import { LocalDataPanel } from "../settings/LocalDataPanel";
 import "./settings-page.css";
@@ -17,6 +18,7 @@ export function Component() {
         </div>
       </header>
       <div className="settings-grid">
+        <AppPreferencesPanel />
         <BackupPanel />
         <LocalDataPanel />
         <div className="empty-state" role="note">

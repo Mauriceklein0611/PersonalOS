@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestDatabase, deleteTestDatabase } from "../../test/database";
 import { backupDataFixture } from "../../test/fixtures/backup";
 import type { PersonalOsDatabase } from "../database";
+import { createDatabaseLifecycle } from "../lifecycle";
 import { personalOsTableNames } from "../schema";
 import { backupFormatVersion, createBackupFilename } from "./format";
 import { createBackupService } from "./service";
@@ -135,6 +136,19 @@ describe("backup service", () => {
       ],
     });
     expect(preview).not.toHaveProperty("data");
+  });
+
+  it("warns about missing settings only for a database that was never started", async () => {
+    // Der Seed des Starts ist hier der einzige Unterschied zum Test darüber.
+    await createDatabaseLifecycle(database).open();
+    const service = createBackupService(database, {
+      now: () => new Date(exportInstant),
+    });
+
+    const preview = service.parse(JSON.stringify(await service.create()));
+
+    expect(preview.counts.settings).toBe(1);
+    expect(preview.warnings).toEqual([]);
   });
 });
 

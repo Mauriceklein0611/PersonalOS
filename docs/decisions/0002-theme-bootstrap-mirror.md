@@ -24,3 +24,12 @@ Der Theme-Code wird über einen kleinen Storage-Vertrag angesprochen. Seiten und
 - Es entsteht keine allgemeine zweite Persistenzschicht.
 - Die spätere Settings-Implementierung muss IndexedDB und Bootstrap-Spiegel atomar aus Nutzersicht synchronisieren und den Fallback migrieren.
 - Private Browsermodi oder blockierter Storage führen sicher zum System-Theme zurück.
+
+## Nachtrag 2026-08-07 (Issue #63)
+
+Die Settings-Repository-Schicht existiert. Der beschriebene Endzustand ist damit umgesetzt und der Fallback aufgelöst:
+
+- Der Settings-Datensatz entsteht beim ersten erfolgreichen Öffnen der Datenbank und ist die kanonische Quelle der Theme-Präferenz.
+- `localStorage` bleibt ausschließlich der bootkritische Spiegel. Er wird vor dem ersten Bild gelesen und danach beim Lesen und bei jeder Änderung mit dem Datensatz gleichgezogen.
+- Weicht der gespeicherte Wert vom Spiegel ab – etwa nach einem Import oder einem geleerten `localStorage` –, gewinnt der Datensatz, sobald er gelesen ist. Vorher bleibt der Spiegel unangetastet, damit kein ungestalteter Zwischenzustand entsteht.
+- Ohne lesbaren Datensatz bleibt die Oberfläche mit dem Spiegel bedienbar; gespeichert wird dann nichts.

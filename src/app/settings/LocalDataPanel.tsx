@@ -100,6 +100,11 @@ export function LocalDataPanel({
         </div>
       </dl>
 
+      <p className="local-data-hint">
+        Die App-Einstellungen zählen als eigener Datensatz mit. Sie entstehen
+        beim ersten Start automatisch neu, auch nach einer Löschung.
+      </p>
+
       <section className="local-privacy-note" aria-labelledby="privacy-title">
         <h4 id="privacy-title">Was local-first schützt – und was nicht</h4>
         <p>

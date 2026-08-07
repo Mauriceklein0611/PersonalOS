@@ -1,0 +1,107 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
+import type { PersonalOsDatabase } from "../../db/database";
+import {
+  createSettingsRepository,
+  type SettingsRepository,
+} from "../../db/settings/repository";
+import { createTestDatabase, deleteTestDatabase } from "../../test/database";
+import { AppPreferencesPanel } from "./AppPreferencesPanel";
+import { SettingsProvider } from "./SettingsProvider";
+
+let database: PersonalOsDatabase;
+
+beforeEach(async () => {
+  database = await createTestDatabase();
+});
+
+afterEach(async () => {
+  await deleteTestDatabase(database);
+});
+
+function renderPanel(repository: SettingsRepository) {
+  return render(
+    <SettingsProvider repository={repository}>
+      <AppPreferencesPanel />
+    </SettingsProvider>,
+  );
+}
+
+describe("AppPreferencesPanel", () => {
+  it("shows the stored values and the fixed week start", async () => {
+    const repository = createSettingsRepository(database);
+    await repository.save({
+      baseCurrency: "CHF",
+      timeZone: "Europe/Zurich",
+    });
+
+    renderPanel(repository);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Zeitzone")).toHaveValue("Europe/Zurich");
+    });
+    expect(screen.getByLabelText("Übersichtswährung")).toHaveValue("CHF");
+    expect(screen.getByText(/Montag/)).toBeInTheDocument();
+  });
+
+  it("stores a changed base currency", async () => {
+    const repository = createSettingsRepository(database);
+    await repository.loadOrCreate();
+    const user = userEvent.setup();
+    renderPanel(repository);
+
+    await user.selectOptions(
+      await screen.findByLabelText("Übersichtswährung"),
+      "CHF",
+    );
+
+    expect(
+      await screen.findByText("Die Übersichtswährung wurde gespeichert."),
+    ).toBeInTheDocument();
+    expect((await repository.loadOrCreate()).baseCurrency).toBe("CHF");
+  });
+
+  it("stores a changed time zone", async () => {
+    const repository = createSettingsRepository(database);
+    await repository.loadOrCreate();
+    const user = userEvent.setup();
+    renderPanel(repository);
+
+    await user.selectOptions(
+      await screen.findByLabelText("Zeitzone"),
+      "Pacific/Auckland",
+    );
+
+    expect(
+      await screen.findByText("Die Zeitzone wurde gespeichert."),
+    ).toBeInTheDocument();
+    expect((await repository.loadOrCreate()).timeZone).toBe("Pacific/Auckland");
+  });
+
+  it("names a failed change and keeps the stored value", async () => {
+    const repository = createSettingsRepository(database);
+    await repository.save({ baseCurrency: "EUR" });
+    const failingRepository: SettingsRepository = Object.assign(
+      Object.create(repository) as SettingsRepository,
+      {
+        save: () => Promise.reject(new Error("storage unavailable")),
+      },
+    );
+    const user = userEvent.setup();
+    renderPanel(failingRepository);
+
+    await user.selectOptions(
+      await screen.findByLabelText("Übersichtswährung"),
+      "CHF",
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Die Einstellung wurde nicht gespeichert.",
+    );
+    await waitFor(() => {
+      expect(screen.getByLabelText("Übersichtswährung")).toHaveValue("EUR");
+    });
+  });
+});

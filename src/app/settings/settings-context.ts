@@ -1,0 +1,52 @@
+import { createContext, useContext } from "react";
+
+import type { SettingsDetails } from "../../db/schemas/settings";
+import { detectTimeZone } from "../../lib/dates/date-values";
+
+export type AppSettingsContextValue = {
+  /**
+   * Die fachlichen Werte des einen Settings-Datensatzes. Die Metadaten des
+   * Datensatzes bleiben in der Datenschicht.
+   */
+  settings: SettingsDetails;
+  /**
+   * `false`, solange die Oberfläche mit erkannten Vorgaben arbeitet, weil der
+   * Datensatz noch geladen wird oder nicht gelesen werden konnte.
+   */
+  isStored: boolean;
+  /** Liest den Datensatz neu, etwa nach einem Import. */
+  reload: () => Promise<void>;
+  update: (patch: Partial<SettingsDetails>) => Promise<void>;
+};
+
+export const AppSettingsContext = createContext<AppSettingsContextValue | null>(
+  null,
+);
+
+export function useAppSettings(): AppSettingsContextValue {
+  const value = useContext(AppSettingsContext);
+
+  if (value === null) {
+    throw new Error(
+      "useAppSettings muss innerhalb des SettingsProvider verwendet werden.",
+    );
+  }
+
+  return value;
+}
+
+/**
+ * Die gespeicherte Zeitzone. Ein ausdrücklich übergebener Wert gewinnt, damit
+ * Tests und Vorschauen einen festen Tag setzen können. Ohne Provider bleibt
+ * die erkannte Zeitzone die Notlösung.
+ */
+export function useTimeZone(override?: string): string {
+  const value = useContext(AppSettingsContext);
+  return override ?? value?.settings.timeZone ?? detectTimeZone();
+}
+
+/** Die Übersichtswährung aus den Einstellungen. */
+export function useBaseCurrency(override?: string): string {
+  const value = useContext(AppSettingsContext);
+  return override ?? value?.settings.baseCurrency ?? "EUR";
+}

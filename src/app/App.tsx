@@ -6,6 +6,7 @@ import type { DatabaseLifecycle } from "../db/lifecycle";
 import { DatabaseGate } from "./providers/DatabaseGate";
 import { PwaStatus } from "./pwa/PwaStatus";
 import { appRouter } from "./router";
+import { SettingsProvider } from "./settings/SettingsProvider";
 import { ThemeProvider } from "./theme/ThemeProvider";
 
 type AppProps = {
@@ -27,7 +28,11 @@ export function App({
           lifecycle={databaseLifecycle}
           reloadAfterReset={reloadAfterDatabaseReset}
         >
-          <RouterProvider router={router} />
+          {/* Erst hinter der Datenbankprüfung: Der Settings-Datensatz
+              existiert dann bereits. */}
+          <SettingsProvider>
+            <RouterProvider router={router} />
+          </SettingsProvider>
         </DatabaseGate>
       </ThemeProvider>
     </GlobalErrorBoundary>

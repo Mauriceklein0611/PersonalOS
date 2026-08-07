@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useTimeZone } from "../../../app/settings/settings-context";
 import {
   Button,
   Chart,
@@ -77,8 +78,9 @@ export function HabitsPage({
   goalLinks = personalOsGoalLinkService,
   now = systemNow,
   service = personalOsHabitService,
-  timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timeZone: timeZoneOverride,
 }: HabitsPageProps) {
+  const timeZone = useTimeZone(timeZoneOverride);
   const [activeView, setActiveView] = useState<HabitsView>("today");
   const [goalOptions, setGoalOptions] = useState<GoalOption[]>([]);
   const [busyHabitId, setBusyHabitId] = useState<string>();

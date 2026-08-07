@@ -36,7 +36,8 @@ Es gibt im MVP keinen Anwendungsserver. Der Service Worker cached nur die App-Sh
 
 - Routing, responsives Layout, Theme und globale Fehlerbehandlung;
 - Top-Level-Seiten werden als unabhängige Route-Module lazy geladen;
-- die Theme-Präferenz nutzt vor der Settings-Repository-Schicht den begrenzten Bootstrap-Spiegel aus [ADR 0002](decisions/0002-theme-bootstrap-mirror.md);
+- die Theme-Präferenz startet aus dem begrenzten Bootstrap-Spiegel aus [ADR 0002](decisions/0002-theme-bootstrap-mirror.md); kanonisch ist danach der Settings-Datensatz, den der `SettingsProvider` hinter der Datenbankprüfung liest;
+- Zeitzone und Übersichtswährung kommen aus demselben Datensatz; Seiten lesen sie über `useTimeZone` und `useBaseCurrency` statt aus `Intl` oder einer Konstante;
 - domänenneutrale, typisierte Basiskomponenten liegen unter `src/components/ui/` und verwenden die semantischen Tokens aus `src/styles/tokens.css`;
 - Seiten und Formulare pro Domain;
 - keine direkte Dexie-Nutzung aus React-Komponenten;

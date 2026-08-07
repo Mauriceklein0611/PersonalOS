@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 
+import { useTimeZone } from "../../../app/settings/settings-context";
 import {
   Button,
   Checkbox,
@@ -55,8 +56,9 @@ export function InsightsPage({
   insightService = personalOsInsightService,
   now = () => new Date(),
   service = personalOsScoreService,
-  timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timeZone: timeZoneOverride,
 }: InsightsPageProps) {
+  const timeZone = useTimeZone(timeZoneOverride);
   const today = useMemo(
     () => calendarDayForInstant(now(), timeZone),
     [now, timeZone],

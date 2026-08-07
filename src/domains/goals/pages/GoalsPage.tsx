@@ -6,6 +6,7 @@ import {
   type FormEvent,
 } from "react";
 
+import { useTimeZone } from "../../../app/settings/settings-context";
 import {
   Button,
   Checkbox,
@@ -58,8 +59,9 @@ export function GoalsPage({
   goalLinks = personalOsGoalLinkService,
   now = () => new Date(),
   service = personalOsGoalService,
-  timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timeZone: timeZoneOverride,
 }: GoalsPageProps) {
+  const timeZone = useTimeZone(timeZoneOverride);
   const today = useMemo(
     () => calendarDayForInstant(now(), timeZone),
     [now, timeZone],

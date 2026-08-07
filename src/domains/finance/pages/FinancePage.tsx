@@ -7,6 +7,10 @@ import {
 } from "react";
 
 import {
+  useBaseCurrency,
+  useTimeZone,
+} from "../../../app/settings/settings-context";
+import {
   Button,
   EmptyState,
   IconButton,
@@ -54,15 +58,14 @@ import "./finance-page.css";
 import { MonthOverview } from "./MonthOverview";
 import { SavingsPanel } from "./SavingsPanel";
 
-/** Währungsumrechnung ist nicht im Scope; das MVP rechnet in einer Währung. */
-const currency = "EUR";
-
 type FinanceUndoAction = {
   message: string;
   run: () => Promise<unknown>;
 };
 
 export type FinancePageProps = {
+  /** Übersichtswährung; ohne Angabe gilt `baseCurrency` aus den Einstellungen. */
+  currency?: string;
   now?: () => Date;
   savingsService?: SavingsService;
   service?: FinanceService;
@@ -70,11 +73,15 @@ export type FinancePageProps = {
 };
 
 export function FinancePage({
+  currency: currencyOverride,
   now = () => new Date(),
   savingsService = personalOsSavingsService,
   service = personalOsFinanceService,
-  timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timeZone: timeZoneOverride,
 }: FinancePageProps) {
+  /* Währungsumrechnung ist nicht im Scope; das MVP rechnet in einer Währung. */
+  const currency = useBaseCurrency(currencyOverride);
+  const timeZone = useTimeZone(timeZoneOverride);
   const today = useMemo(
     () => calendarDayForInstant(now(), timeZone),
     [now, timeZone],
@@ -235,7 +242,14 @@ export function FinancePage({
             : "Die Monatsübersicht konnte nicht berechnet werden.",
       };
     }
-  }, [budgetMonth, budgets, savingsContributions, savingsGoals, transactions]);
+  }, [
+    budgetMonth,
+    budgets,
+    currency,
+    savingsContributions,
+    savingsGoals,
+    transactions,
+  ]);
 
   // Gemischte Währungen werden nicht umgerechnet, sondern benannt.
   const budgetUsages = useMemo(
@@ -451,6 +465,7 @@ export function FinancePage({
         <div className="page-grid">
           <MonthOverview
             categoriesById={categoriesById}
+            currency={currency}
             error={monthOverview.error}
             monthLabel={formatMonth(budgetMonth)}
             onNextMonth={() => setBudgetMonth((month) => shiftMonth(month, 1))}
