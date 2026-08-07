@@ -152,6 +152,86 @@ describe("buildMonthlyOverview", () => {
     });
   });
 
+  /*
+   * Der Kern von C-03: Wer 245,50 € spart und die Ausgabe verknüpft, hat den
+   * Betrag genau einmal im System. Der Saldo ändert sich durch den Beitrag
+   * nicht mehr, weil die Ausgabe ihn bereits enthält.
+   */
+  it("counts a linked contribution exactly once", () => {
+    const linkedExpense = financeMonthTransactions[2]!;
+    const overview = build({
+      contributions: [
+        {
+          ...financeMonthContributions[0]!,
+          money: linkedExpense.money,
+          sourceTransactionId: linkedExpense.id,
+        },
+      ],
+    });
+
+    expect(overview.savingsThisMonth).toEqual({
+      contributionCount: 1,
+      linkedMinor: 24_550,
+      totalMinor: 24_550,
+      unlinkedMinor: 0,
+    });
+    expect(overview.balanceAfterSavingsMinor).toBe(overview.balanceMinor);
+  });
+
+  it("subtracts a contribution that no expense covers", () => {
+    const overview = build({
+      contributions: [financeMonthContributions[0]!],
+    });
+
+    expect(overview.savingsThisMonth).toEqual({
+      contributionCount: 1,
+      linkedMinor: 0,
+      totalMinor: 25_000,
+      unlinkedMinor: 25_000,
+    });
+    expect(overview.balanceAfterSavingsMinor).toBe(
+      overview.balanceMinor - 25_000,
+    );
+  });
+
+  /*
+   * Eine archivierte Ausgabe steckt nicht mehr in der Monatssumme. Der Beitrag
+   * gilt dann wieder als unbelegt, sonst verschwände der Betrag aus beiden
+   * Zahlen.
+   */
+  it("stops treating a contribution as covered when its expense is archived", () => {
+    const linkedExpense = financeMonthTransactions[2]!;
+    const overview = build({
+      contributions: [
+        {
+          ...financeMonthContributions[0]!,
+          money: linkedExpense.money,
+          sourceTransactionId: linkedExpense.id,
+        },
+      ],
+      transactions: financeMonthTransactions.map((transaction) =>
+        transaction.id === linkedExpense.id
+          ? { ...transaction, archivedAt: "2026-08-20T08:00:00.000Z" }
+          : transaction,
+      ),
+    });
+
+    expect(overview.savingsThisMonth.linkedMinor).toBe(0);
+    expect(overview.savingsThisMonth.unlinkedMinor).toBe(24_550);
+  });
+
+  it("counts only contributions with a date inside the month", () => {
+    const overview = build();
+
+    /*
+     * 9401 und 9403 liegen im August, 9402 im Juli. Der Beitrag zum
+     * abgeschlossenen Sparziel zählt mit: Das Geld ist geflossen, unabhängig
+     * vom Status des Ziels.
+     */
+    expect(overview.savingsThisMonth.contributionCount).toBe(2);
+    expect(overview.savingsThisMonth.totalMinor).toBe(75_000);
+  });
+
   it("stays neutral and empty without any booking", () => {
     const overview = build({ budgets: [], transactions: [] });
 

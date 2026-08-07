@@ -97,6 +97,43 @@
   gap: var(--space-2) var(--space-4);
 }
 
+.finance-savings-flow {
+  margin-top: var(--space-5);
+}
+
+.finance-savings-flow h3 {
+  margin: 0 0 var(--space-3);
+}
+
+.finance-savings-flow dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.finance-savings-flow dl > div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--glass-strong);
+}
+
+.finance-savings-flow dt {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+}
+
+.finance-savings-flow dd {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
 .finance-month-nav {
   display: flex;
   flex-wrap: wrap;

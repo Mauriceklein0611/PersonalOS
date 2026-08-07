@@ -10,13 +10,18 @@ import {
   type PersonalOsTableName,
 } from "../schema";
 
-export const backupFormatVersion = 2;
+export const backupFormatVersion = 3;
 
 /**
  * Version 1 kennt `hiddenInsights` noch nicht. Sie bleibt lesbar; die Tabelle
  * wird dann als leer gelesen. Siehe [ADR 0010](../../../docs/decisions/0010-deterministic-insights-v1.md).
+ *
+ * Version 3 kann `sourceTransactionId` auf einem Sparbeitrag enthalten. Die
+ * Versionen 1 und 2 bleiben unverändert lesbar; ihre Beiträge sind schlicht
+ * mit keiner Buchung verknüpft. Siehe
+ * [ADR 0011](../../../docs/decisions/0011-savings-contribution-links-a-transaction.md).
  */
-export const supportedBackupFormatVersions = [1, 2] as const;
+export const supportedBackupFormatVersions = [1, 2, 3] as const;
 
 export const maximumBackupBytes = 10_000_000;
 
@@ -31,7 +36,7 @@ const countSchema = z.partialRecord(tableNameSchema, z.int().nonnegative());
 export const personalOsBackupSchema = z
   .object({
     format: z.literal("personalos"),
-    formatVersion: z.union([z.literal(1), z.literal(2)]),
+    formatVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
     schemaVersion: z.int().positive(),
     exportedAt: isoInstantSchema,
     appVersion: z.string().min(1).max(100),

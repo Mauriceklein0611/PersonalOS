@@ -82,6 +82,8 @@ export type ContributionFormValues = {
   amount: string;
   bookedOn: string;
   note: string;
+  /** Leer bedeutet: ohne belegende Ausgabe. Das ist ein gültiger Zustand. */
+  sourceTransactionId: string;
 };
 
 export type ContributionFormErrors = Partial<
@@ -95,7 +97,7 @@ export type ContributionFormResult =
 export function createContributionFormValues(
   today: CalendarDay,
 ): ContributionFormValues {
-  return { amount: "", bookedOn: today, note: "" };
+  return { amount: "", bookedOn: today, note: "", sourceTransactionId: "" };
 }
 
 export function toContributionDetails(
@@ -120,6 +122,7 @@ export function toContributionDetails(
   }
 
   const note = values.note.trim();
+  const sourceTransactionId = values.sourceTransactionId.trim();
 
   return {
     details: {
@@ -127,6 +130,7 @@ export function toContributionDetails(
       money: amount.money as Money,
       savingsGoalId,
       ...(note.length > 0 ? { note } : {}),
+      ...(sourceTransactionId.length > 0 ? { sourceTransactionId } : {}),
     },
     ok: true,
   };

@@ -47,6 +47,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Apache ECharts für Diagramme](docs/decisions/0008-echarts-for-charts.md)
 - [Erklärbarer Life Score v1](docs/decisions/0009-life-score-v1.md)
 - [Deterministische Insights v1](docs/decisions/0010-deterministic-insights-v1.md)
+- [Sparbeitrag verweist auf seine Ausgabe](docs/decisions/0011-savings-contribution-links-a-transaction.md)
 
 ### Externe Prüfungen
 

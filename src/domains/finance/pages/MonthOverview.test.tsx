@@ -45,6 +45,45 @@ const yenContribution: SavingsContribution = {
   money: { amountMinor: 50_000, currency: "JPY" },
 };
 
+describe("MonthOverview savings flow", () => {
+  it("separates the bound amount from what stays after saving", () => {
+    const linkedExpense = financeMonthTransactions[2]!;
+    renderOverview({
+      contributions: [
+        {
+          ...financeMonthContributions[0]!,
+          money: linkedExpense.money,
+          sourceTransactionId: linkedExpense.id,
+        },
+      ],
+    });
+
+    expect(screen.getByText("Sparen in diesem Monat")).toBeInTheDocument();
+    expect(screen.getByText("Davon als Ausgabe gebucht")).toBeInTheDocument();
+    expect(screen.getAllByText("245,50 €")).not.toHaveLength(0);
+    expect(
+      screen.getByText(/Jeder Beitrag ist mit einer Ausgabe verknüpft/),
+    ).toBeInTheDocument();
+  });
+
+  it("names an unlinked contribution as an extra deduction", () => {
+    renderOverview({ contributions: [financeMonthContributions[0]!] });
+
+    expect(
+      screen.getByText(/Kein Beitrag ist mit einer Ausgabe verknüpft/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/250,00 € sind abgeflossen/)).toBeInTheDocument();
+  });
+
+  it("stays quiet in a month without any contribution", () => {
+    renderOverview({ contributions: [] });
+
+    expect(
+      screen.queryByText("Sparen in diesem Monat"),
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("MonthOverview savings", () => {
   it("names a goal that another currency keeps out of the sum", () => {
     renderOverview({

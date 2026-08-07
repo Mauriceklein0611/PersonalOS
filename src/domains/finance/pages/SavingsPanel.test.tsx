@@ -3,20 +3,36 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { createMemorySavingsService } from "../../../test/factories/savings";
+import type { Transaction } from "../model";
 import type { SavingsService } from "../savings-service";
 import { SavingsPanel } from "./SavingsPanel";
 
 const fixedNow = new Date("2026-08-04T10:00:00.000Z");
 
-function renderPanel(service: SavingsService) {
+function renderPanel(
+  service: SavingsService,
+  transactions: readonly Transaction[] = [],
+) {
   return render(
     <SavingsPanel
       now={() => fixedNow}
       service={service}
       timeZone="Europe/Berlin"
+      transactions={transactions}
     />,
   );
 }
+
+const linkableExpense: Transaction = {
+  bookedOn: "2026-08-04",
+  categoryId: "00000000-0000-4000-8000-000000009801",
+  createdAt: "2026-08-04T08:00:00.000Z",
+  description: "Synthetische Überweisung",
+  id: "00000000-0000-4000-8000-000000009802",
+  kind: "expense",
+  money: { amountMinor: 25_000, currency: "EUR" },
+  updatedAt: "2026-08-04T08:00:00.000Z",
+};
 
 async function addGoal(target: string, targetDate = "") {
   const user = userEvent.setup();
@@ -169,5 +185,79 @@ describe("SavingsPanel", () => {
     await user.click(screen.getByRole("button", { name: "Endgültig löschen" }));
 
     expect(await screen.findByText("Kein Sparziel")).toBeInTheDocument();
+  });
+
+  it("offers only a matching expense and records the chosen link", async () => {
+    const user = userEvent.setup();
+    const service = createMemorySavingsService();
+    renderPanel(service, [linkableExpense]);
+    await screen.findByRole("button", { name: "Sparziel anlegen" });
+
+    await addGoal("1.000,00");
+    await openHistory();
+
+    // Ohne Betrag gibt es nichts zu verknüpfen.
+    expect(screen.getByLabelText(/Belegende Ausgabe/)).toHaveDisplayValue(
+      "Ohne Verknüpfung",
+    );
+    expect(screen.getByText(/Gib zuerst einen Betrag ein/)).toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      "100,00",
+    );
+    expect(
+      await screen.findByText(/keine passende, noch freie Ausgabe/),
+    ).toBeInTheDocument();
+
+    await user.clear(screen.getByRole("textbox", { name: /Beitrag in Euro/ }));
+    await user.type(
+      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      "250,00",
+    );
+    await user.selectOptions(
+      screen.getByLabelText(/Belegende Ausgabe/),
+      linkableExpense.id,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Beitrag hinzufügen" }),
+    );
+
+    expect(
+      await screen.findByText(/Mit einer Ausgabe verknüpft/),
+    ).toBeInTheDocument();
+    expect((await service.listContributions())[0]?.sourceTransactionId).toBe(
+      linkableExpense.id,
+    );
+  });
+
+  it("stops offering an expense that already backs a contribution", async () => {
+    const user = userEvent.setup();
+    renderPanel(createMemorySavingsService(), [linkableExpense]);
+    await screen.findByRole("button", { name: "Sparziel anlegen" });
+
+    await addGoal("1.000,00");
+    await openHistory();
+    await user.type(
+      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      "250,00",
+    );
+    await user.selectOptions(
+      screen.getByLabelText(/Belegende Ausgabe/),
+      linkableExpense.id,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Beitrag hinzufügen" }),
+    );
+    await screen.findByText(/Mit einer Ausgabe verknüpft/);
+
+    await user.type(
+      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      "250,00",
+    );
+
+    expect(
+      await screen.findByText(/keine passende, noch freie Ausgabe/),
+    ).toBeInTheDocument();
   });
 });

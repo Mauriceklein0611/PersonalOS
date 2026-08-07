@@ -49,13 +49,93 @@ function createVersionOneBackup() {
   };
 }
 
+/**
+ * Ein Export im Format 2 kennt `sourceTransactionId` noch nicht. Er bleibt
+ * lesbar; seine Beiträge sind schlicht mit keiner Buchung verknüpft. Siehe
+ * [ADR 0011](../../../docs/decisions/0011-savings-contribution-links-a-transaction.md).
+ */
+function createVersionTwoBackup() {
+  return {
+    ...createBackupEnvelope(exportedAt, backupDataFixture),
+    formatVersion: 2,
+  };
+}
+
+/** Dieselben Daten, aber mit belegter Ausgabe – nur im Format 3 möglich. */
+function createLinkedData() {
+  return {
+    ...backupDataFixture,
+    savingsContributions: backupDataFixture.savingsContributions.map(
+      (contribution) => ({
+        ...contribution,
+        sourceTransactionId: backupDataFixture.transactions[0]!.id,
+      }),
+    ),
+  };
+}
+
 describe("Backup-Format", () => {
-  it("writes new exports in version 2", () => {
+  it("writes new exports in version 3", () => {
     const envelope = createBackupEnvelope(exportedAt, backupDataFixture);
 
-    expect(backupFormatVersion).toBe(2);
-    expect(envelope.formatVersion).toBe(2);
+    expect(backupFormatVersion).toBe(3);
+    expect(envelope.formatVersion).toBe(3);
     expect(envelope.counts.hiddenInsights).toBe(1);
+  });
+
+  it("still reads a version 2 export as unlinked contributions", () => {
+    const service = createBackupService(database);
+
+    const preview = service.parse(JSON.stringify(createVersionTwoBackup()));
+
+    expect(preview.formatVersion).toBe(2);
+    expect(
+      preview.backup.data.savingsContributions[0]!.sourceTransactionId,
+    ).toBeUndefined();
+    expect(preview.warnings).toEqual([]);
+  });
+
+  it("round-trips a linked contribution in version 3", async () => {
+    const service = createBackupService(database);
+    const linked = createLinkedData();
+    const preview = service.parse(
+      JSON.stringify(createBackupEnvelope(exportedAt, linked)),
+    );
+
+    await service.replace(preview, () => undefined);
+
+    const restored = await service.create();
+    expect(restored.data.savingsContributions).toEqual(
+      linked.savingsContributions,
+    );
+  });
+
+  it("refuses a backup whose contribution points at a missing booking", () => {
+    const service = createBackupService(database);
+    const orphaned = {
+      ...createLinkedData(),
+      transactions: [],
+    };
+
+    expect(() =>
+      service.parse(JSON.stringify(createBackupEnvelope(exportedAt, orphaned))),
+    ).toThrow();
+  });
+
+  it("refuses two contributions that claim the same booking", () => {
+    const service = createBackupService(database);
+    const [contribution] = createLinkedData().savingsContributions;
+    const doubled = {
+      ...createLinkedData(),
+      savingsContributions: [
+        contribution!,
+        { ...contribution!, id: "00000000-0000-4000-8000-000000000916" },
+      ],
+    };
+
+    expect(() =>
+      service.parse(JSON.stringify(createBackupEnvelope(exportedAt, doubled))),
+    ).toThrow();
   });
 
   it("still reads a version 1 export and treats it as nothing hidden", () => {

@@ -32,12 +32,23 @@ export function assertBackupIntegrity(data: BackupData): void {
     ),
   );
 
+  /*
+   * Eine Ausgabe kann höchstens einen Sparbeitrag belegen. Zwei Beiträge auf
+   * dieselbe Buchung würden denselben Betrag doppelt binden.
+   */
+  assertUnique(
+    data.savingsContributions.flatMap((record) =>
+      record.sourceTransactionId ? [record.sourceTransactionId] : [],
+    ),
+  );
+
   const habitIds = new Set(data.habits.map((record) => record.id));
   const goalIds = new Set(data.goals.map((record) => record.id));
   const categoryIds = new Set(
     data.financeCategories.map((record) => record.id),
   );
   const savingsGoalIds = new Set(data.savingsGoals.map((record) => record.id));
+  const transactionIds = new Set(data.transactions.map((record) => record.id));
 
   assertReferences(
     data.habitEntries.map((record) => record.habitId),
@@ -66,6 +77,12 @@ export function assertBackupIntegrity(data: BackupData): void {
   assertReferences(
     data.savingsContributions.map((record) => record.savingsGoalId),
     savingsGoalIds,
+  );
+  assertReferences(
+    data.savingsContributions.flatMap((record) =>
+      record.sourceTransactionId ? [record.sourceTransactionId] : [],
+    ),
+    transactionIds,
   );
 }
 
