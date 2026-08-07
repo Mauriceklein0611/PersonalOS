@@ -75,12 +75,41 @@ describe("FinancePage", () => {
     await addExpense("12,50", "Lebensmittel");
 
     // Jede Kennzahl nennt Zeitraum und Währung in ihrem Kontexthinweis.
-    for (const label of ["Einnahmen", "Ausgaben", "Saldo", "Restbudget"]) {
+    for (const label of ["Einnahmen", "Ausgaben", "Saldo"]) {
       const tile = screen
         .getByText(label)
         .closest(".ui-metric-tile") as HTMLElement;
       expect(within(tile).getByText(/August 2026, in EUR/)).toBeVisible();
     }
+  });
+
+  it("puts the remaining budget with the budgets, not in the monthly row", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Monatsübersicht" });
+
+    await addExpense("12,50", "Lebensmittel");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /Kategorie für das Budget/ }),
+      ["Lebensmittel"],
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /Budget in Euro/ }),
+      "50,00",
+    );
+    await user.click(screen.getByRole("button", { name: "Budget speichern" }));
+
+    const tile = (await screen.findByText("Budget übrig")).closest(
+      ".ui-metric-tile",
+    ) as HTMLElement;
+    expect(within(tile).getByText(/37,50/)).toBeVisible();
+    // Der Umfang steht am Wert: Er gilt nur für Kategorien mit Budget.
+    expect(
+      within(tile).getByText(/August 2026, in EUR · 1 Kategorie mit Budget/),
+    ).toBeVisible();
+    // Die Monatsreihe bleibt bei gleichartigen Zahlen.
+    expect(screen.queryByText("Restbudget")).not.toBeInTheDocument();
   });
 
   // Ohne Vormonatsdaten wird der Grund genannt statt 0 Prozent erfunden.

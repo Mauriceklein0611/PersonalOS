@@ -289,7 +289,7 @@ function compareWithPreviousMonth(
  * Ausschluss benennen kann. `activeGoalCount` zählt deshalb genau die Ziele
  * hinter `savedMinor` und `targetMinor`.
  */
-function summariseSavings(
+export function summariseSavings(
   goals: readonly SavingsGoal[],
   contributions: readonly SavingsContribution[],
   currency: string,
