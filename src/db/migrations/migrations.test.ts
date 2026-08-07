@@ -6,13 +6,21 @@ import {
   incompatibleSettingsV1Fixture,
   settingsV1Fixture,
 } from "../../test/fixtures/database-v1";
+import {
+  createVersion4Database,
+  savingsContributionV4Fixture,
+  transactionV4Fixture,
+} from "../../test/fixtures/database-v4";
 import { PersonalOsDatabase } from "../database";
 import {
   personalOsSchemaV1,
   personalOsSchemaV2,
   personalOsSchemaVersion,
 } from "../schema";
-import { habitSchema } from "../schemas/domain-records";
+import {
+  habitSchema,
+  savingsContributionSchema,
+} from "../schemas/domain-records";
 import { settingsSchema } from "../schemas/settings";
 import { migrateSettingsRecordToV2 } from "./v2-add-week-start";
 import { migrateHabitRecordToV3 } from "./v3-normalize-habit-schedules";
@@ -104,6 +112,51 @@ describe("database migrations", () => {
     expect(migrated.schedule).toEqual({ kind: "weekdays", days: [1, 5] });
     expect(migrateHabitRecordToV3(migrated)).toEqual(migrated);
     currentDatabase.close();
+  });
+
+  it("keeps existing savings contributions when v5 adds the link index", async () => {
+    const name = createDatabaseName();
+    await createVersion4Database(name);
+
+    const database = new PersonalOsDatabase(name);
+    await database.open();
+    const migrated = savingsContributionSchema.parse(
+      await database
+        .table("savingsContributions")
+        .get(savingsContributionV4Fixture.id),
+    );
+
+    expect(database.verno).toBe(personalOsSchemaVersion);
+    expect(migrated).toEqual(savingsContributionV4Fixture);
+    expect(migrated.sourceTransactionId).toBeUndefined();
+    database.close();
+  });
+
+  it("lets only one contribution claim the same booking", async () => {
+    const name = createDatabaseName();
+    await createVersion4Database(name);
+    const database = new PersonalOsDatabase(name);
+    await database.open();
+    const table = database.table("savingsContributions");
+
+    await table.update(savingsContributionV4Fixture.id, {
+      sourceTransactionId: transactionV4Fixture.id,
+    });
+
+    await expect(
+      table.add({
+        ...savingsContributionV4Fixture,
+        id: "00000000-0000-4000-8000-000000009505",
+        sourceTransactionId: transactionV4Fixture.id,
+      }),
+    ).rejects.toBeInstanceOf(Error);
+    // Ohne Verweis bleibt ein zweiter Beitrag jederzeit möglich.
+    await table.add({
+      ...savingsContributionV4Fixture,
+      id: "00000000-0000-4000-8000-000000009506",
+    });
+    expect(await table.count()).toBe(2);
+    database.close();
   });
 });
 

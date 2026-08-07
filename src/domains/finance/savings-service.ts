@@ -15,10 +15,19 @@ import type {
 import {
   personalOsSavingsContributionRepository,
   personalOsSavingsGoalRepository,
+  personalOsTransactionRepository,
   type SavingsContributionRepository,
   type SavingsGoalRepository,
+  type TransactionRepository,
 } from "./repository";
 import { sortContributions } from "./savings";
+import {
+  checkSavingsLink,
+  describeSavingsLinkRejection,
+  SavingsLinkError,
+  type SavingsLinkRejection,
+  type SavingsLinkSubject,
+} from "./savings-link";
 
 /** Ein Beitrag gehört dauerhaft zu seinem Sparziel; ein Umhängen ist nicht vorgesehen. */
 export type SavingsContributionPatch = Partial<
@@ -58,27 +67,73 @@ const savingsTables: TransactionTableNames = [
   "savingsContributions",
 ];
 
+/** Eine Verknüpfung wird gegen die Buchungen geprüft; sie gehören dazu. */
+const savingsLinkTables: TransactionTableNames = [
+  ...savingsTables,
+  "transactions",
+];
+
 export function createSavingsService(
   dependencies: {
     contributions?: SavingsContributionRepository;
     database?: PersonalOsDatabase;
     goals?: SavingsGoalRepository;
+    transactions?: TransactionRepository;
   } = {},
 ): SavingsService {
   const database = dependencies.database ?? personalOsDatabase;
   const contributions =
     dependencies.contributions ?? personalOsSavingsContributionRepository;
   const goals = dependencies.goals ?? personalOsSavingsGoalRepository;
+  const transactions =
+    dependencies.transactions ?? personalOsTransactionRepository;
+
+  /**
+   * Die Prüfung liegt in derselben Transaktion wie das Schreiben. Zwischen
+   * „geprüft" und „gespeichert" kann deshalb keine zweite Verknüpfung auf
+   * dieselbe Ausgabe entstehen.
+   */
+  async function checkLink(
+    sourceTransactionId: string,
+    subject: SavingsLinkSubject,
+    editedContributionId?: string,
+  ): Promise<SavingsLinkRejection | undefined> {
+    const result = checkSavingsLink(
+      await transactions.get(sourceTransactionId),
+      subject,
+      // Auch ein zurückgenommener Beitrag belegt seine Ausgabe weiter.
+      await contributions.list({ includeArchived: true }),
+      editedContributionId,
+    );
+    return result.ok ? undefined : result.reason;
+  }
 
   return {
     // Prüfung und Schreiben liegen in derselben Transaktion, damit kein
     // Beitrag in einer fremden Währung an einem Ziel landen kann.
-    addContribution(details) {
-      return runInTransaction(database, savingsTables, async () => {
-        const goal = await goals.require(details.savingsGoalId);
-        assertSameCurrency(goal, details.money.currency);
-        return contributions.create(details);
-      });
+    async addContribution(details) {
+      const outcome = await runInTransaction(
+        database,
+        savingsLinkTables,
+        async () => {
+          const goal = await goals.require(details.savingsGoalId);
+          assertSameCurrency(goal, details.money.currency);
+          if (details.sourceTransactionId !== undefined) {
+            const rejection = await checkLink(details.sourceTransactionId, {
+              amountMinor: details.money.amountMinor,
+              bookedOn: details.bookedOn,
+              currency: details.money.currency,
+            });
+            // Die abgelehnte Verknüpfung verlässt die Transaktion als Ergebnis
+            // und nicht als Ausnahme: Sonst würde sie unterwegs zu einem
+            // allgemeinen Speicherfehler und verlöre ihren Grund.
+            if (rejection !== undefined) return { rejection };
+          }
+          return { contribution: await contributions.create(details) };
+        },
+      );
+
+      return unwrapLink(outcome);
     },
     archiveGoal: (id) => goals.archive(id),
     changeStatus: (id, status) => goals.update(id, { status }),
@@ -115,15 +170,37 @@ export function createSavingsService(
     removeContribution: (id) => contributions.archive(id),
     restoreContribution: (id) => contributions.restore(id),
     restoreGoal: (id) => goals.restore(id),
-    updateContribution(id, patch) {
-      return runInTransaction(database, savingsTables, async () => {
-        const current = await contributions.require(id);
-        if (patch.money !== undefined) {
-          const goal = await goals.require(current.savingsGoalId);
-          assertSameCurrency(goal, patch.money.currency);
-        }
-        return contributions.update(id, patch);
-      });
+    async updateContribution(id, patch) {
+      const outcome = await runInTransaction(
+        database,
+        savingsLinkTables,
+        async () => {
+          const current = await contributions.require(id);
+          if (patch.money !== undefined) {
+            const goal = await goals.require(current.savingsGoalId);
+            assertSameCurrency(goal, patch.money.currency);
+          }
+
+          // Geprüft wird der Beitrag, wie er nach der Änderung aussieht.
+          const next = { ...current, ...patch };
+          if (next.sourceTransactionId !== undefined) {
+            const rejection = await checkLink(
+              next.sourceTransactionId,
+              {
+                amountMinor: next.money.amountMinor,
+                bookedOn: next.bookedOn,
+                currency: next.money.currency,
+              },
+              id,
+            );
+            if (rejection !== undefined) return { rejection };
+          }
+
+          return { contribution: await contributions.update(id, patch) };
+        },
+      );
+
+      return unwrapLink(outcome);
     },
     updateGoal(id, details) {
       return runInTransaction(database, savingsTables, async () => {
@@ -144,6 +221,16 @@ export function createSavingsService(
       });
     },
   };
+}
+
+type LinkOutcome =
+  { contribution: SavingsContribution } | { rejection: SavingsLinkRejection };
+
+function unwrapLink(outcome: LinkOutcome): SavingsContribution {
+  if ("rejection" in outcome) {
+    throw new SavingsLinkError(describeSavingsLinkRejection(outcome.rejection));
+  }
+  return outcome.contribution;
 }
 
 function assertSameCurrency(goal: SavingsGoal, currency: string): void {

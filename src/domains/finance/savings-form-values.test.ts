@@ -8,6 +8,7 @@ import {
 } from "./savings-form-values";
 
 const goalId = "00000000-0000-4000-8000-000000007101";
+const transactionId = "00000000-0000-4000-8000-000000007201";
 
 describe("toSavingsGoalDetails", () => {
   it("reads a German amount exactly and keeps an empty deadline open", () => {
@@ -67,7 +68,12 @@ describe("toSavingsGoalDetails", () => {
 describe("toContributionDetails", () => {
   it("binds the amount to its goal and drops an empty note", () => {
     const result = toContributionDetails(
-      { amount: "50,00", bookedOn: "2026-01-15", note: "   " },
+      {
+        amount: "50,00",
+        bookedOn: "2026-01-15",
+        note: "   ",
+        sourceTransactionId: "",
+      },
       goalId,
       "EUR",
     );
@@ -84,7 +90,12 @@ describe("toContributionDetails", () => {
 
   it("rejects too many decimal places and an unreadable date", () => {
     const result = toContributionDetails(
-      { amount: "5,005", bookedOn: "15.01.2026", note: "" },
+      {
+        amount: "5,005",
+        bookedOn: "15.01.2026",
+        note: "",
+        sourceTransactionId: "",
+      },
       goalId,
       "EUR",
     );
@@ -98,9 +109,35 @@ describe("toContributionDetails", () => {
     });
   });
 
-  it("prefills the current day", () => {
-    expect(createContributionFormValues("2026-08-04").bookedOn).toBe(
-      "2026-08-04",
+  it("prefills the current day and starts without a link", () => {
+    expect(createContributionFormValues("2026-08-04")).toEqual({
+      amount: "",
+      bookedOn: "2026-08-04",
+      note: "",
+      sourceTransactionId: "",
+    });
+  });
+
+  it("keeps a chosen expense as the source of the contribution", () => {
+    const result = toContributionDetails(
+      {
+        amount: "50,00",
+        bookedOn: "2026-01-15",
+        note: "",
+        sourceTransactionId: transactionId,
+      },
+      goalId,
+      "EUR",
     );
+
+    expect(result).toEqual({
+      details: {
+        bookedOn: "2026-01-15",
+        money: { amountMinor: 5_000, currency: "EUR" },
+        savingsGoalId: goalId,
+        sourceTransactionId: transactionId,
+      },
+      ok: true,
+    });
   });
 });

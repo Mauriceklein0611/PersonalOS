@@ -261,11 +261,18 @@ export const savingsGoalDetailsSchema = z.object(savingsGoalFields).strict();
 
 export const savingsGoalSchema = entityMetaSchema.safeExtend(savingsGoalFields);
 
+/**
+ * `sourceTransactionId` verweist auf die Ausgabe, die diesen Beitrag ausgelöst
+ * hat. Sie ist dieselbe Bewegung aus Sicht des Sparziels, nicht eine zweite:
+ * Der verknüpfte Betrag steckt bereits in den Ausgaben des Monats. Ohne
+ * Verweis bleibt der Beitrag eine Bewegung, die der Zahlungsfluss nicht kennt.
+ */
 const savingsContributionFields = {
   savingsGoalId: entityIdSchema,
   money: moneySchema,
   bookedOn: calendarDaySchema,
   note: longText.optional(),
+  sourceTransactionId: entityIdSchema.optional(),
 };
 
 export const savingsContributionDetailsSchema = z

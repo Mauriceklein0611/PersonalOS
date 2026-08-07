@@ -124,6 +124,69 @@ test("records income and expenses and protects used categories", async ({
   expect(hasHorizontalOverflow).toBe(false);
 });
 
+test("counts a linked contribution once and names the bound amount", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/finanzen");
+
+  // Eine Ausgabe, die eine Sparbewegung ist: Sie verlässt das Konto einmal.
+  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("250,00");
+  await page
+    .getByRole("combobox", { name: /Kategorie der Buchung/ })
+    .selectOption({ label: "Sonstige Ausgaben" });
+  await page.getByRole("button", { name: "Buchung speichern" }).click();
+  await expect(page.getByText("Die Buchung wurde gespeichert.")).toBeVisible();
+
+  const balanceTile = page
+    .locator(".ui-metric-tile")
+    .filter({ has: page.getByText("Saldo", { exact: true }) });
+  await expect(balanceTile).toContainText("250,00");
+
+  await page
+    .getByRole("textbox", { name: /Name des Sparziels/ })
+    .fill("Synthetische Rücklage");
+  await page
+    .getByRole("textbox", { name: /Zielbetrag in Euro/ })
+    .fill("1.000,00");
+  await page.getByRole("button", { name: "Sparziel anlegen" }).click();
+  await page
+    .getByRole("button", {
+      name: "Verlauf von „Synthetische Rücklage“ anzeigen",
+    })
+    .click();
+
+  await page.getByRole("textbox", { name: /Beitrag in Euro/ }).fill("250,00");
+  await page
+    .getByRole("combobox", { name: /Belegende Ausgabe/ })
+    .selectOption({ index: 1 });
+  await page.getByRole("button", { name: "Beitrag hinzufügen" }).click();
+  await expect(page.getByText("Der Beitrag wurde gespeichert.")).toBeVisible();
+  await expect(
+    page.getByText(/Mit einer Ausgabe verknüpft/).first(),
+  ).toBeVisible();
+
+  // Der Betrag steckt in den Ausgaben und wird nicht ein zweites Mal
+  // abgezogen: „Nach Sparen übrig" bleibt gleich dem Saldo.
+  const flow = page.locator(".finance-savings-flow");
+  await expect(flow.getByText("Davon als Ausgabe gebucht")).toBeVisible();
+  await expect(flow).toContainText("250,00");
+  await expect(
+    flow.getByText(/Jeder Beitrag ist mit einer Ausgabe verknüpft/),
+  ).toBeVisible();
+  await expect(
+    flow.locator("div").filter({ hasText: "Nach Sparen übrig" }),
+  ).toContainText("250,00");
+
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+});
+
 test("tracks a savings goal only through its contributions", async ({
   page,
 }) => {

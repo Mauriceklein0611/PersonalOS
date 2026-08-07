@@ -21,8 +21,15 @@ import {
   Toast,
 } from "../../../components/ui";
 import { calendarDayForInstant } from "../../../lib/dates/calendar-days";
-import type { CalendarDay } from "../../../lib/dates/date-values";
-import { createMoney, formatMoney } from "../../../lib/money/money";
+import {
+  calendarDaySchema,
+  type CalendarDay,
+} from "../../../lib/dates/date-values";
+import {
+  createMoney,
+  formatMoney,
+  parseMoneyInput,
+} from "../../../lib/money/money";
 import { MixedCurrencyError } from "../mixed-currency";
 import {
   savingsGoalStatusLabels,
@@ -30,12 +37,14 @@ import {
   type SavingsContribution,
   type SavingsGoal,
   type SavingsGoalStatus,
+  type Transaction,
 } from "../model";
 import {
   calculateSavingsProgress,
   describeSavingsDeadline,
   type SavingsProgress,
 } from "../savings";
+import { findLinkableTransactions, SavingsLinkError } from "../savings-link";
 import {
   createContributionFormValues,
   createSavingsGoalFormValues,
@@ -57,6 +66,9 @@ type SavingsUndoAction = {
   run: () => Promise<unknown>;
 };
 
+/** Ohne Buchungen gibt es nichts zu verknüpfen; die Auswahl bleibt dann leer. */
+const noTransactions: readonly Transaction[] = [];
+
 export type SavingsPanelProps = {
   currency?: string;
   now?: () => Date;
@@ -64,6 +76,8 @@ export type SavingsPanelProps = {
   onChange?: () => void;
   service?: SavingsService;
   timeZone?: string;
+  /** Buchungen, aus denen eine belegende Ausgabe gewählt werden kann. */
+  transactions?: readonly Transaction[];
 };
 
 export function SavingsPanel({
@@ -72,6 +86,7 @@ export function SavingsPanel({
   onChange,
   service = personalOsSavingsService,
   timeZone: timeZoneOverride,
+  transactions = noTransactions,
 }: SavingsPanelProps) {
   const currency = useBaseCurrency(currencyOverride);
   const timeZone = useTimeZone(timeZoneOverride);
@@ -169,13 +184,39 @@ export function SavingsPanel({
         // Der Sparstand steckt auch in der Monatsübersicht; sie zieht nach.
         onChange?.();
         return true;
-      } catch {
-        setError(failure);
+      } catch (thrown) {
+        // Eine abgelehnte Verknüpfung nennt ihren Grund; er ist behebbar.
+        setError(thrown instanceof SavingsLinkError ? thrown.message : failure);
         return false;
       }
     },
     [onChange, reload],
   );
+
+  /**
+   * Angeboten wird nur, was auch gespeichert werden kann: eine Ausgabe
+   * desselben Monats über denselben Betrag in derselben Währung, die noch
+   * keinen Beitrag belegt. Ohne gültigen Betrag bleibt die Liste leer.
+   */
+  function linkCandidatesFor(goal: SavingsGoal): Transaction[] {
+    const amount = parseMoneyInput(
+      contributionValues.amount,
+      goal.target.currency,
+    );
+    const bookedOn = calendarDaySchema.safeParse(contributionValues.bookedOn);
+    if (!amount.ok || !bookedOn.success) return [];
+
+    return findLinkableTransactions(
+      transactions,
+      {
+        amountMinor: amount.money.amountMinor,
+        bookedOn: bookedOn.data,
+        currency: goal.target.currency,
+      },
+      contributions,
+      editedContributionId,
+    );
+  }
 
   function resetContributionForm() {
     setContributionValues(createContributionFormValues(today));
@@ -265,6 +306,8 @@ export function SavingsPanel({
               bookedOn: result.details.bookedOn,
               money: result.details.money,
               note: result.details.note,
+              // Ausdrücklich auch ohne Wert: So löst „Ohne Verknüpfung" sie.
+              sourceTransactionId: result.details.sourceTransactionId,
             }),
       editedId === undefined
         ? "Der Beitrag konnte nicht gespeichert werden."
@@ -288,6 +331,7 @@ export function SavingsPanel({
       amount: toAmountInput(contribution),
       bookedOn: contribution.bookedOn,
       note: contribution.note ?? "",
+      sourceTransactionId: contribution.sourceTransactionId ?? "",
     });
   }
 
@@ -422,6 +466,9 @@ export function SavingsPanel({
                 const entry = progressByGoal.get(goal.id);
                 const deadline = describeSavingsDeadline(goal, today);
                 const isSelected = goal.id === selectedId;
+                const linkCandidates = isSelected
+                  ? linkCandidatesFor(goal)
+                  : [];
 
                 return (
                   <li key={goal.id}>
@@ -523,6 +570,32 @@ export function SavingsPanel({
                             type="date"
                             value={contributionValues.bookedOn}
                           />
+                          <Select
+                            hint={describeLinkOptions(
+                              linkCandidates.length,
+                              contributionValues.amount,
+                            )}
+                            label="Belegende Ausgabe"
+                            onChange={(event) => {
+                              const sourceTransactionId =
+                                event.currentTarget.value;
+                              setContributionValues((current) => ({
+                                ...current,
+                                sourceTransactionId,
+                              }));
+                            }}
+                            value={contributionValues.sourceTransactionId}
+                          >
+                            <option value="">Ohne Verknüpfung</option>
+                            {linkCandidates.map((transaction) => (
+                              <option
+                                key={transaction.id}
+                                value={transaction.id}
+                              >
+                                {describeTransactionOption(transaction)}
+                              </option>
+                            ))}
+                          </Select>
                           <Input
                             hint="Optional, zum Beispiel ein kurzer Hinweis."
                             label="Notiz zum Beitrag"
@@ -571,6 +644,12 @@ export function SavingsPanel({
                                     <p className="savings-history-day">
                                       {formatDay(contribution.bookedOn)}
                                     </p>
+                                    {contribution.sourceTransactionId ? (
+                                      <p className="savings-history-link">
+                                        Mit einer Ausgabe verknüpft; im
+                                        Monatssaldo zählt der Betrag einmal.
+                                      </p>
+                                    ) : null}
                                     {contribution.note ? (
                                       <p>{contribution.note}</p>
                                     ) : null}
@@ -705,4 +784,28 @@ function formatDay(day: CalendarDay): string {
     dateStyle: "medium",
     timeZone: "UTC",
   }).format(new Date(`${day}T00:00:00.000Z`));
+}
+
+function describeTransactionOption(transaction: Transaction): string {
+  const description = transaction.description
+    ? ` · ${transaction.description}`
+    : "";
+  return `${formatDay(transaction.bookedOn)} · ${formatMoney(
+    transaction.money,
+  )}${description}`;
+}
+
+/**
+ * Der Hinweis nennt den Grund für eine leere Auswahl. „Keine passende
+ * Ausgabe" ist eine Information, kein Fehler: Ein Beitrag ohne belegende
+ * Ausgabe bleibt gültig.
+ */
+function describeLinkOptions(candidateCount: number, amount: string): string {
+  if (amount.trim().length === 0) {
+    return "Optional. Gib zuerst einen Betrag ein, dann erscheinen passende Ausgaben.";
+  }
+  if (candidateCount === 0) {
+    return "Optional. Für diesen Betrag gibt es im Monat des Beitrags keine passende, noch freie Ausgabe.";
+  }
+  return "Optional. Eine verknüpfte Ausgabe zählt im Monatssaldo genau einmal.";
 }

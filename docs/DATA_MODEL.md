@@ -20,9 +20,9 @@ type EntityMeta = {
 
 Die gemeinsamen Werte werden in `src/db/types.ts` und `src/lib/` mit Zod validiert. UUIDs sind Version 4, Zeitpunkte besitzen UTC- und Millisekundenpräzision (`YYYY-MM-DDTHH:mm:ss.sssZ`), und reine Kalendertage werden niemals implizit in eine Zeitzone umgerechnet.
 
-## Persistenzvertrag v3
+## Persistenzvertrag v5
 
-Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`. Version `3` dedupliziert und sortiert bestehende Wochentagpläne; ein historisch akzeptiertes `endDate` vor `startDate` wird entfernt. Die Store- und Indexstruktur bleibt dabei unverändert. Die Versionsnummer der Datenbank ist unabhängig von der späteren Exportformat-Version.
+Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`. Version `3` dedupliziert und sortiert bestehende Wochentagpläne; ein historisch akzeptiertes `endDate` vor `startDate` wird entfernt. Version `4` legt den Store `hiddenInsights` an. Version `5` ergänzt den eindeutigen Index `&sourceTransactionId` auf `savingsContributions`; bestehende Beiträge tragen kein Quellfeld und bleiben unverändert gültig. Alle Aufstiege sind vorwärtsgerichtet. Die Versionsnummer der Datenbank ist unabhängig von der Exportformat-Version.
 
 | Store | Datensätze |
 |---|---|
@@ -38,7 +38,9 @@ Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Qu
 
 Alle Stores verwenden die clientseitig erzeugte UUID `id` als Primärschlüssel. Fachlich eindeutige Kombinationen wie Habit/Tag, Journal/Tag und Budgetmonat/Kategorie besitzen zusätzlich einen eindeutigen Index. Domain-Repositories erweitern den gemeinsamen Metadatenvertrag um ihr eigenes Zod-Schema; rohe Dexie-Zugriffe bleiben auf `src/db/` beschränkt.
 
-Der Voll-Export bildet alle Stores unter ihren unveränderten Namen ab. Die Record-Schemas stehen in `src/db/schemas/domain-records.ts`; Format, Counts und Metadaten in `src/db/backup/format.ts`. Ein Restore prüft IDs, eindeutige Kombinationen sowie Goal-, Habit-, Finanzkategorie- und Sparziel-Referenzen, bevor lokale Daten ersetzt werden.
+Der Voll-Export bildet alle Stores unter ihren unveränderten Namen ab. Die Record-Schemas stehen in `src/db/schemas/domain-records.ts`; Format, Counts und Metadaten in `src/db/backup/format.ts`. Ein Restore prüft IDs, eindeutige Kombinationen sowie Goal-, Habit-, Finanzkategorie-, Sparziel- und Buchungsreferenzen, bevor lokale Daten ersetzt werden.
+
+Neue Exporte tragen die Formatversion `3`. Sie kann auf einem Sparbeitrag `sourceTransactionId` enthalten. Die Versionen `1` und `2` bleiben lesbar: Version `1` kennt `hiddenInsights` nicht, Version `2` keine verknüpften Beiträge.
 
 ## Settings
 
@@ -220,6 +222,7 @@ type SavingsContribution = EntityMeta & {
   money: Money;
   bookedOn: string;
   note?: string;
+  sourceTransactionId?: string; // belegende Ausgabe, siehe ADR 0011
 };
 ```
 
@@ -236,6 +239,10 @@ Invarianten:
 - Weicht die Währung einer Buchung vom Budgetlimit ab, wird die Aggregation verweigert und benannt, statt umzurechnen.
 - Ein Limit von null ist zulässig; die Quote bleibt dann ohne Angabe statt durch null zu teilen.
 - Sparbeiträge sind eigene Datensätze und keine normalen Ausgaben, sofern der Nutzer dies nicht ausdrücklich anders modelliert.
+- `sourceTransactionId` verweist auf die Ausgabe, die denselben Betrag bereits abgebildet hat ([ADR 0011](decisions/0011-savings-contribution-links-a-transaction.md)). Die Verknüpfung ist optional; ein Beitrag ohne Verweis bleibt gültig.
+- Eine Verknüpfung wird nur angenommen, wenn die Buchung nicht archiviert ist, `kind: "expense"` trägt, dieselbe Währung und denselben `amountMinor` hat, im selben Kalendermonat wie der Beitrag liegt und noch keinen Beitrag belegt. Geprüft und geschrieben wird in derselben Transaktion.
+- Der Index `&sourceTransactionId` (Schema v5) ist eindeutig und gilt **datenbankweit**: Auch ein zurückgenommener Beitrag hält seine Ausgabe belegt. Beiträge ohne Verweis tragen den Schlüssel nicht und stehen deshalb nicht im Index.
+- Der Restore prüft zusätzlich, dass jede `sourceTransactionId` auf eine enthaltene Buchung zeigt und keine Buchung zweimal belegt ist.
 - Der aktuelle Betrag eines Sparziels wird ausschließlich aus seinen Beiträgen berechnet und nie gespeichert. Ein zurückgenommener, also archivierter, Beitrag zählt nicht mehr mit, bleibt aber wiederherstellbar.
 - Sparziel und Beiträge verwenden dieselbe Währung. Prüfung und Schreiben laufen in derselben Transaktion; eine Währungsänderung am Ziel wird abgelehnt, solange Beiträge existieren. Weicht ein importierter Beitrag trotzdem ab, wird die Aggregation verweigert und benannt, statt umzurechnen.
 - Ein Zielbetrag von null ist zulässig; die Quote bleibt dann ohne Angabe statt durch null zu teilen. Über 100 Prozent wird nicht gekappt: Der offene Betrag ist die ganzzahlige Differenz und wird negativ.
@@ -244,6 +251,7 @@ Invarianten:
 - Das endgültige Löschen eines Sparziels entfernt seine Beiträge in derselben Transaktion und nennt vorher deren Anzahl. Verwaiste Beiträge entstehen dadurch nicht; der Restore prüft diese Referenz zusätzlich.
 - Die Monatsübersicht (`src/domains/finance/overview.ts`) ist eine reine Leseauswertung. Sie wird bei jeder Änderung neu berechnet und niemals gespeichert; keine Buchung wird dabei verändert.
 - Sie zählt ausschließlich nicht archivierte Buchungen des gewählten Kalendermonats. Der Sparstand ist dagegen kumulativ und nicht auf den Monat begrenzt, weil ein Sparziel über Monate hinweg wächst.
+- `savingsThisMonth` trennt die Beiträge des Monats in `linkedMinor` und `unlinkedMinor`. Ein Beitrag gilt nur als belegt, wenn seine Ausgabe in genau diesem Monat aktiv ist; eine archivierte Buchung steckt nicht mehr in der Monatssumme und deckt den Beitrag deshalb nicht länger. `balanceAfterSavingsMinor` ist der Saldo abzüglich `unlinkedMinor` — belegte Beträge werden nicht erneut abgezogen, weil sie bereits in den Ausgaben stehen.
 - Weicht die Währung einer Buchung oder eines Budgets ab, wird die Auswertung verweigert und benannt, statt umzurechnen.
 - Fehlen Vormonatsdaten, meldet der Vergleich `unavailable` mit einer Begründung. Eine erfundene Null wäre eine Aussage über einen Monat, für den nichts vorliegt. Liegen die Ausgaben des Vormonats bei null, bleibt die relative Änderung ohne Angabe; die absolute Differenz bleibt gültig.
 

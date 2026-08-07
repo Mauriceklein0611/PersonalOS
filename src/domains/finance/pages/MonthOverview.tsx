@@ -127,6 +127,49 @@ export function MonthOverview({
             type="bar"
           />
 
+          {overview.savingsThisMonth.contributionCount > 0 ? (
+            <section
+              aria-labelledby="finance-savings-flow-title"
+              className="finance-savings-flow"
+            >
+              <h3 id="finance-savings-flow-title">Sparen in diesem Monat</h3>
+              <dl>
+                <div>
+                  <dt>Sparbeiträge</dt>
+                  <dd>
+                    {formatMoney(
+                      createMoney(
+                        overview.savingsThisMonth.totalMinor,
+                        overview.currency,
+                      ),
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Davon als Ausgabe gebucht</dt>
+                  <dd>
+                    {formatMoney(
+                      createMoney(
+                        overview.savingsThisMonth.linkedMinor,
+                        overview.currency,
+                      ),
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Nach Sparen übrig</dt>
+                  <dd>
+                    {formatSignedMinorUnits(
+                      overview.balanceAfterSavingsMinor,
+                      overview.currency,
+                    )}
+                  </dd>
+                </div>
+              </dl>
+              <p className="finance-hint">{describeSavingsFlow(overview)}</p>
+            </section>
+          ) : null}
+
           <ProgressBar
             caption={describeSavings(overview)}
             label="Sparziele"
@@ -202,6 +245,31 @@ function describeSource(overview: MonthlyOverview): string {
       : `alle ${total} ${total === 1 ? "Kategorie" : "Kategorien"}`;
 
   return `Grundlage: nicht archivierte Ausgaben des Zeitraums, ${scope}.`;
+}
+
+/**
+ * Erklärt den Unterschied zwischen den beiden Beträgen. Ein verknüpfter
+ * Beitrag steckt schon in den Ausgaben; ein unverknüpfter fehlt im Saldo und
+ * wird deshalb zusätzlich abgezogen.
+ */
+function describeSavingsFlow(overview: MonthlyOverview): string {
+  const { contributionCount, linkedMinor, unlinkedMinor } =
+    overview.savingsThisMonth;
+  const basis = `Grundlage: ${contributionCount} ${
+    contributionCount === 1 ? "Beitrag" : "Beiträge"
+  } mit Datum in diesem Monat.`;
+
+  if (unlinkedMinor === 0) {
+    return `Jeder Beitrag ist mit einer Ausgabe verknüpft und zählt genau einmal. ${basis}`;
+  }
+  if (linkedMinor === 0) {
+    return `Kein Beitrag ist mit einer Ausgabe verknüpft. ${formatMoney(
+      createMoney(unlinkedMinor, overview.currency),
+    )} sind abgeflossen, ohne als Ausgabe gebucht zu sein, und deshalb hier zusätzlich abgezogen. ${basis}`;
+  }
+  return `${formatMoney(
+    createMoney(unlinkedMinor, overview.currency),
+  )} sind nicht mit einer Ausgabe verknüpft und deshalb hier zusätzlich abgezogen. ${basis}`;
 }
 
 function describeSavings(overview: MonthlyOverview): string {

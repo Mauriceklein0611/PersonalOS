@@ -9,7 +9,9 @@ import type { SavingsGoal } from "./model";
 import {
   createSavingsContributionRepository,
   createSavingsGoalRepository,
+  createTransactionRepository,
 } from "./repository";
+import { SavingsLinkError } from "./savings-link";
 import { calculateSavingsProgress } from "./savings";
 import { createSavingsService, type SavingsService } from "./savings-service";
 
@@ -28,6 +30,20 @@ function buildService(): SavingsService {
     contributions: createSavingsContributionRepository(database),
     database,
     goals: createSavingsGoalRepository(database),
+    transactions: createTransactionRepository(database),
+  });
+}
+
+async function createExpense(
+  amountMinor = 25_000,
+  bookedOn = "2026-08-05",
+  currency = "EUR",
+) {
+  return createTransactionRepository(database).create({
+    bookedOn,
+    categoryId: "00000000-0000-4000-8000-000000009701",
+    kind: "expense",
+    money: { amountMinor, currency },
   });
 }
 
@@ -235,5 +251,101 @@ describe("savings service", () => {
 
     expect(await service.listGoals()).toEqual([goal]);
     expect((await readProgress(service, goal)).savedMinor).toBe(35_000);
+  });
+
+  it("stores the expense that backs a contribution", async () => {
+    const service = buildService();
+    const goal = await createGoal(service);
+    const expense = await createExpense();
+
+    const contribution = await service.addContribution({
+      bookedOn: "2026-08-20",
+      money: { amountMinor: 25_000, currency: "EUR" },
+      savingsGoalId: goal.id,
+      sourceTransactionId: expense.id,
+    });
+
+    expect(contribution.sourceTransactionId).toBe(expense.id);
+    expect((await service.listContributions())[0]?.sourceTransactionId).toBe(
+      expense.id,
+    );
+  });
+
+  it("refuses a booking that does not match the contribution", async () => {
+    const service = buildService();
+    const goal = await createGoal(service);
+    const income = await createTransactionRepository(database).create({
+      bookedOn: "2026-08-05",
+      categoryId: "00000000-0000-4000-8000-000000009701",
+      kind: "income",
+      money: { amountMinor: 25_000, currency: "EUR" },
+    });
+    const otherMonth = await createExpense(25_000, "2026-07-05");
+    const otherAmount = await createExpense(10_000);
+
+    for (const sourceTransactionId of [
+      income.id,
+      otherMonth.id,
+      otherAmount.id,
+      "00000000-0000-4000-8000-000000009799",
+    ]) {
+      await expect(
+        service.addContribution({
+          bookedOn: "2026-08-20",
+          money: { amountMinor: 25_000, currency: "EUR" },
+          savingsGoalId: goal.id,
+          sourceTransactionId,
+        }),
+      ).rejects.toBeInstanceOf(SavingsLinkError);
+    }
+
+    expect(await service.listContributions()).toEqual([]);
+  });
+
+  it("lets one expense back only a single contribution", async () => {
+    const service = buildService();
+    const goal = await createGoal(service);
+    const expense = await createExpense();
+    const details = {
+      bookedOn: "2026-08-20",
+      money: { amountMinor: 25_000, currency: "EUR" },
+      savingsGoalId: goal.id,
+      sourceTransactionId: expense.id,
+    };
+    const first = await service.addContribution(details);
+
+    await expect(service.addContribution(details)).rejects.toBeInstanceOf(
+      SavingsLinkError,
+    );
+    // Auch ein zurückgenommener Beitrag hält seine Ausgabe weiter belegt.
+    await service.removeContribution(first.id);
+    await expect(service.addContribution(details)).rejects.toBeInstanceOf(
+      SavingsLinkError,
+    );
+  });
+
+  it("checks the link again when the contribution changes", async () => {
+    const service = buildService();
+    const goal = await createGoal(service);
+    const expense = await createExpense();
+    const contribution = await service.addContribution({
+      bookedOn: "2026-08-20",
+      money: { amountMinor: 25_000, currency: "EUR" },
+      savingsGoalId: goal.id,
+      sourceTransactionId: expense.id,
+    });
+
+    await expect(
+      service.updateContribution(contribution.id, {
+        money: { amountMinor: 30_000, currency: "EUR" },
+      }),
+    ).rejects.toBeInstanceOf(SavingsLinkError);
+
+    const released = await service.updateContribution(contribution.id, {
+      money: { amountMinor: 30_000, currency: "EUR" },
+      sourceTransactionId: undefined,
+    });
+    expect(released.sourceTransactionId).toBeUndefined();
+    expect(released.money.amountMinor).toBe(30_000);
   });
 });

@@ -147,6 +147,10 @@
   font-weight: var(--font-weight-medium);
 }
 
+.savings-history-link {
+  color: var(--text-muted);
+}
+
 .savings-history-copy p + p {
   margin: var(--space-1) 0 0;
   overflow-wrap: anywhere;

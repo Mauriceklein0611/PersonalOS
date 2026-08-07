@@ -1,4 +1,4 @@
-export const personalOsSchemaVersion = 4;
+export const personalOsSchemaVersion = 5;
 
 /**
  * Die Tabellen der Versionen 1 bis 3. Sie stehen getrennt, damit eine neue
@@ -68,4 +68,16 @@ export const personalOsSchemaV3 = {
 export const personalOsSchemaV4 = {
   ...personalOsSchemaV3,
   hiddenInsights: "id, &insightId, ruleId, archivedAt, updatedAt",
+} satisfies Record<PersonalOsTableName, string>;
+
+/**
+ * `sourceTransactionId` ist eindeutig: Eine Ausgabe kann höchstens einen
+ * Sparbeitrag belegen, sonst wäre derselbe Betrag mehrfach gebunden. Ein
+ * Beitrag ohne Verknüpfung trägt den Schlüssel nicht und steht deshalb auch
+ * nicht im Index.
+ */
+export const personalOsSchemaV5 = {
+  ...personalOsSchemaV4,
+  savingsContributions:
+    "id, savingsGoalId, bookedOn, money.currency, &sourceTransactionId, archivedAt, updatedAt",
 } satisfies Record<PersonalOsTableName, string>;

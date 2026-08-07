@@ -56,8 +56,23 @@ export type SavingsSummary = {
   targetMinor: number;
 };
 
+/**
+ * Die Sparbewegungen dieses Monats. `linkedMinor` steckt bereits in
+ * `expense`; der Betrag ist gebunden, aber nicht zusätzlich abzuziehen.
+ * `unlinkedMinor` kennt der Zahlungsfluss dagegen nicht: Diese Beträge sind
+ * abgeflossen, ohne als Ausgabe erfasst zu sein.
+ */
+export type MonthlySavingsFlow = {
+  contributionCount: number;
+  linkedMinor: number;
+  totalMinor: number;
+  unlinkedMinor: number;
+};
+
 export type MonthlyOverview = {
   balanceMinor: number;
+  /** Saldo abzüglich der Sparbeiträge, die keine Ausgabe belegt. */
+  balanceAfterSavingsMinor: number;
   /** Fehlt, wenn für den Monat kein Budget gesetzt ist. */
   budget: BudgetSummary | undefined;
   currency: string;
@@ -68,6 +83,7 @@ export type MonthlyOverview = {
   month: string;
   previousExpense: MonthComparison;
   savings: SavingsSummary;
+  savingsThisMonth: MonthlySavingsFlow;
   transactionCount: number;
 };
 
@@ -103,9 +119,17 @@ export function buildMonthlyOverview({
   );
   const income = sumOf(inMonth, "income", currency);
   const expense = sumOf(inMonth, "expense", currency);
+  const balanceMinor = subtractMoney(income, expense);
+  const savingsThisMonth = summariseSavingsFlow(
+    contributions,
+    inMonth,
+    month,
+    currency,
+  );
 
   return {
-    balanceMinor: subtractMoney(income, expense),
+    balanceAfterSavingsMinor: balanceMinor - savingsThisMonth.unlinkedMinor,
+    balanceMinor,
     budget: summariseBudgets(budgets, inMonth, month, currency),
     currency,
     expense,
@@ -114,6 +138,7 @@ export function buildMonthlyOverview({
     month,
     previousExpense: compareWithPreviousMonth(active, month, currency),
     savings: summariseSavings(savingsGoals, contributions, currency),
+    savingsThisMonth,
     transactionCount: inMonth.length,
   };
 }
@@ -288,6 +313,51 @@ function summariseSavings(
     ratio: targetMinor === 0 ? null : savedMinor / targetMinor,
     savedMinor,
     targetMinor,
+  };
+}
+
+/**
+ * Die Sparbeiträge des Monats, getrennt nach belegt und unbelegt. Ein Beitrag
+ * gilt nur dann als belegt, wenn seine Ausgabe in genau diesem Monat aktiv
+ * ist: Eine archivierte oder verschobene Buchung steckt nicht mehr in der
+ * Monatssumme und darf den Beitrag deshalb nicht länger decken.
+ */
+function summariseSavingsFlow(
+  contributions: readonly SavingsContribution[],
+  monthTransactions: readonly Transaction[],
+  month: string,
+  currency: string,
+): MonthlySavingsFlow {
+  const expenseIds = new Set(
+    monthTransactions
+      .filter((transaction) => transaction.kind === "expense")
+      .map((transaction) => transaction.id),
+  );
+  const inMonth = contributions.filter(
+    (contribution) =>
+      contribution.archivedAt === undefined &&
+      contribution.money.currency === currency &&
+      monthOfDay(contribution.bookedOn) === month,
+  );
+
+  let linkedMinor = 0;
+  let unlinkedMinor = 0;
+  for (const contribution of inMonth) {
+    const isLinked =
+      contribution.sourceTransactionId !== undefined &&
+      expenseIds.has(contribution.sourceTransactionId);
+    if (isLinked) {
+      linkedMinor += contribution.money.amountMinor;
+    } else {
+      unlinkedMinor += contribution.money.amountMinor;
+    }
+  }
+
+  return {
+    contributionCount: inMonth.length,
+    linkedMinor,
+    totalMinor: linkedMinor + unlinkedMinor,
+    unlinkedMinor,
   };
 }
 

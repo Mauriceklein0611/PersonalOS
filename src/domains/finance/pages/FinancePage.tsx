@@ -756,6 +756,7 @@ export function FinancePage({
             onChange={() => void reloadSavings()}
             service={savingsService}
             timeZone={timeZone}
+            transactions={transactions}
           />
 
           <section className="page-section">
