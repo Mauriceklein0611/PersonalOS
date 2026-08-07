@@ -7,7 +7,8 @@ import {
 } from "react";
 
 import { useTimeZone } from "../../../app/settings/settings-context";
-import { Button, Input, Toast } from "../../../components/ui";
+import { Button, Input, SearchField, Toast } from "../../../components/ui";
+import { createSearchMatcher } from "../../../lib/text/search-terms";
 import {
   personalOsGoalLinkService,
   type GoalLinkService,
@@ -70,6 +71,7 @@ export function TasksPage({
   const [notice, setNotice] = useState<string>();
   const [quickError, setQuickError] = useState<string>();
   const [quickTitle, setQuickTitle] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [undoTask, setUndoTask] = useState<Task>();
   const context = useMemo(
@@ -119,7 +121,21 @@ export function TasksPage({
     };
   }, [service]);
 
-  const visibleTasks = queryTasks(tasks, activeView, context);
+  // Der Begriff filtert vor der Ansichtsabfrage. So kostet der Textvergleich
+  // einmal je Aufgabe statt einmal je Aufgabe und Ansicht, und die Zähler der
+  // Reiter zeigen dieselbe Auswahl wie die Liste darunter.
+  const matcher = useMemo(() => createSearchMatcher(searchTerm), [searchTerm]);
+  const matchingTasks = useMemo(
+    () =>
+      matcher.isActive
+        ? tasks.filter((task) => matcher.matches(task.title, task.notes))
+        : tasks,
+    [matcher, tasks],
+  );
+  const visibleTasks = queryTasks(matchingTasks, activeView, context);
+  const searchResultLabel = matcher.isActive
+    ? `${visibleTasks.length} von ${queryTasks(tasks, activeView, context).length} Aufgaben in dieser Ansicht`
+    : undefined;
 
   async function quickCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -238,13 +254,22 @@ export function TasksPage({
         </p>
       ) : null}
 
+      <SearchField
+        hint="Sucht in Titel und Notiz der angezeigten Ansicht."
+        label="Aufgaben durchsuchen"
+        onChange={setSearchTerm}
+        placeholder="Zum Beispiel Rechnung"
+        resultLabel={searchResultLabel}
+        value={searchTerm}
+      />
+
       <div
         className="task-view-tabs"
         role="tablist"
         aria-label="Aufgabenansicht"
       >
         {taskViews.map((view) => {
-          const count = queryTasks(tasks, view.id, context).length;
+          const count = queryTasks(matchingTasks, view.id, context).length;
           return (
             <button
               aria-controls="task-view-panel"
@@ -274,9 +299,13 @@ export function TasksPage({
           </p>
         ) : visibleTasks.length === 0 ? (
           <div className="task-view-state" role="note">
-            <strong>Noch nichts hier</strong>
+            <strong>
+              {matcher.isActive ? "Kein Treffer" : "Noch nichts hier"}
+            </strong>
             <span>
-              {taskViews.find((view) => view.id === activeView)?.empty}
+              {matcher.isActive
+                ? `Zu „${searchTerm.trim()}“ passt in dieser Ansicht keine Aufgabe. Prüfe die Schreibweise oder wechsle die Ansicht.`
+                : taskViews.find((view) => view.id === activeView)?.empty}
             </span>
           </div>
         ) : (

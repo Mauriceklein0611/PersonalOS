@@ -62,9 +62,19 @@ Ein Hinweis mit „Rückgängig“ verschwindet erst, wenn er geschlossen wird o
 
 ## Gemeinsame Bausteine sind verbindlich
 
-Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker- oder Diagramm-Bausteine. Sie verwenden `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell` und `Chart` aus `src/components/ui`.
+Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker-, Such- oder Diagramm-Bausteine. Sie verwenden `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell`, `SearchField` und `Chart` aus `src/components/ui`.
 
 Fehlt eine Variante, wird der gemeinsame Baustein erweitert. Ein lokaler Nachbau wirkt zunächst kleiner, entkoppelt die Seite aber von Tokens, Kontrasttests und Leerzuständen und muss später erneut angefasst werden.
+
+## Freitextsuche in Listen
+
+`SearchField` filtert eine bereits geladene Liste. Es gibt keinen Index und keine domänenübergreifende Suche.
+
+- Der Vergleich läuft über `createSearchMatcher` aus `src/lib/text/search-terms.ts`. Er ignoriert Groß- und Kleinschreibung und Diakritika, sodass „Muller“ auch „Müller“ findet.
+- Das Feld nennt die Trefferzahl im Verhältnis zur Grundmenge, zum Beispiel „3 von 12 Aufgaben in dieser Ansicht“. Die Ansage steht in einem `role="status"`-Bereich.
+- Zähler in der Umgebung — etwa die Reiter der Aufgabenseite — zeigen dieselbe gefilterte Auswahl wie die Liste darunter. Ein Zähler darf der sichtbaren Länge nie unerklärt widersprechen.
+- Der Leerzustand „Kein Treffer“ nennt den Suchbegriff und unterscheidet sich vom Leerzustand ohne Daten.
+- Der Suchbegriff wird nicht gespeichert und nicht protokolliert; `autoComplete="off"` verhindert die Formularhistorie des Browsers. Das Journal zeigt auch bei einem Treffer keinen Textauszug über die übliche Verlaufszeile hinaus.
 
 ## Glas-Ästhetik
 

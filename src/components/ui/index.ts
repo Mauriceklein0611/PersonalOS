@@ -24,6 +24,7 @@ export {
   type RankedBarItem,
   type RankedBarListProps,
 } from "./RankedBarList";
+export { SearchField, type SearchFieldProps } from "./SearchField";
 export { Select, type SelectProps } from "./Select";
 export { Skeleton, type SkeletonProps } from "./Skeleton";
 export { Textarea, type TextareaProps } from "./Textarea";

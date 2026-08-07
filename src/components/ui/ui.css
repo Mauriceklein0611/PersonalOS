@@ -175,6 +175,23 @@
   appearance: auto;
 }
 
+.ui-search-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* Leer bleibt die Zeile ohne Höhe, damit die Liste nicht springt. */
+.ui-search-result:empty {
+  display: none;
+}
+
+.ui-search-result {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
 .ui-field-hint,
 .ui-field-error {
   font-size: var(--font-size-xs);

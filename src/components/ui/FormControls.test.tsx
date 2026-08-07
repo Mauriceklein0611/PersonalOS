@@ -1,9 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Checkbox } from "./Checkbox";
 import { Input } from "./Input";
+import { SearchField } from "./SearchField";
 import { Select } from "./Select";
 import { Textarea } from "./Textarea";
 
@@ -40,6 +41,31 @@ describe("form controls", () => {
     expect(
       screen.getByRole("combobox", { name: "Priorität" }),
     ).toBeInTheDocument();
+  });
+
+  it("labels the search field and announces the match count", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <SearchField
+        label="Aufgaben durchsuchen"
+        onChange={onChange}
+        resultLabel="1 von 12 Aufgaben"
+        value=""
+      />,
+    );
+
+    const search = screen.getByRole("searchbox", {
+      name: "Aufgaben durchsuchen",
+    });
+    search.focus();
+    await user.keyboard("Miete");
+
+    expect(search).toHaveFocus();
+    expect(onChange).toHaveBeenCalledWith("M");
+    // Der Suchbegriff darf nicht in der Formularhistorie des Browsers landen.
+    expect(search).toHaveAttribute("autocomplete", "off");
+    expect(screen.getByRole("status")).toHaveTextContent("1 von 12 Aufgaben");
   });
 
   it("toggles the native checkbox with the keyboard", async () => {

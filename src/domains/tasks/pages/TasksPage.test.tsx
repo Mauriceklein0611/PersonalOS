@@ -100,6 +100,85 @@ describe("TasksPage", () => {
     expect(screen.getByText("Hoch")).toBeInTheDocument();
   });
 
+  it("finds a task by its note and keeps counts and list in step", async () => {
+    const user = userEvent.setup();
+    const { service } = createMemoryTaskService([
+      createTask(),
+      {
+        ...createTask(),
+        id: "00000000-0000-4000-8000-000000000908",
+        notes: "Bei Müller nachfragen",
+        title: "Rechnung prüfen",
+      },
+    ]);
+
+    render(
+      <TasksPage
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    await screen.findByRole("heading", {
+      level: 2,
+      name: "Wochenplan erstellen",
+    });
+    // Ohne Umlaut geschrieben: Die Suche vergleicht ohne Diakritika.
+    await user.type(
+      screen.getByRole("searchbox", { name: "Aufgaben durchsuchen" }),
+      "muller",
+    );
+
+    expect(
+      await screen.findByText("1 von 2 Aufgaben in dieser Ansicht"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 2, name: "Wochenplan erstellen" }),
+    ).not.toBeInTheDocument();
+    // Der Zähler des Reiters zeigt dieselbe Auswahl wie die Liste darunter.
+    expect(
+      screen.getByRole("tab", { name: /^Inbox1 Aufgaben$/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("separates an empty result from an empty view", async () => {
+    const user = userEvent.setup();
+    const { service } = createMemoryTaskService([createTask()]);
+
+    render(
+      <TasksPage
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    await screen.findByRole("heading", {
+      level: 2,
+      name: "Wochenplan erstellen",
+    });
+    await user.type(
+      screen.getByRole("searchbox", { name: "Aufgaben durchsuchen" }),
+      "Segeltörn",
+    );
+
+    expect(await screen.findByText("Kein Treffer")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Zu „Segeltörn“ passt in dieser Ansicht keine Aufgabe. Prüfe die Schreibweise oder wechsle die Ansicht.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "Die Inbox ist leer. Erfasse oben eine Aufgabe mit Titel.",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
   it("restores an archived task through the undo action", async () => {
     const user = userEvent.setup();
     const { service } = createMemoryTaskService([createTask()]);

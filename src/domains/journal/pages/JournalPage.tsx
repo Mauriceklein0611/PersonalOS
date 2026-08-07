@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { useTimeZone } from "../../../app/settings/settings-context";
-import { Button, EmptyState, Input, Textarea } from "../../../components/ui";
+import {
+  Button,
+  EmptyState,
+  Input,
+  SearchField,
+  Textarea,
+} from "../../../components/ui";
 import {
   addCalendarDays,
   calendarDayForInstant,
@@ -10,6 +16,7 @@ import {
   calendarDaySchema,
   type CalendarDay,
 } from "../../../lib/dates/date-values";
+import { createSearchMatcher } from "../../../lib/text/search-terms";
 import { JournalHistoryList } from "../components/JournalHistoryList";
 import { JournalScaleField } from "../components/JournalScaleField";
 import {
@@ -60,6 +67,7 @@ export function JournalPage({
   const [loadedFor, setLoadedFor] = useState<CalendarDay>();
   const [reloadToken, setReloadToken] = useState(0);
   const [savedAt, setSavedAt] = useState<string>();
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState<CalendarDay>(today);
   const [values, setValues] = useState<JournalFormValues>(() =>
     journalEntryToFormValues(undefined, today),
@@ -94,6 +102,19 @@ export function JournalPage({
 
   const isLoading = loadedFor !== selectedDate;
   const isDirty = !isSameJournalFormValues(values, baseline);
+
+  // Die Suche filtert nur den Verlauf. Sie zeigt keinen Textauszug, damit im
+  // Verlauf nicht mehr steht als ohne Suche.
+  const matcher = useMemo(() => createSearchMatcher(searchTerm), [searchTerm]);
+  const visibleEntries = useMemo(
+    () =>
+      matcher.isActive
+        ? entries.filter((historyEntry) =>
+            matcher.matches(...journalTextKeys.map((key) => historyEntry[key])),
+          )
+        : entries,
+    [entries, matcher],
+  );
 
   useEffect(() => {
     if (!isDirty) return;
@@ -299,11 +320,32 @@ export function JournalPage({
           title="Noch kein Eintrag"
         />
       ) : (
-        <JournalHistoryList
-          entries={entries}
-          onSelect={selectDate}
-          selectedDate={selectedDate}
-        />
+        <>
+          <SearchField
+            hint="Sucht in den Textfeldern deiner Einträge. Der Verlauf zeigt weiterhin keinen Auszug."
+            label="Verlauf durchsuchen"
+            onChange={setSearchTerm}
+            placeholder="Zum Beispiel Spaziergang"
+            resultLabel={
+              matcher.isActive
+                ? `${visibleEntries.length} von ${entries.length} Einträgen im Verlauf`
+                : undefined
+            }
+            value={searchTerm}
+          />
+          {visibleEntries.length === 0 ? (
+            <EmptyState
+              description={`Zu „${searchTerm.trim()}“ passt kein Eintrag. Prüfe die Schreibweise; Skalenwerte sind nicht durchsuchbar.`}
+              title="Kein Treffer"
+            />
+          ) : (
+            <JournalHistoryList
+              entries={visibleEntries}
+              onSelect={selectDate}
+              selectedDate={selectedDate}
+            />
+          )}
+        </>
       )}
     </section>
   );
