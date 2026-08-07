@@ -179,6 +179,44 @@ describe("TodayPage", () => {
     expect(within(tile).getByText("Erfasst")).toBeInTheDocument();
     expect(within(tile).getByText("2 Felder ausgefüllt")).toBeInTheDocument();
   });
+
+  it("names the truncation and links to the full task list", async () => {
+    renderPage(
+      createServices({
+        tasks: Array.from({ length: 12 }, (_, index) =>
+          createTask(`t${index + 1}`, { plannedDate: "2026-08-04" }),
+        ),
+      }),
+    );
+
+    expect(await screen.findByText(/5 von 12 gezeigt/)).toBeInTheDocument();
+    const tile = screen
+      .getByText("Aufgaben heute")
+      .closest(".ui-metric-tile") as HTMLElement;
+    expect(within(tile).getByText("12 offen")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /abschließen/ })).toHaveLength(
+      5,
+    );
+    expect(
+      screen.getByRole("link", { name: "Alle Aufgaben ansehen" }),
+    ).toHaveAttribute("href", "/aufgaben");
+  });
+
+  it("stays quiet when the list is complete", async () => {
+    renderPage(
+      createServices({
+        tasks: Array.from({ length: 5 }, (_, index) =>
+          createTask(`t${index + 1}`, { plannedDate: "2026-08-04" }),
+        ),
+      }),
+    );
+
+    await screen.findByRole("heading", { level: 3, name: "Aufgabe t1" });
+    expect(screen.queryByText(/gezeigt/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Alle Aufgaben ansehen" }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 function createTask(id: string, overrides: Partial<Task> = {}): Task {

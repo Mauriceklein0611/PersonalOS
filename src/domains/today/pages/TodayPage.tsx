@@ -49,6 +49,13 @@ type TodayUndoAction = {
   run: () => Promise<unknown>;
 };
 
+/**
+ * Das Dashboard zeigt einen Ausschnitt, keine vollständige Liste. Wird
+ * gekürzt, muss die Kürzung dastehen: Die Kachel darüber nennt die volle Zahl,
+ * und ein stiller Abbruch wäre ein sichtbarer Widerspruch.
+ */
+const visibleTaskCount = 5;
+
 const emptyInput: TodayInput = {
   entriesByHabit: new Map(),
   habits: [],
@@ -331,7 +338,7 @@ export function TodayPage({
               />
             ) : (
               <ul className="today-list">
-                {overview.openTasks.slice(0, 5).map((task) => (
+                {overview.openTasks.slice(0, visibleTaskCount).map((task) => (
                   <li key={task.id}>
                     <div className="today-list-copy">
                       <h3>{task.title}</h3>
@@ -348,6 +355,12 @@ export function TodayPage({
                 ))}
               </ul>
             )}
+            {overview.openTasks.length > visibleTaskCount ? (
+              <p className="today-list-footer">
+                {visibleTaskCount} von {overview.openTasks.length} gezeigt.{" "}
+                <Link to="/aufgaben">Alle Aufgaben ansehen</Link>
+              </p>
+            ) : null}
           </section>
 
           <section className="today-list-card">

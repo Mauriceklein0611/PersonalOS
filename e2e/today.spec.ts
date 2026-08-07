@@ -70,3 +70,40 @@ test("walks through a complete synthetic day on the dashboard", async ({
     ),
   ).toBe(false);
 });
+
+test("names the truncation instead of dropping tasks silently", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/");
+
+  const quickCapture = page.getByRole("textbox", { name: "Aufgabe für heute" });
+  const submit = page.getByRole("button", { name: "Aufgabe hinzufügen" });
+  for (let index = 1; index <= 6; index += 1) {
+    await quickCapture.fill(`Synthetische Aufgabe ${index}`);
+    await submit.click();
+    await expect(
+      page.getByRole("heading", {
+        level: 3,
+        name: `Synthetische Aufgabe ${index}`,
+      }),
+    ).toHaveCount(index <= 5 ? 1 : 0);
+  }
+
+  // Die Kachel nennt sechs, die Liste zeigt fünf — und sagt das auch.
+  const taskTile = page
+    .locator(".ui-metric-tile")
+    .filter({ has: page.getByText("Aufgaben heute", { exact: true }) });
+  await expect(taskTile).toContainText("6 offen");
+  await expect(page.getByText("5 von 6 gezeigt.")).toBeVisible();
+
+  await page.getByRole("link", { name: "Alle Aufgaben ansehen" }).click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Aufgaben" }),
+  ).toBeVisible();
+  // Die Schnellerfassung plant für heute; dort steht die sechste Aufgabe.
+  await page.getByRole("tab", { name: "Heute" }).click();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Synthetische Aufgabe 6" }),
+  ).toBeVisible();
+});
