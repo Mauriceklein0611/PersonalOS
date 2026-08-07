@@ -34,3 +34,36 @@ Bedingungen dieser Entscheidung:
 - Die Diagrammlogik der Anwendung schrumpft auf Datenaufbereitung; Achsen und Layout liegen in der Bibliothek.
 - Wird das Bundle-Budget später gerissen, ist zuerst der `PieChart` zu entfernen, danach ist die Entscheidung neu zu prüfen.
 - Die Farbpflege bleibt einquellig. Ein neues Token wirkt ohne Änderung an Diagrammcode.
+
+## Nachtrag 2026-08-07 (Issue #67)
+
+### Der Ausweg von oben hat nie existiert
+
+Der vorletzte Konsequenzpunkt nennt als erste Notfallmaßnahme das Entfernen des `PieChart`. Dieselbe Entscheidung hält oben fest, dass `PieChart` **nicht registriert** ist. Der beschriebene Ausweg entfernt also etwas, das nie enthalten war. Er ist damit ersatzlos hinfällig — er war nie eine Reserve, sondern ein Denkfehler.
+
+### Gemessener Stand
+
+Messung am 07.08.2026 mit `pnpm build && pnpm check:bundle` (gzip Level 9; das Build-Log gibt mit anderer Kompressionseinstellung rund ein Prozent höhere Werte aus):
+
+| Bereich | Gemessen | Budget |
+| --- | --- | --- |
+| Diagramm-Chunk (`ChartCanvas-*.js`) | 177,17 kB gzip | 190 kB gzip |
+| Startroute (`index-*.js` + `index-*.css`) | 154,35 kB gzip | 165 kB gzip |
+
+Gegen das ursprüngliche Budget von 180 kB blieben 2,83 kB Luft — 1,6 Prozent. Ein Budget, das zu 98 Prozent ausgeschöpft ist und keine belastbare Notfallmaßnahme hat, steuert nichts mehr; es dokumentiert nur noch einen Zustand.
+
+### Entscheidung
+
+**Das Diagramm-Budget wird auf 190 kB gzip angehoben.** ECharts wird nicht durch eigenes SVG ersetzt: Der Aufwand aus dem Kontextabschnitt ist unverändert hoch, und der Nutzen bliebe hinter der Bibliothek zurück. Der neue Wert lässt Raum für genau eine weitere Ausbaustufe — die Ausgabenentwicklung je Kategorie (Roadmap 4.4) braucht keinen neuen Diagrammtyp, sondern nutzt den bereits registrierten `LineChart`.
+
+Zusätzlich erhält die Startroute ein eigenes, bisher nirgends festgehaltenes Budget von 165 kB gzip.
+
+`pnpm check:bundle` misst beide Werte nach jedem Build und bricht ab, wenn ein Budget überschritten wird oder eine erwartete Datei fehlt. Die CI führt die Prüfung direkt nach dem Build aus. Ein angehobenes Budget ohne Prüfung driftet genauso wie das alte — das vorherige wurde ja gerade um 2,83 kB unterschritten, ohne dass es jemandem auffiel.
+
+### Nächste Ausbaustufe
+
+Reißt auch das neue Budget, gibt es keinen Trick mehr, sondern nur noch echte Entscheidungen — in dieser Reihenfolge zu prüfen:
+
+1. Registrierte Bausteine reduzieren, falls eine Ansicht ihren Diagrammtyp nicht mehr braucht.
+2. Den Diagramm-Chunk je Diagrammtyp aufteilen, damit eine Route nur lädt, was sie zeigt.
+3. Die Bibliotheksentscheidung neu bewerten. Erst an dieser Stelle steht eigenes SVG wieder zur Debatte, und dann mit eigenem ADR.

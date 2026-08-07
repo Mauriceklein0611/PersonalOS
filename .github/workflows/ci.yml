@@ -53,6 +53,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # Direkt nach dem Build: Die Prüfung misst die erzeugten Chunks gegen
+      # die in ADR 0008 dokumentierten Budgets.
+      - name: Check bundle budgets
+        run: pnpm check:bundle
+
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
 
