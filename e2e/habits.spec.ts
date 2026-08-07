@@ -41,6 +41,10 @@ test("creates a habit, checks it in and reflects it in the week view", async ({
   await page.getByRole("tab", { name: /^Fortschritt/ }).click();
   await expect(page.getByText(/Zeitraum: /)).toBeVisible();
   await expect(page.getByText(/Berechnungsbasis: /)).toBeVisible();
+  // Die Karte erklärt den Unterschied zwischen übersprungen und nicht erfasst.
+  await expect(
+    page.getByText(/Ein geplanter Tag ohne Eintrag gilt als nicht erfasst/),
+  ).toBeVisible();
 
   await page.getByRole("tab", { name: /^Heute/ }).click();
   await page

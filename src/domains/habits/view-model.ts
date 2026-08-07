@@ -118,6 +118,11 @@ export function getHabitTargetUnitLabel(schedule: HabitSchedule): string {
     : "geplanten Tagen";
 }
 
+/** Dieselbe Einheit ohne „geplant“, für Sätze über die zählenden Einheiten. */
+export function getHabitUnitLabel(schedule: HabitSchedule): string {
+  return schedule.kind === "timesPerWeek" ? "Wocheneinheiten" : "Tagen";
+}
+
 export function formatHabitStreak(streak: HabitStreak["unit"], value: number) {
   if (streak === "week") return value === 1 ? "1 Woche" : `${value} Wochen`;
   return value === 1 ? "1 Tag" : `${value} Tage`;

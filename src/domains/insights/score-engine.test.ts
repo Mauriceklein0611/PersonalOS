@@ -6,6 +6,7 @@ import {
   lifeScoreContributions,
   lifeScoreFinancePeriod,
   lifeScoreGoals,
+  lifeScoreHabitEntries,
   lifeScoreHabits,
   lifeScoreInput,
   lifeScorePeriod,
@@ -110,8 +111,8 @@ describe("calculateLifeScore – Golden-Beispiele aus ADR 0009", () => {
     const result = run({ journalEntries: [] });
 
     expect(valueOf(result, "wellbeing")).toBeNull();
-    expect(result.total).toBeCloseTo(64.446_663_533_834_6, 10);
-    expect(roundScoreForDisplay(result.total)).toBe(64);
+    expect(result.total).toBeCloseTo(66.335_399_797_570_84, 10);
+    expect(roundScoreForDisplay(result.total)).toBe(66);
     expect(result.completeness).toBeCloseTo(0.8, 10);
   });
 
@@ -139,8 +140,8 @@ describe("calculateLifeScore – Golden-Beispiele aus ADR 0009", () => {
     expect(finance.value).toBeNull();
     expect(finance.inputs).toEqual([]);
     expect(finance.basis).toBe("Diese Komponente ist abgeschaltet.");
-    expect(result.total).toBeCloseTo(64.773_330_384_785_5, 10);
-    expect(roundScoreForDisplay(result.total)).toBe(65);
+    expect(result.total).toBeCloseTo(66.550_964_515_360_8, 10);
+    expect(roundScoreForDisplay(result.total)).toBe(67);
     expect(result.completeness).toBe(1);
   });
 
@@ -150,8 +151,8 @@ describe("calculateLifeScore – Golden-Beispiele aus ADR 0009", () => {
     const result = run({ tasks: lifeScoreTasks.slice(0, 2) });
 
     expect(valueOf(result, "focus")).toBeNull();
-    expect(result.total).toBeCloseTo(66.357_142_857_142_85, 10);
-    expect(roundScoreForDisplay(result.total)).toBe(66);
+    expect(result.total).toBeCloseTo(68.371_794_871_794_88, 10);
+    expect(roundScoreForDisplay(result.total)).toBe(68);
     expect(result.completeness).toBeCloseTo(0.8, 10);
   });
 
@@ -305,14 +306,16 @@ describe("calculateLifeScore – Fokus", () => {
 });
 
 describe("calculateLifeScore – Gewohnheiten", () => {
-  it("keeps skipped units in the denominator and reports them separately", () => {
+  it("takes skipped units out of the denominator and reports them separately", () => {
     const habits = findScoreComponent(run(), "habits");
 
     expect(habits.inputs).toEqual([
       { metric: "target", sourceCount: 2, value: 14 },
+      { metric: "counted", sourceCount: 2, value: 13 },
       { metric: "done", sourceCount: 2, value: 11 },
       { metric: "skipped", sourceCount: 2, value: 1 },
     ]);
+    expect(habits.value).toBeCloseTo((100 * 11) / 13, 10);
     expect(habits.basis).toContain("übersprungen");
   });
 
@@ -322,6 +325,21 @@ describe("calculateLifeScore – Gewohnheiten", () => {
     ];
 
     expect(valueOf(run({ habits }), "habits")).toBeNull();
+  });
+
+  // Sonst würde eine fast vollständig übersprungene Woche den Teilwert tragen.
+  it("withholds a value when skipping leaves fewer than three counting units", () => {
+    const skippedEntries = lifeScoreHabitEntries.map((entry) => ({
+      ...entry,
+      status: "skipped" as const,
+    }));
+    const habits = findScoreComponent(
+      run({ habitEntries: skippedEntries }),
+      "habits",
+    );
+
+    expect(habits.value).toBeNull();
+    expect(habits.basis).toContain("zählende Einheiten");
   });
 });
 
@@ -425,7 +443,7 @@ describe("calculateLifeScore – Gewichte", () => {
 
     expect(finance.value).toBeCloseTo(expectedLifeScore.finance, 10);
     expect(finance.contributes).toBe(false);
-    expect(result.total).toBeCloseTo(64.773_330_384_785_5, 10);
+    expect(result.total).toBeCloseTo(66.550_964_515_360_8, 10);
     expect(result.completeness).toBe(1);
   });
 

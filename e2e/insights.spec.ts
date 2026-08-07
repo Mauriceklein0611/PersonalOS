@@ -39,7 +39,7 @@ test("explains the life score with and without a data basis", async ({
     page.getByText(/Für diesen Zeitraum liegt noch zu wenig vor/),
   ).toBeVisible();
   await expect(page.getByText("0 von 100")).toHaveCount(0);
-  await expect(page.getByText("life-score-v1")).toBeVisible();
+  await expect(page.getByText("life-score-v2")).toBeVisible();
 
   // Jeder Teilwert führt in einem Schritt zu Formel und Datenbasis.
   await page.getByRole("button", { name: "Warum? Erklärung zu Fokus" }).click();

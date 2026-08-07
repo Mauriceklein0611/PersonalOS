@@ -167,9 +167,9 @@ describe("InsightsPage – vollständige Daten", () => {
   it("shows the total, its basis and the calculation version", async () => {
     renderPage(createStubService());
 
-    expect(await screen.findByText("66 von 100")).toBeInTheDocument();
+    expect(await screen.findByText("67 von 100")).toBeInTheDocument();
     expect(screen.getByText("5 von 5 Bereichen")).toBeInTheDocument();
-    expect(screen.getByText("life-score-v1")).toBeInTheDocument();
+    expect(screen.getByText("life-score-v2")).toBeInTheDocument();
     expect(screen.getByText("31.07.2026 bis 06.08.2026")).toBeInTheDocument();
   });
 
@@ -192,7 +192,7 @@ describe("InsightsPage – vollständige Daten", () => {
   it("names the deviating period on the finance component", async () => {
     renderPage(createStubService());
 
-    await screen.findByText("66 von 100");
+    await screen.findByText("67 von 100");
     expect(
       screen.getByText("Zeitraum: 01.08.2026 bis 31.08.2026"),
     ).toBeInTheDocument();
@@ -204,7 +204,8 @@ describe("InsightsPage – vollständige Daten", () => {
     const focus = await screen.findByRole("progressbar", { name: "Fokus" });
     expect(focus).toHaveValue(63);
     expect(screen.getByText("63 von 100")).toBeInTheDocument();
-    expect(screen.getByText("79 von 100")).toBeInTheDocument();
+    // 11 von 13 zählenden Einheiten; die übersprungene zählt nicht mit.
+    expect(screen.getByText("85 von 100")).toBeInTheDocument();
   });
 });
 
@@ -321,7 +322,7 @@ describe("InsightsPage – unvollständige Daten", () => {
   it("shows a missing value as no statement and never as zero", async () => {
     renderPage(createStubService({ ...lifeScoreInput, journalEntries: [] }));
 
-    await screen.findByText("64 von 100");
+    await screen.findByText("66 von 100");
     expect(screen.getByText("4 von 5 Bereichen")).toBeInTheDocument();
     expect(screen.getAllByText("Keine Angabe").length).toBeGreaterThan(0);
     expect(
@@ -352,7 +353,7 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
   it("shows the share of every weight instead of a bare number", async () => {
     renderPage(createStubService());
 
-    await screen.findByText("66 von 100");
+    await screen.findByText("67 von 100");
     expect(screen.getAllByText("25 % der Gewichtung")).toHaveLength(2);
     expect(screen.getAllByText("15 % der Gewichtung")).toHaveLength(2);
   });
@@ -368,7 +369,7 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
     await user.type(field, "50");
 
     expect(
-      await screen.findByText(/Mit dieser Gewichtung: 65 von 100/),
+      await screen.findByText(/Mit dieser Gewichtung: 66 von 100/),
     ).toBeInTheDocument();
     // Vor dem Speichern bleibt die Konfiguration unverändert.
     expect(getSettings().components).toContainEqual({
@@ -437,7 +438,7 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
       screen.getByRole("button", { name: "Gewichtung speichern" }),
     );
 
-    expect(await screen.findByText("65 von 100")).toBeInTheDocument();
+    expect(await screen.findByText("67 von 100")).toBeInTheDocument();
     expect(screen.getByText("4 von 4 Bereichen")).toBeInTheDocument();
   });
 
@@ -462,6 +463,6 @@ describe("InsightsPage – Bereiche und Gewichtung", () => {
     await user.click(
       screen.getByRole("button", { name: "Life Score anzeigen" }),
     );
-    expect(await screen.findByText("66 von 100")).toBeInTheDocument();
+    expect(await screen.findByText("67 von 100")).toBeInTheDocument();
   });
 });

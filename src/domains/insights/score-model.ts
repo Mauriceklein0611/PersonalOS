@@ -16,13 +16,15 @@ export type ScoreSnapshot = z.infer<typeof scoreSnapshotSchema>;
 export type ScoreSnapshotDetails = Omit<ScoreSnapshot, keyof EntityMeta>;
 
 /**
- * Bezeichner der Berechnung, siehe [ADR 0009](../../../docs/decisions/0009-life-score-v1.md).
+ * Bezeichner der Berechnung, siehe [ADR 0009](../../../docs/decisions/0009-life-score-v1.md)
+ * und die Änderung der Habits-Komponente in
+ * [ADR 0012](../../../docs/decisions/0012-skip-keeps-the-streak.md).
  * Ein neuer Bezeichner ist Pflicht, sobald sich Eingaben, Formel,
  * Normalisierung, Zeitfenster, Mindestdaten, die Menge der Komponenten oder
  * die Standardgewichte ändern. Vom Nutzer geänderte Gewichte sind keine
  * Versionsänderung.
  */
-export const lifeScoreEngineVersion = "life-score-v1";
+export const lifeScoreEngineVersion = "life-score-v2";
 
 /** Feste Reihenfolge; sie bestimmt die Reihenfolge im Ergebnis. */
 export const scoreComponentKeys = [

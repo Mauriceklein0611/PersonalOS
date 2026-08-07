@@ -255,14 +255,17 @@ function sumPriorityWeight(tasks: readonly Task[]): number {
 /**
  * Die Erfüllungsquote stammt bewusst aus der Habits-Domäne und wird nicht neu
  * erfunden: Zwei Quoten mit unterschiedlichen Regeln wären nicht erklärbar.
- * Übersprungene Tage bleiben dadurch im Nenner; sie werden getrennt
- * ausgewiesen, damit der Unterschied zu fehlenden Daten sichtbar bleibt.
+ * Bewusst übersprungene Einheiten fallen deshalb auch hier aus dem Nenner,
+ * siehe [ADR 0012](../../../docs/decisions/0012-skip-keeps-the-streak.md). Sie
+ * bleiben getrennt ausgewiesen, damit der Unterschied zu nicht erfassten Tagen
+ * sichtbar bleibt.
  */
 function calculateHabits(
   habits: readonly Habit[],
   entries: readonly HabitEntry[],
   period: ScorePeriod,
 ): ComponentEvidence {
+  let counted = 0;
   let done = 0;
   let skipped = 0;
   let target = 0;
@@ -277,6 +280,7 @@ function calculateHabits(
       period.to,
     );
     if (fulfillment.target === 0) continue;
+    counted += fulfillment.counted;
     done += fulfillment.done;
     skipped += fulfillment.skipped;
     target += fulfillment.target;
@@ -285,13 +289,16 @@ function calculateHabits(
 
   const inputs: ScoreEvidence[] = [
     { metric: "target", sourceCount: habitCount, value: target },
+    { metric: "counted", sourceCount: habitCount, value: counted },
     { metric: "done", sourceCount: habitCount, value: done },
     { metric: "skipped", sourceCount: habitCount, value: skipped },
   ];
 
-  if (target < minimumHabitTarget) {
+  // Die Mindestdaten gelten für die zählenden Einheiten. Eine Woche, die fast
+  // vollständig übersprungen wurde, trägt den Teilwert nicht.
+  if (counted < minimumHabitTarget) {
     return {
-      basis: `Weniger als ${minimumHabitTarget} geplante Einheiten im Zeitraum.`,
+      basis: `Weniger als ${minimumHabitTarget} zählende Einheiten im Zeitraum; ${skipped} von ${target} geplanten Einheiten wurden übersprungen.`,
       inputs,
       sourceCount: habitCount,
       value: null,
@@ -299,12 +306,14 @@ function calculateHabits(
   }
 
   const skippedNote =
-    skipped === 0 ? "" : ` ${skipped} Einheiten wurden übersprungen.`;
+    skipped === 0
+      ? ""
+      : ` ${skipped} Einheiten wurden übersprungen und zählen nicht mit.`;
   return {
-    basis: `${done} von ${target} geplanten Einheiten erledigt.${skippedNote}`,
+    basis: `${done} von ${counted} zählenden Einheiten erledigt.${skippedNote}`,
     inputs,
     sourceCount: habitCount,
-    value: (100 * done) / target,
+    value: (100 * done) / counted,
   };
 }
 

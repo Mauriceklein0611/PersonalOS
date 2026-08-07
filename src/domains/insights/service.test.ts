@@ -196,7 +196,7 @@ describe("ScoreService", () => {
 
     expect(findScoreComponent(result, "finance").enabled).toBe(false);
     // Beispiel 4 des ADR: abgeschaltete Finanzen, Vollständigkeit bleibt 1.
-    expect(result.total).toBeCloseTo(64.773_330_384_785_5, 10);
+    expect(result.total).toBeCloseTo(66.550_964_515_360_8, 10);
     expect(result.completeness).toBe(1);
   });
 

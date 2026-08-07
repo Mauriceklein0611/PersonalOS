@@ -97,10 +97,14 @@ describe("buildWeeklyReview", () => {
   it("reports habit units and names the skipped ones separately", () => {
     const review = buildWeeklyReview(input, week);
 
-    // Zwei tägliche Gewohnheiten ergeben 14 Einheiten; 5 sind erledigt und
-    // eine ist übersprungen — sie bleibt bewusst im Nenner.
-    expect(review.habits.valueText).toBe("5 von 14");
-    expect(review.habits.basis).toContain("1 übersprungen.");
+    // Zwei tägliche Gewohnheiten ergeben 14 geplante Einheiten; 5 sind
+    // erledigt und eine ist übersprungen — sie fällt aus dem Nenner.
+    expect(review.habits.valueText).toBe("5 von 13");
+    expect(review.habits.basis).toContain("13 zählende Einheiten");
+    expect(review.habits.basis).toContain(
+      "1 von 14 geplanten Einheiten übersprungen",
+    );
+    expect(review.habits.ratio).toBeCloseTo(5 / 13, 10);
   });
 
   it("shows only the number of journal days, never a text", () => {
