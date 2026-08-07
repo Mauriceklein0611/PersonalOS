@@ -18,6 +18,10 @@ import {
 } from "../../../components/ui";
 import { getIsoWeekBounds } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
+import {
+  personalOsFinanceService,
+  type FinanceService,
+} from "../../finance/service";
 import type { Habit, HabitEntryStatus } from "../../habits/model";
 import {
   personalOsHabitService,
@@ -29,6 +33,7 @@ import {
 } from "../../journal/service";
 import type { Task } from "../../tasks/model";
 import { personalOsTaskService, type TaskService } from "../../tasks/service";
+import { QuickExpenseForm } from "../components/QuickExpenseForm";
 import {
   buildTodayOverview,
   createTodayContext,
@@ -64,6 +69,7 @@ const emptyInput: TodayInput = {
 };
 
 export type TodayPageProps = {
+  financeService?: FinanceService;
   habitService?: HabitService;
   journalService?: JournalService;
   now?: () => Date;
@@ -72,6 +78,7 @@ export type TodayPageProps = {
 };
 
 export function TodayPage({
+  financeService = personalOsFinanceService,
   habitService = personalOsHabitService,
   journalService = personalOsJournalService,
   now = systemNow,
@@ -327,6 +334,21 @@ export function TodayPage({
             />
             <Button type="submit">Aufgabe hinzufügen</Button>
           </form>
+
+          {/* Was unbequem ist, unterbleibt: Eine Ausgabe braucht hier nur
+              Betrag und Kategorie. */}
+          <QuickExpenseForm
+            onSaved={(transactionId, amount) => {
+              setNotice(`Die Ausgabe über ${amount} wurde gebucht.`);
+              setUndo({
+                id: transactionId,
+                message: "Die Ausgabe wurde archiviert.",
+                run: () => financeService.archiveTransaction(transactionId),
+              });
+            }}
+            service={financeService}
+            today={context.today}
+          />
 
           <section className="today-list-card">
             <h2>Aufgaben für heute</h2>

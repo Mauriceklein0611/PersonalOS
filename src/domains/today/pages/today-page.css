@@ -43,6 +43,7 @@
 }
 
 .today-quick-capture,
+.today-quick-expense,
 .today-journal-card,
 .today-list-card {
   display: grid;
@@ -58,6 +59,23 @@
 
 .today-quick-capture .ui-button {
   align-self: end;
+}
+
+.today-quick-expense h2 {
+  margin: 0;
+}
+
+/* Betrag und Kategorie nebeneinander, sobald der Platz reicht. */
+.today-quick-expense-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 30rem) {
+  .today-quick-expense-form {
+    align-items: end;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
 }
 
 .today-list {

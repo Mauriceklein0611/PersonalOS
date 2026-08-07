@@ -3,7 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { PersonalOsDatabase } from "../../db/database";
-import { createSettingsRepository } from "../../db/settings/repository";
+import {
+  createSettingsRepository,
+  type SettingsRepository,
+} from "../../db/settings/repository";
 import { createTestDatabase, deleteTestDatabase } from "../../test/database";
 import { ThemeProvider } from "../theme/ThemeProvider";
 import { ThemeSwitcher } from "../theme/ThemeSwitcher";
@@ -90,6 +93,47 @@ describe("SettingsProvider", () => {
     });
     expect(readThemePreference()).toBe("light");
     expect(document.documentElement.dataset.theme).toBe("light");
+  });
+
+  /*
+   * Der erste Lesevorgang kann langsam sein. Wer in dieser Zeit umschaltet,
+   * hat den neueren Stand; das eintreffende Leseergebnis darf ihn nicht
+   * zurückdrehen.
+   */
+  it("keeps a theme change made while the record is still loading", async () => {
+    const repository = createSettingsRepository(database);
+    // Der Stand von vor der Änderung; genau er trifft verspätet ein.
+    const stale = await repository.loadOrCreate();
+    let releaseLoad = () => undefined as void;
+    const slowRepository: SettingsRepository = Object.assign(
+      Object.create(repository) as SettingsRepository,
+      {
+        loadOrCreate: async () => {
+          await new Promise<void>((resolve) => {
+            releaseLoad = resolve;
+          });
+          return stale;
+        },
+      },
+    );
+    const user = userEvent.setup();
+
+    render(
+      <ThemeProvider>
+        <SettingsProvider repository={slowRepository}>
+          <ThemeSwitcher />
+        </SettingsProvider>
+      </ThemeProvider>,
+    );
+
+    await user.selectOptions(screen.getByLabelText("Farbschema"), "dark");
+    releaseLoad();
+
+    await waitFor(async () => {
+      expect((await repository.loadOrCreate()).theme).toBe("dark");
+    });
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(screen.getByLabelText("Farbschema")).toHaveValue("dark");
   });
 
   it("keeps the mirrored theme until the stored record is read", async () => {
