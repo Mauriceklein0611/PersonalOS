@@ -107,3 +107,52 @@ test("names the truncation instead of dropping tasks silently", async ({
     page.getByRole("heading", { level: 2, name: "Synthetische Aufgabe 6" }),
   ).toBeVisible();
 });
+
+test("books an expense from the dashboard in a few steps", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+
+  // Die Startkategorien entstehen beim ersten Besuch des Finanzbereichs.
+  await page.goto("/finanzen");
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Buchung erfassen" }),
+  ).toBeVisible();
+
+  await page.goto("/");
+  await page.getByRole("textbox", { name: /Betrag der Ausgabe/ }).fill("12,50");
+  await page
+    .getByRole("combobox", { name: /Kategorie der Ausgabe/ })
+    .selectOption({ label: "Lebensmittel" });
+  await page.getByRole("button", { name: "Ausgabe buchen" }).click();
+  await expect(
+    page.getByText("Die Ausgabe über 12,50 wurde gebucht."),
+  ).toBeVisible();
+
+  // Dieselbe Buchung steht im Finanzbereich, mit heutigem Datum.
+  await page.goto("/finanzen");
+  const expenseTile = page
+    .locator(".ui-metric-tile")
+    .filter({ has: page.getByText("Ausgaben", { exact: true }) });
+  await expect(expenseTile).toContainText("12,50");
+
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+});
+
+test("puts capture before evaluation on the finance page", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/finanzen");
+
+  const captureBox = await page
+    .getByRole("heading", { level: 2, name: "Buchung erfassen" })
+    .boundingBox();
+  const overviewBox = await page
+    .getByRole("heading", { level: 2, name: "Monatsübersicht" })
+    .boundingBox();
+
+  expect(captureBox?.y ?? 0).toBeLessThan(overviewBox?.y ?? 0);
+});

@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
+import { createMemoryFinanceService } from "../../../test/factories/finance";
 import type { Habit, HabitEntry } from "../../habits/model";
 import type { HabitService } from "../../habits/service";
 import type { JournalEntry } from "../../journal/model";
@@ -20,10 +21,15 @@ type Services = {
   taskService: TaskService;
 };
 
-function renderPage(services: Services, now = () => fixedNow) {
+function renderPage(
+  services: Services,
+  now = () => fixedNow,
+  financeService = createMemoryFinanceService(),
+) {
   return render(
     <MemoryRouter>
       <TodayPage
+        financeService={financeService}
         habitService={services.habitService}
         journalService={services.journalService}
         now={now}
@@ -178,6 +184,38 @@ describe("TodayPage", () => {
       .closest(".ui-metric-tile") as HTMLElement;
     expect(within(tile).getByText("Erfasst")).toBeInTheDocument();
     expect(within(tile).getByText("2 Felder ausgefüllt")).toBeInTheDocument();
+  });
+
+  it("books an expense from the dashboard and offers to undo it", async () => {
+    const user = userEvent.setup();
+    const financeService = createMemoryFinanceService();
+    await financeService.createCategory({
+      kind: "expense",
+      name: "Lebensmittel",
+    });
+    renderPage(createServices(), () => fixedNow, financeService);
+
+    await user.type(
+      await screen.findByRole("textbox", { name: /Betrag der Ausgabe/ }),
+      "12,50",
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /Kategorie der Ausgabe/ }),
+      [screen.getByRole("option", { name: "Lebensmittel" })],
+    );
+    await user.click(screen.getByRole("button", { name: "Ausgabe buchen" }));
+
+    expect(
+      await screen.findByText("Die Ausgabe über 12,50 wurde gebucht."),
+    ).toBeInTheDocument();
+    expect(await financeService.listTransactions()).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Rückgängig" }));
+
+    expect(
+      await screen.findByText("Die Ausgabe wurde archiviert."),
+    ).toBeInTheDocument();
+    expect(await financeService.listTransactions()).toEqual([]);
   });
 
   it("names the truncation and links to the full task list", async () => {

@@ -15,7 +15,7 @@ import type { FinanceCategory } from "../model";
 import type { MonthlyOverview } from "../overview";
 
 export type MonthOverviewProps = {
-  categoriesById: Map<string, FinanceCategory>;
+  categoriesById: ReadonlyMap<string, FinanceCategory>;
   /** Übersichtswährung aus den Einstellungen. */
   currency: string;
   /** Bereits formatierter Monat, zum Beispiel „August 2026“. */

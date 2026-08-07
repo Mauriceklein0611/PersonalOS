@@ -15,6 +15,7 @@ Stand: 07.08.2026. Diese Liste beschreibt bewusst akzeptierte Grenzen des aktuel
 - Die Ansichtswechsel in Aufgaben und Gewohnheiten sind als `tablist` ausgezeichnet, unterstützen aber noch keine Pfeiltastennavigation zwischen den Tabs. Jeder Tab ist einzeln über die Tabulatortaste erreichbar.
 - Die Wochenansicht der Gewohnheiten scrollt bei schmalen Ansichten horizontal in ihrem eigenen Bereich.
 - Zukünftige Wochen lassen sich in der Wochenansicht nicht öffnen; die laufende Woche ist die letzte auswertbare.
+- Die Ausgaben-Schnellerfassung auf dem Dashboard bucht immer auf den heutigen Tag und kennt keine Notiz. Beides steht im Finanzbereich; die Schnellerfassung bleibt bewusst auf Betrag und Kategorie beschränkt.
 - Das Dashboard zeigt höchstens fünf offene Aufgaben. Die Kürzung wird benannt und verlinkt auf die vollständige Liste; eine Sortierung nach eigener Reihenfolge gibt es dort nicht.
 
 ## Offline und Plattform
