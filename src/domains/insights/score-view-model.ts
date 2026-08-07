@@ -26,7 +26,7 @@ export const scoreComponentDescriptions: Record<ScoreComponentKey, string> = {
     "Wie viele der Aufgaben, die du für diese Tage geplant hattest, du abgeschlossen hast.",
   goals: "Wie weit deine aktiven Ziele fortgeschritten sind.",
   habits:
-    "Wie viele der geplanten Einheiten deiner Gewohnheiten du eingetragen hast.",
+    "Wie viele der zählenden Einheiten deiner Gewohnheiten du erledigt hast. Bewusst übersprungene Einheiten zählen nicht mit.",
   wellbeing:
     "Der Durchschnitt deiner eigenen Angaben zu Stimmung, Energie und Stress.",
 };
@@ -40,7 +40,7 @@ export const scoreComponentFormulas: Record<ScoreComponentKey, string> = {
   goals:
     "Durchschnitt der Fortschrittsquoten deiner aktiven Ziele. Ziele, die du in diesem Zeitraum angelegt hast, zählen noch nicht mit.",
   habits:
-    "Erledigte geteilt durch geplante Einheiten. Übersprungene Tage bleiben im Nenner, weil sie eine erfasste Entscheidung sind.",
+    "Erledigte geteilt durch die zählenden Einheiten. Bewusst übersprungene Einheiten zählen weder im Zähler noch im Nenner; ein geplanter Tag ohne Eintrag bleibt im Nenner.",
   wellbeing:
     "Alle Angaben werden auf 0 bis 100 umgerechnet und gemittelt. Stress wird dabei umgekehrt: wenig Stress bedeutet hohes Wohlbefinden.",
 };
@@ -50,13 +50,14 @@ export const scoreComponentMinimums: Record<ScoreComponentKey, string> = {
   finance: "Mindestens ein Budget oder ein aktives Sparziel im Monat.",
   focus: "Mindestens drei geplante Aufgaben im Zeitraum.",
   goals: "Mindestens ein aktives Ziel mit Fortschrittsangabe.",
-  habits: "Mindestens drei geplante Einheiten im Zeitraum.",
+  habits: "Mindestens drei zählende Einheiten im Zeitraum.",
   wellbeing: "Mindestens drei Tage mit eigener Einschätzung.",
 };
 
 const scoreMetricLabels: Record<string, string> = {
   budgetAdherence: "Budgettreue",
   completedPriorityWeight: "Erledigte Prioritätspunkte",
+  counted: "Zählende Einheiten",
   daysWithSelfAssessment: "Tage mit eigener Einschätzung",
   done: "Erledigte Einheiten",
   energyMean: "Energie im Mittel",

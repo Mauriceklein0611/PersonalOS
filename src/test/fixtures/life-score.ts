@@ -99,8 +99,9 @@ function dailyHabit(suffix: string, name: string): Habit {
 
 /**
  * Zwei tägliche Gewohnheiten ergeben im Sieben-Tage-Fenster `target` 14.
- * Erledigt sind 7 + 4 = 11 Einheiten, eine Einheit ist übersprungen und bleibt
- * bewusst im Nenner.
+ * Erledigt sind 7 + 4 = 11 Einheiten, eine Einheit ist übersprungen. Seit
+ * [ADR 0012](../../../docs/decisions/0012-skip-keeps-the-streak.md) fällt sie
+ * aus dem Nenner: `counted` ist 13.
  */
 export const lifeScoreHabits: Habit[] = [
   dailyHabit("000000008201", "Morgens dehnen"),
@@ -334,24 +335,26 @@ export const lifeScoreInput: LifeScoreInput = {
 };
 
 /**
- * Von Hand gerechnet, siehe Beispiel 1 im ADR:
+ * Von Hand gerechnet, siehe Beispiel 1 im ADR und die Neuberechnung der
+ * Habits-Komponente in
+ * [ADR 0012](../../../docs/decisions/0012-skip-keeps-the-streak.md):
  *
  * ```
  * focus     = 100 × 12 / 19       = 63,157894…
- * habits    = 100 × 11 / 14       = 78,571428…
+ * habits    = 100 × 11 / 13       = 84,615384…   (14 geplant, 1 übersprungen)
  * wellbeing = 100 × 0,70          = 70
  * goals     = 100 × 0,375         = 37,5
  * finance   = 100 × (1 + 0,4) / 2 = 70
- * total     = (25×63,157894… + 25×78,571428… + 20×70 + 15×37,5 + 15×70) / 100
+ * total     = (25×63,157894… + 25×84,615384… + 20×70 + 15×37,5 + 15×70) / 100
  * ```
  */
 export const expectedLifeScore = {
   completeness: 1,
-  displayedTotal: 66,
+  displayedTotal: 67,
   finance: 70,
   focus: 63.157_894_736_842_1,
   goals: 37.5,
-  habits: 78.571_428_571_428_57,
-  total: 65.557_330_827_067_67,
+  habits: 84.615_384_615_384_61,
+  total: 67.068_319_838_056_68,
   wellbeing: 70,
 };

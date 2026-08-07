@@ -116,7 +116,8 @@ Invarianten:
 - `endDate` liegt nicht vor `startDate`; Wochentage sind eindeutige ISO-Wochentage von Montag (`1`) bis Sonntag (`7`).
 - Bei `timesPerWeek` ist jeder aktive Tag für einen Check-in geeignet. Die Gewohnheit bleibt innerhalb der ISO-Woche fällig, bis die Zahl der `done`-Entries erreicht ist.
 - „Wieder offen“ entfernt den vorhandenen Tages-Entry; ein dritter persistierter Status entsteht nicht.
-- Erfüllungsquoten zählen `done` gegen die geplanten Tages- oder Wocheneinheiten und weisen `skipped` separat aus. Tages-Streaks folgen den geplanten Tagen, `timesPerWeek` verwendet Wochen-Streaks.
+- Erfüllungsquoten zählen `done` gegen die zählenden Einheiten — geplante Einheiten ohne die übersprungenen — und weisen `skipped` und die geplanten Einheiten weiterhin separat aus. Tages-Streaks folgen den geplanten Tagen, `timesPerWeek` verwendet Wochen-Streaks.
+- Ein `skipped`-Eintrag ist neutral: Er bricht keine Serie und verlängert keine. Ein geplanter Tag ohne Eintrag bricht die Serie und bleibt im Nenner. Siehe [ADR 0012](decisions/0012-skip-keeps-the-streak.md).
 - Archivieren verändert weder bestehende HabitEntries noch rückblickend berechnete Kennzahlen.
 - Ein Habit speichert genau einen Rhythmus ohne Historie. Eine Änderung lässt erfasste Entries unverändert, verschiebt aber die berechnete Fälligkeit vergangener Tage. Siehe [ADR 0005](decisions/0005-habit-schedule-without-history.md).
 

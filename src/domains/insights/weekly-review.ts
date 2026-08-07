@@ -121,6 +121,7 @@ function summariseHabits(
   entries: readonly HabitEntry[],
   period: InsightPeriod,
 ): WeeklyFigure {
+  let counted = 0;
   let done = 0;
   let skipped = 0;
   let target = 0;
@@ -135,6 +136,7 @@ function summariseHabits(
       period.to,
     );
     if (fulfillment.target === 0) continue;
+    counted += fulfillment.counted;
     done += fulfillment.done;
     skipped += fulfillment.skipped;
     target += fulfillment.target;
@@ -150,12 +152,26 @@ function summariseHabits(
     };
   }
 
-  const skippedNote = skipped === 0 ? "" : ` ${skipped} übersprungen.`;
+  // Übersprungene Einheiten zählen nicht im Nenner; bleibt nichts übrig, gibt
+  // es keine Quote statt einer erfundenen.
+  if (counted === 0) {
+    return {
+      basis: `Grundlage: ${habitCount} Gewohnheiten, alle ${target} geplanten Einheiten übersprungen.`,
+      ratio: null,
+      sourceCount: habitCount,
+      valueText: "Keine Angabe",
+    };
+  }
+
+  const skippedNote =
+    skipped === 0
+      ? ""
+      : ` ${skipped} von ${target} geplanten Einheiten übersprungen; sie zählen nicht mit.`;
   return {
-    basis: `Grundlage: ${habitCount} Gewohnheiten, ${target} geplante Einheiten.${skippedNote}`,
-    ratio: done / target,
+    basis: `Grundlage: ${habitCount} Gewohnheiten, ${counted} zählende Einheiten.${skippedNote}`,
+    ratio: done / counted,
     sourceCount: habitCount,
-    valueText: `${done} von ${target}`,
+    valueText: `${done} von ${counted}`,
   };
 }
 

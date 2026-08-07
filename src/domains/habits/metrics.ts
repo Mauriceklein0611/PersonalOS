@@ -7,11 +7,19 @@ import type { Habit, HabitEntry } from "./model";
 import { getHabitEligibleDays, isHabitEligibleOn } from "./schedule";
 
 export type HabitFulfillment = {
+  /**
+   * Nenner der Quote: geplante Einheiten ohne die bewusst übersprungenen,
+   * siehe [ADR 0012](../../../docs/decisions/0012-skip-keeps-the-streak.md).
+   * Nie kleiner als `done`, damit die Quote 100 % nicht überschreiten kann.
+   */
+  counted: number;
   done: number;
   from: CalendarDay;
   rate: number | null;
+  /** Noch offene zählende Einheiten. Übersprungene sind hier nicht enthalten. */
   remaining: number;
   skipped: number;
+  /** Alle geplanten Einheiten, einschließlich der übersprungenen. */
   target: number;
   to: CalendarDay;
 };
@@ -34,20 +42,24 @@ export function calculateHabitFulfillment(
   let target = 0;
   let done = 0;
   let skipped = 0;
+  let counted = 0;
   if (habit.schedule.kind === "timesPerWeek") {
     for (const period of getTimesPerWeekPeriods(habit, from, to)) {
       const periodEntries = visibleEntries.filter(
         (entry) =>
           entry.localDate >= period.start && entry.localDate <= period.end,
       );
-      target += period.target;
-      done += Math.min(
+      const periodDone = Math.min(
         period.target,
         periodEntries.filter((entry) => entry.status === "done").length,
       );
-      skipped += periodEntries.filter(
+      const periodSkipped = periodEntries.filter(
         (entry) => entry.status === "skipped",
       ).length;
+      target += period.target;
+      done += periodDone;
+      skipped += periodSkipped;
+      counted += countedUnits(period.target, periodDone, periodSkipped);
     }
   } else {
     const dueDays = getHabitEligibleDays(habit, from, to);
@@ -58,17 +70,29 @@ export function calculateHabitFulfillment(
     target = dueDays.length;
     done = dueEntries.filter((entry) => entry.status === "done").length;
     skipped = dueEntries.filter((entry) => entry.status === "skipped").length;
+    counted = countedUnits(target, done, skipped);
   }
 
   return {
+    counted,
     done,
     from,
-    rate: target === 0 ? null : done / target,
-    remaining: target - done,
+    rate: counted === 0 ? null : done / counted,
+    remaining: counted - done,
     skipped,
     target,
     to,
   };
+}
+
+/**
+ * Ein Überspringen nimmt eine geplante Einheit aus dem Nenner, aber nie eine
+ * bereits erledigte. Bei `timesPerWeek` kann ein Tag übersprungen und ein
+ * anderer erledigt sein; ohne diese Untergrenze käme eine Quote über 100 %
+ * heraus.
+ */
+function countedUnits(target: number, done: number, skipped: number): number {
+  return Math.max(done, target - skipped);
 }
 
 export function calculateHabitStreak(
@@ -88,6 +112,11 @@ export function calculateHabitStreak(
     : calculateDailyStreak(habit, entries, through);
 }
 
+/**
+ * Ein bewusst übersprungener Tag ist neutral: Er verlängert die Serie nicht und
+ * bricht sie nicht. Nur ein geplanter Tag ohne Eintrag beendet sie, siehe
+ * [ADR 0012](../../../docs/decisions/0012-skip-keeps-the-streak.md).
+ */
 function calculateDailyStreak(
   habit: Habit,
   entries: readonly HabitEntry[],
@@ -100,10 +129,11 @@ function calculateDailyStreak(
   let best = 0;
   let run = 0;
   for (const day of dueDays) {
-    if (entriesByDay.get(day)?.status === "done") {
+    const status = entriesByDay.get(day)?.status;
+    if (status === "done") {
       run += 1;
       best = Math.max(best, run);
-    } else {
+    } else if (status !== "skipped") {
       run = 0;
     }
   }
@@ -113,28 +143,43 @@ function calculateDailyStreak(
     index -= 1;
   }
   let current = 0;
-  while (index >= 0 && entriesByDay.get(dueDays[index])?.status === "done") {
-    current += 1;
+  while (index >= 0) {
+    const status = entriesByDay.get(dueDays[index])?.status;
+    if (status === "done") current += 1;
+    else if (status !== "skipped") break;
     index -= 1;
   }
   return { best, current, unit: "day" };
 }
 
+/**
+ * Übersprungene Einheiten senken das Wochenziel. Bleibt davon nichts übrig, ist
+ * die Woche neutral: Sie zählt weder als Erfolg noch als Bruch, sonst würde
+ * eine vollständig übersprungene Woche die Serie verlängern.
+ */
 function calculateWeeklyStreak(
   habit: Habit,
   entries: readonly HabitEntry[],
   through: CalendarDay,
 ): HabitStreak {
   const periods = getTimesPerWeekStreakPeriods(habit, through).map((period) => {
-    const done = getVisibleEntries(
+    const periodEntries = getVisibleEntries(
       habit,
       entries,
       period.start,
       through < period.end ? through : period.end,
-    ).filter((entry) => entry.status === "done").length;
+    );
+    const done = periodEntries.filter(
+      (entry) => entry.status === "done",
+    ).length;
+    const skipped = periodEntries.filter(
+      (entry) => entry.status === "skipped",
+    ).length;
+    const required = Math.max(0, period.target - skipped);
     return {
       complete: period.end <= through,
-      success: done >= period.target,
+      neutral: required === 0,
+      success: required > 0 && done >= required,
     };
   });
 
@@ -144,7 +189,7 @@ function calculateWeeklyStreak(
     if (period.success) {
       run += 1;
       best = Math.max(best, run);
-    } else if (period.complete) {
+    } else if (period.complete && !period.neutral) {
       run = 0;
     }
   }
@@ -154,8 +199,8 @@ function calculateWeeklyStreak(
     index -= 1;
   }
   let current = 0;
-  while (index >= 0 && periods[index].success) {
-    current += 1;
+  while (index >= 0 && (periods[index].success || periods[index].neutral)) {
+    if (periods[index].success) current += 1;
     index -= 1;
   }
   return { best, current, unit: "week" };

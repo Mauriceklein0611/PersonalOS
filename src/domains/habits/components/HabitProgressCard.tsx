@@ -9,6 +9,7 @@ import {
   getHabitProgressRange,
   getHabitScheduleLabel,
   getHabitTargetUnitLabel,
+  getHabitUnitLabel,
   type HabitProgressPeriod,
 } from "../view-model";
 
@@ -46,7 +47,8 @@ export function HabitProgressCard({
     range.to,
   );
   const streak = calculateHabitStreak(habit, entries, today);
-  const unitLabel = getHabitTargetUnitLabel(habit.schedule);
+  const targetUnitLabel = getHabitTargetUnitLabel(habit.schedule);
+  const unitLabel = getHabitUnitLabel(habit.schedule);
 
   return (
     <article aria-labelledby={headingId} className="habit-progress-card">
@@ -77,13 +79,21 @@ export function HabitProgressCard({
         {formatCalendarDay(range.to)}
       </p>
       <p className="habit-progress-basis">
-        Berechnungsbasis: {fulfillment.done} von {fulfillment.target}{" "}
-        {unitLabel} erledigt, {fulfillment.skipped} übersprungen. Übersprungene
-        Tage werden separat gezählt und nicht als erledigt gewertet.
+        Berechnungsbasis: {fulfillment.done} von {fulfillment.counted} zählenden{" "}
+        {unitLabel} erledigt, bei {fulfillment.target} {targetUnitLabel} und{" "}
+        {fulfillment.skipped} übersprungen. Übersprungen heißt bewusst
+        ausgelassen: Diese Einheiten zählen weder als erledigt noch im Nenner.
+        Ein geplanter Tag ohne Eintrag gilt als nicht erfasst und bleibt im
+        Nenner.
       </p>
       {fulfillment.target === 0 ? (
         <p className="habit-progress-hint">
           In diesem Zeitraum war noch nichts geplant.
+        </p>
+      ) : fulfillment.counted === 0 ? (
+        <p className="habit-progress-hint">
+          Alle geplanten Einheiten dieses Zeitraums sind übersprungen. Daraus
+          lässt sich keine Quote ableiten.
         </p>
       ) : null}
     </article>

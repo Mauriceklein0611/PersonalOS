@@ -55,7 +55,8 @@ const minimumHabitTarget = 20;
 
 export const habitWeekdayRhythmRule: InsightRule = {
   id: "habit-weekday-rhythm",
-  version: "habit-weekday-rhythm-v1",
+  // v2: Der Nenner sind seit ADR 0012 die zählenden Einheiten.
+  version: "habit-weekday-rhythm-v2",
   run(input, context) {
     const period = getHabitRulePeriod(context.today);
     // `timesPerWeek` bleibt außen vor: Das Ziel gilt für die Woche und ist
@@ -86,11 +87,11 @@ export const habitWeekdayRhythmRule: InsightRule = {
         addCalendarDays(weekStart, 6),
       );
       totalTarget += weekday.target + weekend.target;
-      if (weekday.target === 0 || weekend.target === 0) continue;
+      if (weekday.counted === 0 || weekend.counted === 0) continue;
 
       comparableWeeks += 1;
-      const weekdayRate = weekday.done / weekday.target;
-      const weekendRate = weekend.done / weekend.target;
+      const weekdayRate = weekday.done / weekday.counted;
+      const weekendRate = weekend.done / weekend.counted;
       if (weekdayRate > weekendRate) weekdayHigher += 1;
       if (weekendRate > weekdayRate) weekendHigher += 1;
     }
@@ -167,20 +168,28 @@ function enumerateWeekStarts(period: InsightPeriod): CalendarDay[] {
   return starts;
 }
 
+/**
+ * `counted` statt `target`: Übersprungene Einheiten sind seit
+ * [ADR 0012](../../../docs/decisions/0012-skip-keeps-the-streak.md) nicht mehr
+ * im Nenner. Ein Wochenende, das bewusst ausgelassen wurde, senkt die Quote
+ * deshalb nicht mehr.
+ */
 function sumFulfillment(
   habits: readonly Habit[],
   entries: readonly HabitEntry[],
   from: CalendarDay,
   to: CalendarDay,
 ) {
+  let counted = 0;
   let done = 0;
   let target = 0;
   for (const habit of habits) {
     const fulfillment = calculateHabitFulfillment(habit, entries, from, to);
+    counted += fulfillment.counted;
     done += fulfillment.done;
     target += fulfillment.target;
   }
-  return { done, target };
+  return { counted, done, target };
 }
 
 // --- Regel 2: Budgetverbrauch gegen vergangene Zeit ------------------------

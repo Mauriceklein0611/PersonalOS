@@ -3,7 +3,7 @@
 - Status: akzeptiert
 - Datum: 2026-08-06
 - Bezug: Issue #24
-- Regelversionen: `habit-weekday-rhythm-v1`, `budget-pace-v1`, `task-weekday-pattern-v1`
+- Regelversionen: `habit-weekday-rhythm-v2` (seit [ADR 0012](0012-skip-keeps-the-streak.md); zuvor `-v1`), `budget-pace-v1`, `task-weekday-pattern-v1`
 
 ## Kontext
 

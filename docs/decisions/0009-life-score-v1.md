@@ -1,9 +1,11 @@
 # ADR 0009: Erklärbarer Life Score v1
 
-- Status: akzeptiert
+- Status: akzeptiert, in der Komponente `habits` geändert durch [ADR 0012](0012-skip-keeps-the-streak.md)
 - Datum: 2026-08-06
 - Bezug: Issue #21
-- Engine-Version: `life-score-v1`
+- Engine-Version: `life-score-v1`; seit ADR 0012 gilt `life-score-v2`
+
+> **Nachtrag vom 07.08.2026.** [ADR 0012](0012-skip-keeps-the-streak.md) nimmt bewusst übersprungene Einheiten aus dem Nenner der Habits-Komponente und hebt die Engine-Version auf `life-score-v2`. Betroffen sind der Abschnitt „Gewohnheiten (`habits`)“ und dessen Mindestdaten. Alles Übrige in diesem Dokument gilt unverändert; Snapshots mit `life-score-v1` bleiben gültig und werden nicht nachgerechnet.
 
 ## Kontext
 
@@ -54,6 +56,8 @@ Aufgaben ohne `plannedDate` bleiben außen vor. Sie sind eine Sammlung, keine Zu
 Die Definition wird bewusst aus der Habits-Domäne übernommen und nicht neu erfunden. Zwei Erfüllungsquoten mit unterschiedlichen Regeln wären für den Nutzer nicht erklärbar.
 
 Übersprungene Tage bleiben dadurch im Nenner. Das ist eine bewusste Härte: Ein Überspringen ist erfasste Wirklichkeit, keine fehlende Angabe. Die Oberfläche weist übersprungene Tage getrennt aus, damit der Unterschied sichtbar bleibt.
+
+> **Geändert durch [ADR 0012](0012-skip-keeps-the-streak.md), 07.08.2026.** Die Formel lautet seither `100 × done / counted` mit `counted = max(done, target − skipped)`; die Mindestdaten gelten für `counted`. Der Absatz oben beschreibt den Stand von `life-score-v1` und bleibt als Begründung der abgelösten Regel stehen.
 
 #### Wohlbefinden (`wellbeing`)
 

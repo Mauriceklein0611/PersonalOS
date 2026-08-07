@@ -159,16 +159,21 @@ describe("HabitsPage", () => {
     );
 
     const card = screen.getByRole("article", { name: "Morgenroutine" });
-    expect(within(card).getByText("50 %")).toBeInTheDocument();
-    expect(within(card).getByText("0 Tage")).toBeInTheDocument();
-    expect(within(card).getByText("2 Tage")).toBeInTheDocument();
+    // Vier geplante Tage, einer übersprungen: 2 von 3 zählenden Tagen.
+    expect(within(card).getByText("67 %")).toBeInTheDocument();
+    // Der übersprungene Tag bricht die Serie nicht: aktuelle und beste Serie
+    // sind beide zwei Tage.
+    expect(within(card).getAllByText("2 Tage")).toHaveLength(2);
     expect(
       within(card).getByText("Zeitraum: 01.08.2026 bis 04.08.2026"),
     ).toBeInTheDocument();
     expect(
       within(card).getByText(
-        /2 von 4 geplanten Tagen erledigt, 1 übersprungen/,
+        /2 von 3 zählenden Tagen erledigt, bei 4 geplanten Tagen und 1 übersprungen/,
       ),
+    ).toBeInTheDocument();
+    expect(
+      within(card).getByText(/Ein geplanter Tag ohne Eintrag gilt als nicht/),
     ).toBeInTheDocument();
   });
 
