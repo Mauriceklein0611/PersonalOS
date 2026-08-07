@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { expect, test } from "@playwright/test";
 
 const tableNames = [
@@ -75,6 +77,59 @@ test("previews a validated backup and downloads safety data before replace", asy
       .getByRole("status")
       .filter({ hasText: "vollständig wiederhergestellt" }),
   ).toBeVisible();
+});
+
+test("restores the stored theme after export, deletion and import", async ({
+  page,
+}) => {
+  await page.goto("/einstellungen");
+  await page.getByLabel("Farbschema").selectOption("dark");
+
+  // Ohne den Spiegel kann das Theme nach dem Neuladen nur aus der lokalen
+  // Datenbank stammen.
+  await page.evaluate(() => localStorage.removeItem("personalos.theme.v1"));
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  const exportPromise = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Vollständigen Export herunterladen" })
+    .click();
+  const exportedBackup = await readFile(await (await exportPromise).path());
+
+  await page
+    .getByRole("button", { name: "Alle lokalen Daten löschen" })
+    .click();
+  const safetyPromise = page.waitForEvent("download");
+  const reloadPromise = page.waitForEvent("load");
+  await page
+    .getByRole("button", { name: "Backup herunterladen und endgültig löschen" })
+    .click();
+  await safetyPromise;
+  await reloadPromise;
+  await expect(page.getByLabel("Farbschema")).toHaveValue("system");
+
+  await page.getByLabel("Backup-Datei auswählen").setInputFiles({
+    name: "personalos-backup.json",
+    mimeType: "application/json",
+    buffer: exportedBackup,
+  });
+  await page
+    .getByRole("button", { name: "Lokale Daten durch Backup ersetzen" })
+    .click();
+  const restoreSafetyPromise = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Sicherheitsbackup laden und ersetzen" })
+    .click();
+  await restoreSafetyPromise;
+
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "vollständig wiederhergestellt" }),
+  ).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.getByLabel("Farbschema")).toHaveValue("dark");
 });
 
 test("rejects invalid backup files without offering replacement", async ({

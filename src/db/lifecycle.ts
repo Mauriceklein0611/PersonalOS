@@ -1,5 +1,6 @@
 import { personalOsDatabase, type PersonalOsDatabase } from "./database";
 import { toPersistenceError } from "./errors";
+import { seedSettingsRecord } from "./settings/repository";
 
 export class DatabaseStartupError extends Error {
   constructor(options?: ErrorOptions) {
@@ -13,20 +14,33 @@ export interface DatabaseLifecycle {
   reset(): Promise<void>;
 }
 
+/** Läuft nach jedem erfolgreichen Öffnen und muss idempotent sein. */
+export type DatabaseSeed = (database: PersonalOsDatabase) => Promise<void>;
+
 export function createDatabaseLifecycle(
   database: PersonalOsDatabase,
+  seed: DatabaseSeed = seedSettingsRecord,
 ): DatabaseLifecycle {
   let pendingOpen: Promise<void> | undefined;
+  /*
+   * `isOpen()` allein genügt nicht: Nach einem fehlgeschlagenen Seed ist die
+   * Datenbank offen, aber nicht vorbereitet. Ein erneuter Versuch muss den
+   * Seed dann wiederholen statt sofort „fertig" zu melden.
+   */
+  let isPrepared = false;
 
   return {
     open() {
-      if (database.isOpen()) {
+      if (isPrepared && database.isOpen()) {
         return Promise.resolve();
       }
 
       pendingOpen ??= database
         .open()
-        .then(() => undefined)
+        .then(() => seed(database))
+        .then(() => {
+          isPrepared = true;
+        })
         .catch((error: unknown) => {
           throw new DatabaseStartupError({ cause: error });
         })
@@ -39,6 +53,7 @@ export function createDatabaseLifecycle(
     async reset() {
       try {
         pendingOpen = undefined;
+        isPrepared = false;
         database.close();
         await database.delete();
       } catch (error) {

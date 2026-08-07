@@ -6,6 +6,7 @@ import {
   type FormEvent,
 } from "react";
 
+import { useTimeZone } from "../../../app/settings/settings-context";
 import { Button, Input, Toast } from "../../../components/ui";
 import {
   personalOsGoalLinkService,
@@ -57,8 +58,9 @@ export function TasksPage({
   goalLinks = personalOsGoalLinkService,
   now = systemNow,
   service = personalOsTaskService,
-  timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timeZone: timeZoneOverride,
 }: TasksPageProps) {
+  const timeZone = useTimeZone(timeZoneOverride);
   const [activeView, setActiveView] = useState<TaskView>("inbox");
   const [goalOptions, setGoalOptions] = useState<GoalOption[]>([]);
   const [busyTaskId, setBusyTaskId] = useState<string>();

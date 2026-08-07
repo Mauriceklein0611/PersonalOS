@@ -7,6 +7,10 @@ import {
 } from "react";
 
 import {
+  useBaseCurrency,
+  useTimeZone,
+} from "../../../app/settings/settings-context";
+import {
   Button,
   Dialog,
   EmptyState,
@@ -63,12 +67,14 @@ export type SavingsPanelProps = {
 };
 
 export function SavingsPanel({
-  currency = "EUR",
+  currency: currencyOverride,
   now = () => new Date(),
   onChange,
   service = personalOsSavingsService,
-  timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timeZone: timeZoneOverride,
 }: SavingsPanelProps) {
+  const currency = useBaseCurrency(currencyOverride);
+  const timeZone = useTimeZone(timeZoneOverride);
   const today = useMemo(
     () => calendarDayForInstant(now(), timeZone),
     [now, timeZone],

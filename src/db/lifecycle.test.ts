@@ -42,6 +42,69 @@ describe("database lifecycle", () => {
     expect(database.isOpen()).toBe(false);
   });
 
+  it("seeds exactly one settings record on the first start", async () => {
+    const name = createDatabaseName();
+    const database = new PersonalOsDatabase(name);
+    const lifecycle = createDatabaseLifecycle(database);
+
+    await lifecycle.open();
+
+    const [settings] = await database.table("settings").toArray();
+    expect(await database.table("settings").count()).toBe(1);
+    expect(settings).toMatchObject({
+      baseCurrency: "EUR",
+      locale: "de-DE",
+      theme: "system",
+      weekStartsOn: 1,
+    });
+    expect(typeof settings.timeZone).toBe("string");
+    database.close();
+  });
+
+  it("does not create a second settings record on a repeated start", async () => {
+    const name = createDatabaseName();
+    const first = new PersonalOsDatabase(name);
+    await createDatabaseLifecycle(first).open();
+    const seededId = (await first.table("settings").toArray())[0].id;
+    first.close();
+
+    const second = new PersonalOsDatabase(name);
+    const lifecycle = createDatabaseLifecycle(second);
+    await lifecycle.open();
+    await lifecycle.open();
+
+    expect(await second.table("settings").count()).toBe(1);
+    expect((await second.table("settings").toArray())[0].id).toBe(seededId);
+    second.close();
+  });
+
+  it("reports a failed seed and repeats it on the next attempt", async () => {
+    const name = createDatabaseName();
+    const database = new PersonalOsDatabase(name);
+    let attempts = 0;
+    const lifecycle = createDatabaseLifecycle(database, async (target) => {
+      attempts += 1;
+      if (attempts === 1) throw new Error("seed failed");
+      await target.table("settings").add({
+        id: crypto.randomUUID(),
+        createdAt: "2026-08-07T08:00:00.000Z",
+        updatedAt: "2026-08-07T08:00:00.000Z",
+        locale: "de-DE",
+        timeZone: "Europe/Berlin",
+        theme: "system",
+        baseCurrency: "EUR",
+        weekStartsOn: 1,
+      });
+    });
+
+    await expect(lifecycle.open()).rejects.toBeInstanceOf(DatabaseStartupError);
+    await lifecycle.open();
+
+    expect(attempts).toBe(2);
+    expect(await database.table("settings").count()).toBe(1);
+    database.close();
+  });
+
   it("deletes local data only through the explicit reset operation", async () => {
     const name = createDatabaseName();
     const database = new PersonalOsDatabase(name);

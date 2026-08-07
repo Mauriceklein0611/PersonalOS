@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from "react";
+import { useContext, useRef, useState, type ChangeEvent } from "react";
 
 import { Button, Card, Dialog } from "../../components/ui";
 import {
@@ -11,6 +11,7 @@ import {
   type BackupService,
 } from "../../db/backup/service";
 import { downloadBackup } from "./download-backup";
+import { AppSettingsContext } from "./settings-context";
 import "./backup-panel.css";
 
 const countLabels: Record<keyof BackupPreview["counts"], string> = {
@@ -48,6 +49,7 @@ export function BackupPanel({
   const [isRestoring, setIsRestoring] = useState(false);
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const appSettings = useContext(AppSettingsContext);
 
   async function exportData() {
     setIsExporting(true);
@@ -93,6 +95,9 @@ export function BackupPanel({
     setError(undefined);
     try {
       await service.replace(preview, (safetyBackup) => download(safetyBackup));
+      // Der Import ersetzt auch den Settings-Datensatz. Zeitzone, Währung und
+      // Theme kommen deshalb aus dem Backup, nicht aus dem bisherigen Stand.
+      await appSettings?.reload().catch(() => undefined);
       setPreview(undefined);
       setFileName(undefined);
       setIsRestoreDialogOpen(false);

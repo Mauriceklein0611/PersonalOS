@@ -16,6 +16,17 @@ export const timeZoneSchema = z
     }
   });
 
+/**
+ * Die Zeitzone des Geräts, sofern sie gültig ist. Browser ohne belastbare
+ * Angabe fallen auf `UTC` zurück, damit ein Kalendertag nie aus einem
+ * ungeprüften Wert entsteht.
+ */
+export function detectTimeZone(fallback = "UTC"): string {
+  const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const result = timeZoneSchema.safeParse(detected);
+  return result.success ? result.data : fallback;
+}
+
 export type IsoInstant = z.infer<typeof isoInstantSchema>;
 export type CalendarDay = z.infer<typeof calendarDaySchema>;
 export type CalendarMonth = z.infer<typeof calendarMonthSchema>;

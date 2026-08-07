@@ -26,6 +26,7 @@ export {
   DatabaseStartupError,
   personalOsDatabaseLifecycle,
   type DatabaseLifecycle,
+  type DatabaseSeed,
 } from "./lifecycle";
 export {
   createLocalDataService,
@@ -40,7 +41,19 @@ export {
   personalOsTableNames,
   type PersonalOsTableName,
 } from "./schema";
-export { settingsSchema, type Settings } from "./schemas/settings";
+export {
+  createDefaultSettingsDetails,
+  settingsDetailsSchema,
+  settingsSchema,
+  type Settings,
+  type SettingsDetails,
+} from "./schemas/settings";
+export {
+  createSettingsRepository,
+  personalOsSettingsRepository,
+  seedSettingsRecord,
+  type SettingsRepository,
+} from "./settings/repository";
 export { runInTransaction, type TransactionTableNames } from "./transactions";
 export {
   createEntityMeta,

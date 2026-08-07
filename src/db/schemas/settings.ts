@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { timeZoneSchema } from "../../lib/dates/date-values";
+import { detectTimeZone, timeZoneSchema } from "../../lib/dates/date-values";
 import { currencyCodeSchema } from "../../lib/money/money";
 import { entityMetaSchema } from "../types";
 
@@ -21,4 +21,39 @@ export const settingsSchema = entityMetaSchema.safeExtend({
   weekStartsOn: z.literal(1),
 });
 
+export const settingsDetailsSchema = z
+  .object({
+    ...settingsFields,
+    weekStartsOn: z.literal(1),
+  })
+  .strict();
+
 export type Settings = z.infer<typeof settingsSchema>;
+export type SettingsDetails = z.infer<typeof settingsDetailsSchema>;
+
+/** Die fachlichen Werte ohne die Metadaten des Datensatzes. */
+export function toSettingsDetails(settings: Settings): SettingsDetails {
+  return {
+    baseCurrency: settings.baseCurrency,
+    locale: settings.locale,
+    theme: settings.theme,
+    timeZone: settings.timeZone,
+    weekStartsOn: settings.weekStartsOn,
+  };
+}
+
+/**
+ * Die Werte des Erststarts. Die Zeitzone ist der einzige erkannte Wert; alle
+ * übrigen Vorgaben sind fest und damit erklärbar.
+ */
+export function createDefaultSettingsDetails(
+  timeZone: string = detectTimeZone(),
+): SettingsDetails {
+  return settingsDetailsSchema.parse({
+    baseCurrency: "EUR",
+    locale: "de-DE",
+    theme: "system",
+    timeZone,
+    weekStartsOn: 1,
+  });
+}

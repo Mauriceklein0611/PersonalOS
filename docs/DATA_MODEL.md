@@ -52,6 +52,10 @@ type Settings = EntityMeta & {
 };
 ```
 
+Es gibt genau einen Settings-Datensatz. Er entsteht beim ersten erfolgreichen Öffnen der Datenbank (`seedSettingsRecord` in `src/db/settings/repository.ts`) mit `locale: "de-DE"`, `theme: "system"`, `baseCurrency: "EUR"`, `weekStartsOn: 1` und der erkannten Zeitzone; ohne belastbare Angabe des Browsers ist das `UTC`. Der Seed ist idempotent und läuft in einer Transaktion, ein zweiter Start legt also keinen zweiten Datensatz an. Ein vorhandener, aber archivierter Datensatz zählt ebenfalls als vorhanden.
+
+Der Datensatz ist Teil jedes Exports. Nach einem Import gelten seine Werte sofort; fehlt er im Backup, entsteht er beim nächsten Lesen neu.
+
 ## Tasks
 
 ```ts

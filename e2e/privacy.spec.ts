@@ -81,7 +81,8 @@ test("downloads a safety backup before clearing local data", async ({
   );
   await page.goto("/einstellungen");
 
-  await expect(page.getByText("1 lokaler Datensatz")).toBeVisible();
+  // Die Aufgabe und der beim Start angelegte Settings-Datensatz.
+  await expect(page.getByText("2 lokale Datensätze")).toBeVisible();
   await page
     .getByRole("button", { name: "Alle lokalen Daten löschen" })
     .click();
@@ -107,6 +108,8 @@ test("downloads a safety backup before clearing local data", async ({
   await expect(
     page.getByRole("heading", { level: 1, name: "Einstellungen" }),
   ).toBeVisible();
-  await expect(page.getByText("Noch keine lokalen Datensätze")).toBeVisible();
+  // Die Aufgabe ist fort; der Start legt die Einstellungen neu an.
+  await expect(page.getByText("1 lokaler Datensatz")).toBeVisible();
+  await expect(page.getByText("Synthetische Löschprüfung")).toHaveCount(0);
   await expect(page.getByLabel("Farbschema")).toHaveValue("system");
 });

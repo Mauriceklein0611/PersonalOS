@@ -7,6 +7,7 @@ import {
 } from "react";
 import { Link } from "react-router";
 
+import { useTimeZone } from "../../../app/settings/settings-context";
 import {
   Button,
   EmptyState,
@@ -68,8 +69,9 @@ export function TodayPage({
   journalService = personalOsJournalService,
   now = systemNow,
   taskService = personalOsTaskService,
-  timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timeZone: timeZoneOverride,
 }: TodayPageProps) {
+  const timeZone = useTimeZone(timeZoneOverride);
   const context = useMemo(
     () => createTodayContext(now(), timeZone),
     [now, timeZone],

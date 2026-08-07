@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
+import { useTimeZone } from "../../../app/settings/settings-context";
 import { Button, EmptyState, Input, Textarea } from "../../../components/ui";
 import {
   addCalendarDays,
@@ -40,8 +41,9 @@ export type JournalPageProps = {
 export function JournalPage({
   now = systemNow,
   service = personalOsJournalService,
-  timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  timeZone: timeZoneOverride,
 }: JournalPageProps) {
+  const timeZone = useTimeZone(timeZoneOverride);
   const today = useMemo(
     () => calendarDayForInstant(now(), timeZone),
     [now, timeZone],

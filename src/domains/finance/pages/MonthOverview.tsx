@@ -16,6 +16,8 @@ import type { MonthlyOverview } from "../overview";
 
 export type MonthOverviewProps = {
   categoriesById: Map<string, FinanceCategory>;
+  /** Übersichtswährung aus den Einstellungen. */
+  currency: string;
   /** Bereits formatierter Monat, zum Beispiel „August 2026“. */
   monthLabel: string;
   onNextMonth: () => void;
@@ -30,13 +32,14 @@ const maximumCategories = 5;
 
 export function MonthOverview({
   categoriesById,
+  currency,
   error,
   monthLabel,
   onNextMonth,
   onPreviousMonth,
   overview,
 }: MonthOverviewProps) {
-  const period = `${monthLabel}, in ${overview?.currency ?? "EUR"}`;
+  const period = `${monthLabel}, in ${overview?.currency ?? currency}`;
 
   return (
     <section className="page-section finance-overview" data-span="full">
