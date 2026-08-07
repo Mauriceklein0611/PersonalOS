@@ -1,7 +1,13 @@
 import { useMemo, useState } from "react";
 
-import { EmptyState, IconButton, Select } from "../../../components/ui";
+import {
+  EmptyState,
+  IconButton,
+  SearchField,
+  Select,
+} from "../../../components/ui";
 import { formatSignedMinorUnits } from "../../../lib/money/money";
+import { createSearchMatcher } from "../../../lib/text/search-terms";
 import {
   financeKindLabels,
   financeKinds,
@@ -31,6 +37,7 @@ export function TransactionList({
   const [monthFilter, setMonthFilter] = useState<string>(currentMonth);
   const [kindFilter, setKindFilter] = useState<FinanceKind | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const months = useMemo(() => {
     const known = new Set(transactions.map((entry) => monthOf(entry.bookedOn)));
@@ -38,7 +45,7 @@ export function TransactionList({
     return [...known].sort().reverse();
   }, [currentMonth, transactions]);
 
-  const visibleTransactions = useMemo(
+  const selectedTransactions = useMemo(
     () =>
       transactions.filter((entry) => {
         if (monthFilter !== "all" && monthOf(entry.bookedOn) !== monthFilter) {
@@ -51,6 +58,22 @@ export function TransactionList({
         return true;
       }),
     [categoryFilter, kindFilter, monthFilter, transactions],
+  );
+
+  // Die Suche greift nach den Auswahlfeldern. Sie durchsucht die Notiz und den
+  // Kategorienamen, weil dieser in der Zeile als Überschrift steht.
+  const matcher = useMemo(() => createSearchMatcher(searchTerm), [searchTerm]);
+  const visibleTransactions = useMemo(
+    () =>
+      matcher.isActive
+        ? selectedTransactions.filter((entry) =>
+            matcher.matches(
+              entry.description,
+              categoriesById.get(entry.categoryId)?.name,
+            ),
+          )
+        : selectedTransactions,
+    [categoriesById, matcher, selectedTransactions],
   );
 
   return (
@@ -97,11 +120,31 @@ export function TransactionList({
         </Select>
       </div>
 
+      <SearchField
+        hint="Sucht in Notiz und Kategoriename der ausgewählten Buchungen."
+        label="Buchungen durchsuchen"
+        onChange={setSearchTerm}
+        placeholder="Zum Beispiel Miete"
+        resultLabel={
+          matcher.isActive
+            ? `${visibleTransactions.length} von ${selectedTransactions.length} Buchungen in dieser Auswahl`
+            : undefined
+        }
+        value={searchTerm}
+      />
+
       {visibleTransactions.length === 0 ? (
-        <EmptyState
-          description="Für diese Auswahl ist keine Buchung erfasst."
-          title="Keine Buchung"
-        />
+        matcher.isActive ? (
+          <EmptyState
+            description={`Zu „${searchTerm.trim()}“ passt in dieser Auswahl keine Buchung. Prüfe die Schreibweise oder weite die Filter aus.`}
+            title="Kein Treffer"
+          />
+        ) : (
+          <EmptyState
+            description="Für diese Auswahl ist keine Buchung erfasst."
+            title="Keine Buchung"
+          />
+        )
       ) : (
         <ul className="finance-list">
           {visibleTransactions.map((entry) => (

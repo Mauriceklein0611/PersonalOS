@@ -130,6 +130,51 @@ describe("JournalPage", () => {
     ).toBeChecked();
   });
 
+  it("filters the history by text and still shows no excerpt", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryJournalService([
+      createEntry("2026-08-03", { highlight: "Langer Spaziergang" }),
+      createEntry("2026-08-02", { gratitude: "Ruhige Stunde" }),
+    ]);
+    renderPage(service);
+
+    await screen.findByRole("button", {
+      name: "Eintrag vom Montag, 3. August 2026 bearbeiten",
+    });
+    await user.type(
+      screen.getByRole("searchbox", { name: "Verlauf durchsuchen" }),
+      "spaziergang",
+    );
+
+    expect(
+      await screen.findByText("1 von 2 Einträgen im Verlauf"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: "Eintrag vom Sonntag, 2. August 2026 bearbeiten",
+      }),
+    ).not.toBeInTheDocument();
+    // Der Verlauf nennt weiterhin nur die ausgefüllten Felder, keinen Auszug.
+    expect(screen.queryByText("Langer Spaziergang")).not.toBeInTheDocument();
+  });
+
+  it("separates an empty result from a history without entries", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryJournalService([
+      createEntry("2026-08-03", { highlight: "Langer Spaziergang" }),
+    ]);
+    renderPage(service);
+
+    await screen.findByRole("searchbox", { name: "Verlauf durchsuchen" });
+    await user.type(
+      screen.getByRole("searchbox", { name: "Verlauf durchsuchen" }),
+      "Segeltörn",
+    );
+
+    expect(await screen.findByText("Kein Treffer")).toBeInTheDocument();
+    expect(screen.queryByText("Noch kein Eintrag")).not.toBeInTheDocument();
+  });
+
   it("blocks the day change while edits are unsaved and restores them on discard", async () => {
     const user = userEvent.setup();
     const service = createMemoryJournalService();

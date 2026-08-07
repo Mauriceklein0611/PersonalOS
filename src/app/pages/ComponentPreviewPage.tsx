@@ -13,6 +13,7 @@ import {
   ProgressBar,
   ProgressRing,
   RankedBarList,
+  SearchField,
   Select,
   Skeleton,
   Textarea,
@@ -51,6 +52,7 @@ const trackerRows: Array<{
 
 export function Component() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [previewSearch, setPreviewSearch] = useState("");
   const [showToast, setShowToast] = useState(true);
 
   return (
@@ -113,6 +115,18 @@ export function Component() {
           <option value="normal">Normal</option>
           <option value="high">Hoch</option>
         </Select>
+        <SearchField
+          hint="Sucht in Titel und Notiz der angezeigten Liste."
+          label="Liste durchsuchen"
+          onChange={setPreviewSearch}
+          placeholder="Zum Beispiel Rechnung"
+          resultLabel={
+            previewSearch.trim().length > 0
+              ? "2 von 12 Einträgen in dieser Liste"
+              : undefined
+          }
+          value={previewSearch}
+        />
         <Checkbox
           hint="Du kannst dies später jederzeit ändern."
           label="In der Tagesübersicht anzeigen"

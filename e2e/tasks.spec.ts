@@ -36,6 +36,25 @@ test("persists a task through editing, completion, reopening and archive undo", 
   await expect(page.getByText("Erledigungen")).toBeVisible();
   await expect(page.getByText("20 Min.")).toBeVisible();
 
+  // Wiederfinden: Die Suche greift über Titel und Notiz und nennt die Treffer.
+  const search = page.getByRole("searchbox", { name: "Aufgaben durchsuchen" });
+  await search.fill("frist");
+  await expect(
+    page.getByText("1 von 1 Aufgaben in dieser Ansicht"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
+  ).toBeVisible();
+  await search.fill("Segeltörn");
+  await expect(page.getByText("Kein Treffer")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
+  ).toBeHidden();
+  await search.fill("");
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
+  ).toBeVisible();
+
   await page.getByRole("button", { name: /abschließen$/ }).click();
   await expect(
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),

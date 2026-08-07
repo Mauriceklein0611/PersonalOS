@@ -20,7 +20,7 @@ function renderPage(service: FinanceService) {
   );
 }
 
-async function addExpense(amount: string, category: string) {
+async function addExpense(amount: string, category: string, note?: string) {
   const user = userEvent.setup();
   await user.selectOptions(screen.getByRole("combobox", { name: "Art" }), [
     "expense",
@@ -33,6 +33,9 @@ async function addExpense(amount: string, category: string) {
     screen.getByRole("combobox", { name: /Kategorie der Buchung/ }),
     [category],
   );
+  if (note) {
+    await user.type(screen.getByRole("textbox", { name: /Notiz/ }), note);
+  }
   await user.click(screen.getByRole("button", { name: "Buchung speichern" }));
 }
 
@@ -160,6 +163,43 @@ describe("FinancePage", () => {
     );
 
     expect(screen.getByText("Keine Buchung")).toBeInTheDocument();
+  });
+
+  it("finds a booking by its note and names the match count", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+
+    await addExpense("12,50", "Lebensmittel", "Wocheneinkauf");
+    await addExpense("30,00", "Freizeit", "Kinobesuch");
+
+    await user.type(
+      screen.getByRole("searchbox", { name: "Buchungen durchsuchen" }),
+      "kino",
+    );
+
+    expect(
+      await screen.findByText("1 von 2 Buchungen in dieser Auswahl"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Kinobesuch/)).toBeInTheDocument();
+    expect(screen.queryByText(/Wocheneinkauf/)).not.toBeInTheDocument();
+  });
+
+  it("separates an empty result from a selection without bookings", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+
+    await addExpense("12,50", "Lebensmittel", "Wocheneinkauf");
+    await user.type(
+      screen.getByRole("searchbox", { name: "Buchungen durchsuchen" }),
+      "Segeltörn",
+    );
+
+    expect(await screen.findByText("Kein Treffer")).toBeInTheDocument();
+    expect(screen.queryByText("Keine Buchung")).not.toBeInTheDocument();
   });
 
   it("shows consumption, remainder and a text summary for a budget", async () => {
