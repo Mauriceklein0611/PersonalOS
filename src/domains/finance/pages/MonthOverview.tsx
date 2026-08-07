@@ -205,14 +205,31 @@ function describeSource(overview: MonthlyOverview): string {
 }
 
 function describeSavings(overview: MonthlyOverview): string {
-  const { activeGoalCount, targetMinor } = overview.savings;
+  const { activeGoalCount, excludedGoalCount, targetMinor } = overview.savings;
+  const excluded = describeExcludedGoals(excludedGoalCount);
+
   if (activeGoalCount === 0) {
-    return "Kein aktives Sparziel.";
+    return excluded === ""
+      ? "Kein aktives Sparziel."
+      : `Kein aktives Sparziel in ${overview.currency}.${excluded}`;
   }
   if (targetMinor === 0) {
-    return `${activeGoalCount} aktive Sparziele ohne Zielbetrag.`;
+    return `${activeGoalCount} ${
+      activeGoalCount === 1 ? "aktives Sparziel" : "aktive Sparziele"
+    } ohne Zielbetrag.${excluded}`;
   }
   return `${activeGoalCount} ${
     activeGoalCount === 1 ? "aktives Sparziel" : "aktive Sparziele"
-  }; der Stand zählt alle Beiträge, nicht nur die des Monats.`;
+  } in ${overview.currency}; der Stand zählt alle Beiträge, nicht nur die des Monats.${excluded}`;
+}
+
+/**
+ * Ein ausgeschlossenes Ziel wird benannt, nicht umgerechnet und nicht still
+ * weggelassen. Ohne Ausschluss bleibt der Satz unverändert kurz.
+ */
+function describeExcludedGoals(excludedGoalCount: number): string {
+  if (excludedGoalCount === 0) return "";
+  return excludedGoalCount === 1
+    ? " Ein Sparziel in einer anderen Währung ist nicht enthalten."
+    : ` ${excludedGoalCount} Sparziele in einer anderen Währung sind nicht enthalten.`;
 }
