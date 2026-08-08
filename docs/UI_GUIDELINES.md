@@ -34,6 +34,14 @@ Die Komponenten orientieren sich an [WCAG 2.2](https://www.w3.org/TR/WCAG22/):
 - Loading-Texte beschreiben den aktuellen Vorgang, zum Beispiel „Wird gespeichert …“.
 - Disabled-Zustände werden nur verwendet, wenn die Aktion aktuell nicht möglich ist. Eine verständliche Erklärung steht im umgebenden Kontext.
 
+## Navigation
+
+- **Ein Begriff je Bereich**, auf jeder Größe und in jeder Überschrift. Eine gekürzte Zweitbezeichnung für dieselbe Route gibt es nicht; passt ein Wort nicht in seine Spalte, trennt die Silbentrennung es (`hyphens: auto`, das Dokument trägt `lang="de"`).
+- Das mobile Band trägt **Icon und Beschriftung**. Das Icon ist Orientierungshilfe, `aria-hidden` und nie ein Ersatz für den Text. Die Beschriftung bleibt mindestens 0,7 rem groß.
+- Icons sind inline-SVG in `src/app/navigation/icons.tsx`. Eine Icon-Bibliothek wäre eine neue Laufzeitabhängigkeit und braucht eine Begründung im PR.
+- Alle Bedienelemente der Kopfzeile und des Bandes halten `--control-height` (44 px).
+- Das Überlaufmenü schließt bei `Escape` und bei einem Tap außerhalb. Beim Öffnen steht der Fokus auf dem ersten Eintrag; nach dem Schließen ohne Navigation kehrt er auf den Auslöser zurück.
+
 ## Fehlermeldungsmuster
 
 Fehler nennen zuerst das lösbare Problem und anschließend die erwartete Korrektur. Sie beschuldigen den Nutzer nicht.

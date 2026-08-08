@@ -106,6 +106,13 @@ a {
   text-decoration: none;
 }
 
+/* Auch die Wortmarke ist ein Ziel und hält deshalb die Mindesthöhe. */
+.mobile-brand {
+  display: inline-flex;
+  min-height: var(--control-height);
+  align-items: center;
+}
+
 .top-bar-actions {
   display: flex;
   align-items: center;
@@ -120,9 +127,10 @@ a {
   font-weight: var(--font-weight-bold);
 }
 
+/* Auch in der Kopfzeile gilt die eigene Mindestgröße von 44 CSS-Pixeln. */
 .theme-switcher select {
-  min-height: 2.2rem;
-  padding: 0.2rem 1.8rem 0.2rem 0.65rem;
+  min-height: var(--control-height);
+  padding: 0.2rem 1.8rem 0.2rem 0.75rem;
   border: 1px solid var(--edge-strong);
   border-radius: var(--radius-round);
   color: var(--text);
@@ -131,9 +139,9 @@ a {
 
 .offline-indicator {
   display: inline-flex;
-  min-height: 2rem;
+  min-height: var(--control-height);
   align-items: center;
-  padding: 0.25rem 0.65rem;
+  padding: 0.25rem 0.75rem;
   border: 1px solid var(--danger);
   border-radius: var(--radius-round);
   color: var(--danger);
@@ -343,15 +351,40 @@ a {
 .mobile-more-button {
   display: grid;
   min-width: 0;
-  place-items: center;
-  padding: 0.5rem 0.2rem;
+  min-height: var(--control-height);
+  align-content: center;
+  justify-items: center;
+  gap: 0.15rem;
+  padding: 0.4rem 0.15rem;
   border: 0;
   color: var(--text-muted);
   background: transparent;
-  font-size: clamp(0.63rem, 2.8vw, 0.76rem);
+  /* Untergrenze 0,7 rem: darunter ist die Beschriftung nicht mehr scanbar. */
+  font-size: clamp(0.7rem, 2.8vw, 0.78rem);
   font-weight: var(--font-weight-bold);
   text-align: center;
   text-decoration: none;
+}
+
+/*
+ * Das Symbol ist Orientierungshilfe neben der Beschriftung, nie ihr Ersatz.
+ * Es skaliert mit der Schrift, damit größere Systemschrift beides anhebt.
+ */
+.navigation-icon {
+  width: 1.5em;
+  height: 1.5em;
+  flex: none;
+}
+
+/*
+ * „Gewohnheiten" ist bei 320 px breiter als seine Spalte. Statt eines zweiten
+ * Begriffs für denselben Bereich trennt die Silbentrennung das Wort; das
+ * Dokument trägt `lang="de"`.
+ */
+.mobile-nav-label {
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  line-height: var(--line-height-tight);
 }
 
 .navigation-link-active {
@@ -374,7 +407,11 @@ a {
 }
 
 .mobile-overflow-link {
-  padding: 0.8rem 0.9rem;
+  display: flex;
+  min-height: var(--control-height);
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem;
   border-radius: var(--radius-md);
   font-weight: var(--font-weight-bold);
   text-decoration: none;
