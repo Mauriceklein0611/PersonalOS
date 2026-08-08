@@ -15,6 +15,7 @@ const routeCases = [
   ["/ziele", "Ziele"],
   ["/finanzen", "Finanzen"],
   ["/insights", "Insights"],
+  ["/wochenrueckblick", "Wochenrückblick"],
   ["/einstellungen", "Einstellungen"],
   ["/komponenten", "Komponenten"],
   ["/gibt-es-nicht", "Diese Seite gibt es nicht."],
