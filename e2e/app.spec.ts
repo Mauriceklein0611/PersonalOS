@@ -104,6 +104,11 @@ test("closes the overflow menu on a tap outside and keeps 44 pixel targets", asy
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
 
+  // Mit der Offline-Anzeige steht ein drittes Element in der Kopfzeile. Sie
+  // bricht dann um, statt die Seite breiter zu machen.
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  await expect(page.getByText("Offline", { exact: true })).toBeVisible();
+
   expect(
     await page.evaluate(
       () =>
