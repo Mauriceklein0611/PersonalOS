@@ -1,25 +1,32 @@
+export type NavigationIconName =
+  | "finance"
+  | "goals"
+  | "habits"
+  | "insights"
+  | "journal"
+  | "settings"
+  | "tasks"
+  | "today";
+
 export type NavigationItem = {
+  icon: NavigationIconName;
+  /** Ein Begriff je Bereich, auf jeder Größe und in jeder Überschrift. */
   label: string;
-  shortLabel: string;
   to: string;
 };
 
 export const primaryNavigationItems: NavigationItem[] = [
-  { label: "Heute", shortLabel: "Heute", to: "/" },
-  { label: "Aufgaben", shortLabel: "Aufgaben", to: "/aufgaben" },
-  { label: "Gewohnheiten", shortLabel: "Routinen", to: "/gewohnheiten" },
-  { label: "Journal", shortLabel: "Journal", to: "/journal" },
+  { icon: "today", label: "Heute", to: "/" },
+  { icon: "tasks", label: "Aufgaben", to: "/aufgaben" },
+  { icon: "habits", label: "Gewohnheiten", to: "/gewohnheiten" },
+  { icon: "journal", label: "Journal", to: "/journal" },
 ];
 
 export const secondaryNavigationItems: NavigationItem[] = [
-  { label: "Ziele", shortLabel: "Ziele", to: "/ziele" },
-  { label: "Finanzen", shortLabel: "Finanzen", to: "/finanzen" },
-  { label: "Insights", shortLabel: "Insights", to: "/insights" },
-  {
-    label: "Einstellungen",
-    shortLabel: "Einstellungen",
-    to: "/einstellungen",
-  },
+  { icon: "goals", label: "Ziele", to: "/ziele" },
+  { icon: "finance", label: "Finanzen", to: "/finanzen" },
+  { icon: "insights", label: "Insights", to: "/insights" },
+  { icon: "settings", label: "Einstellungen", to: "/einstellungen" },
 ];
 
 export const navigationItems = [
