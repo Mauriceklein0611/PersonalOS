@@ -35,6 +35,10 @@ const domainRoutes: RouteObject[] = [
     lazy: () => import("../domains/insights/pages/InsightsPage"),
   },
   {
+    path: "wochenrueckblick",
+    lazy: () => import("../domains/insights/pages/WeeklyReviewPage"),
+  },
+  {
     path: "einstellungen",
     lazy: () => import("./pages/SettingsPage"),
   },

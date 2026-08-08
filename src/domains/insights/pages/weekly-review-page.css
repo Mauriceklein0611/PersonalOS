@@ -1,0 +1,74 @@
+/*
+ * Reines Layout; die Glas-Flächen kommen aus `.page-header` und
+ * `.page-section` (siehe `insights-page.css` für dasselbe Muster).
+ */
+.weekly-review-status {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.weekly-review-note {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.weekly-review-week-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.weekly-review-figures,
+.weekly-review-comparison-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weekly-review-comparison {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tile);
+  background: var(--glass-strong);
+}
+
+.weekly-review-comparison h3 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-kpi);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.weekly-review-comparison-tiles {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.weekly-review-comparison-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+@media (min-width: 40rem) {
+  .weekly-review-comparison-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 48rem) {
+  .weekly-review-figures {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+}
