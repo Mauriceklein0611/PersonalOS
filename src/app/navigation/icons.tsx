@@ -72,6 +72,13 @@ const iconPaths: Record<NavigationIconName | "more", ReactNode> = {
       <circle cx="12" cy="14.75" fill="currentColor" r="1.5" stroke="none" />
     </>
   ),
+  "weekly-review": (
+    <>
+      <rect height="16" rx="2.5" width="17" x="3.5" y="4.5" />
+      <path d="M3.5 9.75h17" />
+      <path d="M13.5 12.5l-2.5 2 2.5 2" />
+    </>
+  ),
 };
 
 export type NavigationIconProps = {

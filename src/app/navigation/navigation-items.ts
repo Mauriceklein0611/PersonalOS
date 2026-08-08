@@ -6,7 +6,8 @@ export type NavigationIconName =
   | "journal"
   | "settings"
   | "tasks"
-  | "today";
+  | "today"
+  | "weekly-review";
 
 export type NavigationItem = {
   icon: NavigationIconName;
@@ -26,6 +27,11 @@ export const secondaryNavigationItems: NavigationItem[] = [
   { icon: "goals", label: "Ziele", to: "/ziele" },
   { icon: "finance", label: "Finanzen", to: "/finanzen" },
   { icon: "insights", label: "Insights", to: "/insights" },
+  {
+    icon: "weekly-review",
+    label: "Wochenrückblick",
+    to: "/wochenrueckblick",
+  },
   { icon: "settings", label: "Einstellungen", to: "/einstellungen" },
 ];
 
