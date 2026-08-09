@@ -83,6 +83,9 @@ export function HabitsPage({
   const timeZone = useTimeZone(timeZoneOverride);
   const [activeView, setActiveView] = useState<HabitsView>("today");
   const [goalOptions, setGoalOptions] = useState<GoalOption[]>([]);
+  const [goalTitles, setGoalTitles] = useState<ReadonlyMap<string, string>>(
+    new Map(),
+  );
   const [busyHabitId, setBusyHabitId] = useState<string>();
   const [editor, setEditor] = useState<{ habit?: Habit }>();
   const [entriesByHabit, setEntriesByHabit] = useState<
@@ -112,13 +115,16 @@ export function HabitsPage({
   // Die Zielauswahl ist optional; ohne sie bleibt die Seite voll nutzbar.
   useEffect(() => {
     let isCurrent = true;
-    void goalLinks
-      .listGoalOptions()
-      .then((options) => {
-        if (isCurrent) setGoalOptions(options);
+    void Promise.all([goalLinks.listGoalOptions(), goalLinks.listGoalTitles()])
+      .then(([options, titles]) => {
+        if (!isCurrent) return;
+        setGoalOptions(options);
+        setGoalTitles(titles);
       })
       .catch(() => {
-        if (isCurrent) setGoalOptions([]);
+        if (!isCurrent) return;
+        setGoalOptions([]);
+        setGoalTitles(new Map());
       });
     return () => {
       isCurrent = false;
@@ -620,6 +626,11 @@ export function HabitsPage({
                 {trackedHabits.map((habit) => (
                   <HabitProgressCard
                     entries={entriesFor(habit)}
+                    goalTitle={
+                      habit.goalId === undefined
+                        ? undefined
+                        : goalTitles.get(habit.goalId)
+                    }
                     habit={habit}
                     key={habit.id}
                     period={progressPeriod}

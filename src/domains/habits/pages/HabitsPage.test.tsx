@@ -1,8 +1,9 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { PersistenceError } from "../../../db/errors";
+import type { GoalLinkService } from "../../goals/link-service";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import type { Habit, HabitDetails, HabitEntry } from "../model";
 import { isHabitEligibleOn } from "../schedule";
@@ -243,6 +244,68 @@ describe("HabitsPage", () => {
       await screen.findByRole("heading", { level: 3, name: "Morgenroutine" }),
     ).toBeInTheDocument();
     expect(service.restore).toHaveBeenCalledWith(dailyHabitId);
+  });
+});
+
+describe("HabitsPage – Zielbezug", () => {
+  function createGoalLinks(titles: [string, string][]): GoalLinkService {
+    return {
+      countReferences: () => Promise.resolve({ habits: 0, tasks: 0 }),
+      deleteGoalPermanently: () =>
+        Promise.reject(new Error("not used by this test")),
+      listGoalOptions: () =>
+        Promise.resolve(titles.map(([id, title]) => ({ id, title }))),
+      listGoalTitles: () => Promise.resolve(new Map(titles)),
+      summarize: () => Promise.reject(new Error("not used by this test")),
+    };
+  }
+
+  async function openProgressTab(goalLinks: GoalLinkService, habit: Habit) {
+    const user = userEvent.setup();
+    render(
+      <HabitsPage
+        goalLinks={goalLinks}
+        now={() => fixedNow}
+        service={createMemoryHabitService([habit])}
+        timeZone="Europe/Berlin"
+      />,
+    );
+    await screen.findByRole("heading", { level: 2, name: "Heute fällig" });
+    await user.click(screen.getByRole("tab", { name: /^Fortschritt/ }));
+    return screen.getByRole("article", { name: habit.name });
+  }
+
+  it("names the linked goal next to the schedule", async () => {
+    const card = await openProgressTab(
+      createGoalLinks([["goal-1", "Synthetisches Ziel"]]),
+      { ...createDailyHabit(), goalId: "goal-1" },
+    );
+
+    await waitFor(() => {
+      expect(
+        within(card).getByText(/Ziel: Synthetisches Ziel/),
+      ).toBeInTheDocument();
+    });
+  });
+
+  // Ohne Verknüpfung bleibt die Karte, wie sie war.
+  it("adds nothing for a habit without a link", async () => {
+    const card = await openProgressTab(
+      createGoalLinks([["goal-1", "Synthetisches Ziel"]]),
+      createDailyHabit(),
+    );
+
+    expect(within(card).queryByText(/Ziel:/)).not.toBeInTheDocument();
+  });
+
+  it("stays silent when the linked goal cannot be resolved", async () => {
+    const card = await openProgressTab(
+      createGoalLinks([["goal-1", "Synthetisches Ziel"]]),
+      { ...createDailyHabit(), goalId: "goal-weg" },
+    );
+
+    expect(within(card).queryByText(/Ziel:/)).not.toBeInTheDocument();
+    expect(within(card).queryByText(/goal-weg/)).not.toBeInTheDocument();
   });
 });
 

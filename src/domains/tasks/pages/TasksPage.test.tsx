@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
+import type { GoalLinkService } from "../../goals/link-service";
 import type { Task, TaskDetails } from "../model";
 import type { TaskService } from "../service";
 import { TasksPage } from "./TasksPage";
@@ -212,6 +213,85 @@ describe("TasksPage", () => {
     ).toBeInTheDocument();
     expect(service.archive).toHaveBeenCalledWith(createTask().id);
     expect(service.restore).toHaveBeenCalledWith(createTask().id);
+  });
+});
+
+describe("TasksPage – Zielbezug", () => {
+  function createGoalLinks(titles: [string, string][]): GoalLinkService {
+    return {
+      countReferences: () => Promise.resolve({ habits: 0, tasks: 0 }),
+      deleteGoalPermanently: () =>
+        Promise.reject(new Error("not used by this test")),
+      listGoalOptions: () =>
+        Promise.resolve(titles.map(([id, title]) => ({ id, title }))),
+      listGoalTitles: () => Promise.resolve(new Map(titles)),
+      summarize: () => Promise.reject(new Error("not used by this test")),
+    };
+  }
+
+  it("names the linked goal on the card", async () => {
+    const { service } = createMemoryTaskService([
+      createDatedTask("10", "Mit Ziel", { goalId: "goal-1" }),
+    ]);
+
+    render(
+      <TasksPage
+        goalLinks={createGoalLinks([["goal-1", "Synthetisches Ziel"]])}
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    expect(
+      await screen.findByRole("heading", { level: 2, name: "Mit Ziel" }),
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Ziel")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Synthetisches Ziel")).toBeInTheDocument();
+  });
+
+  // Ohne Verknüpfung bleibt die Karte, wie sie war.
+  it("shows no goal row for a task without a link", async () => {
+    const { service } = createMemoryTaskService([
+      createDatedTask("11", "Ohne Ziel", {}),
+    ]);
+
+    render(
+      <TasksPage
+        goalLinks={createGoalLinks([["goal-1", "Synthetisches Ziel"]])}
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    await screen.findByRole("heading", { level: 2, name: "Ohne Ziel" });
+    expect(screen.queryByText("Ziel")).not.toBeInTheDocument();
+  });
+
+  // Eine nackte Kennung wäre für den Nutzer keine Auskunft.
+  it("stays silent when the linked goal cannot be resolved", async () => {
+    const { service } = createMemoryTaskService([
+      createDatedTask("12", "Verwaiste Verknüpfung", { goalId: "goal-weg" }),
+    ]);
+
+    render(
+      <TasksPage
+        goalLinks={createGoalLinks([["goal-1", "Synthetisches Ziel"]])}
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    await screen.findByRole("heading", {
+      level: 2,
+      name: "Verwaiste Verknüpfung",
+    });
+    expect(screen.queryByText("Ziel")).not.toBeInTheDocument();
+    expect(screen.queryByText("goal-weg")).not.toBeInTheDocument();
   });
 });
 

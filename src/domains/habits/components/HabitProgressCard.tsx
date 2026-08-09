@@ -15,6 +15,12 @@ import {
 
 type HabitProgressCardProps = {
   entries: readonly HabitEntry[];
+  /**
+   * Der Titel des verknüpften Ziels, aufgelöst über den Link-Service der
+   * Zieldomain. Die Gewohnheitsdomain liest die Ziele nicht selbst
+   * (`AGENTS.md` §3).
+   */
+  goalTitle?: string;
   habit: Habit;
   period: HabitProgressPeriod;
   today: CalendarDay;
@@ -22,6 +28,7 @@ type HabitProgressCardProps = {
 
 export function HabitProgressCard({
   entries,
+  goalTitle,
   habit,
   period,
   today,
@@ -55,6 +62,8 @@ export function HabitProgressCard({
       <h3 id={headingId}>{habit.name}</h3>
       <p className="habit-progress-schedule">
         {getHabitScheduleLabel(habit.schedule)}
+        {/* Ohne Verknüpfung oder ohne auflösbaren Titel fehlt der Zusatz. */}
+        {goalTitle ? ` · Ziel: ${goalTitle}` : null}
       </p>
 
       <dl className="habit-progress-figures">

@@ -236,4 +236,46 @@ describe("goal link service", () => {
     expect(options.some((option) => option.id === paused.id)).toBe(true);
     expect(options.some((option) => option.id === cancelled.id)).toBe(false);
   });
+
+  /**
+   * Der Grund, warum `listGoalTitles` neben `listGoalOptions` steht: Auswählen
+   * und Benennen sind zwei verschiedene Fragen. Eine Aufgabe kann auf ein
+   * längst beendetes oder archiviertes Ziel zeigen — die Karte soll dieses
+   * Ziel nennen, auch wenn es zur Auswahl nicht mehr gehört.
+   */
+  it("resolves titles of goals that are no longer offered for selection", async () => {
+    const { goals, links } = buildServices();
+    const active = await goals.create({
+      progressMode: "milestones",
+      status: "active",
+      title: "Aktives Ziel",
+    });
+    const cancelled = await goals.create({
+      progressMode: "milestones",
+      status: "cancelled",
+      title: "Beendetes Ziel",
+    });
+    const archived = await goals.create({
+      progressMode: "milestones",
+      status: "active",
+      title: "Archiviertes Ziel",
+    });
+    await goals.archive(archived.id);
+
+    const titles = await links.listGoalTitles();
+
+    expect(titles.get(active.id)).toBe("Aktives Ziel");
+    expect(titles.get(cancelled.id)).toBe("Beendetes Ziel");
+    expect(titles.get(archived.id)).toBe("Archiviertes Ziel");
+
+    // Die Auswahlliste bleibt bewusst enger.
+    const options = await links.listGoalOptions();
+    expect(options.some((option) => option.id === cancelled.id)).toBe(false);
+  });
+
+  it("returns an empty map when no goal exists", async () => {
+    const { links } = buildServices();
+
+    expect((await links.listGoalTitles()).size).toBe(0);
+  });
 });
