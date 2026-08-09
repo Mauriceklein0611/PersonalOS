@@ -281,6 +281,13 @@ describe("WeeklyReviewPage – Vorwochenvergleich", () => {
     const scoped = within(comparison as HTMLElement);
 
     expect(scoped.getByText("1 von 1")).toBeInTheDocument();
+    // Genau eine Aufgabe ist bei einem Einzelnutzer der Normalfall, nicht die
+    // Ausnahme — der Singular muss stimmen, nicht nur die Zahl.
+    expect(
+      scoped.getByText(
+        "Zeitraum: 03.08.2026 bis 09.08.2026 · Grundlage: 1 geplante Aufgabe.",
+      ),
+    ).toBeInTheDocument();
     expect(
       scoped.getByText(
         "Kein Vorwochenvergleich möglich: Für die vorherige Woche liegt keine Datenbasis vor.",

@@ -61,7 +61,7 @@ test("shows the week with its basis and an explicit previous-week comparison", a
   await expect(
     page.getByRole("heading", { level: 3, name: "Aufgaben" }),
   ).toBeVisible();
-  await expect(page.getByText("Grundlage: 1 geplante Aufgaben.")).toBeVisible();
+  await expect(page.getByText("Grundlage: 1 geplante Aufgabe.")).toBeVisible();
   await expect(page.getByText("1 von 1", { exact: true })).toBeVisible();
   await expect(
     page.getByText(

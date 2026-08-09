@@ -118,7 +118,7 @@ function summariseTasks(
   }
 
   return {
-    basis: `Grundlage: ${planned.length} geplante Aufgaben.`,
+    basis: `Grundlage: ${planned.length} geplante ${planned.length === 1 ? "Aufgabe" : "Aufgaben"}.`,
     hasBasis: true,
     ratio: completed.length / planned.length,
     sourceCount: planned.length,
@@ -168,7 +168,7 @@ function summariseHabits(
   // deshalb entscheidet `hasBasis` hier, nicht `sourceCount`.
   if (counted === 0) {
     return {
-      basis: `Grundlage: ${habitCount} Gewohnheiten, alle ${target} geplanten Einheiten übersprungen.`,
+      basis: `Grundlage: ${habitCount} ${habitCount === 1 ? "Gewohnheit" : "Gewohnheiten"}, alle ${target} ${target === 1 ? "geplante Einheit" : "geplanten Einheiten"} übersprungen.`,
       hasBasis: false,
       ratio: null,
       sourceCount: habitCount,
@@ -176,12 +176,14 @@ function summariseHabits(
     };
   }
 
+  // `target` ist hier immer mindestens 2: Nur übersprungene und nur
+  // zählende Einheiten zusammen ergeben target, und beide Zweige sind > 0.
   const skippedNote =
     skipped === 0
       ? ""
       : ` ${skipped} von ${target} geplanten Einheiten übersprungen; sie zählen nicht mit.`;
   return {
-    basis: `Grundlage: ${habitCount} Gewohnheiten, ${counted} zählende Einheiten.${skippedNote}`,
+    basis: `Grundlage: ${habitCount} ${habitCount === 1 ? "Gewohnheit" : "Gewohnheiten"}, ${counted} zählende ${counted === 1 ? "Einheit" : "Einheiten"}.${skippedNote}`,
     hasBasis: true,
     ratio: done / counted,
     sourceCount: habitCount,
@@ -250,13 +252,13 @@ function summariseGoals(
   }
 
   return {
-    basis: `Grundlage: ${active.length} aktive Ziele.`,
+    basis: `Grundlage: ${active.length} ${active.length === 1 ? "aktives Ziel" : "aktive Ziele"}.`,
     // Kein Meilenstein in der Woche ist ein gültiges Ergebnis, keine fehlende
     // Grundlage: Die aktiven Ziele selbst tragen die Zahl.
     hasBasis: true,
     ratio: null,
     sourceCount: active.length,
-    valueText: `${completedInWeek.length} Meilensteine`,
+    valueText: `${completedInWeek.length} ${completedInWeek.length === 1 ? "Meilenstein" : "Meilensteine"}`,
   };
 }
 

@@ -10,7 +10,9 @@ import {
   lifeScoreTasks,
   lifeScoreTransactions,
 } from "../../test/fixtures/life-score";
+import type { Goal, GoalMilestone } from "../goals/model";
 import type { Habit, HabitEntry } from "../habits/model";
+import type { Task } from "../tasks/model";
 import {
   buildWeeklyReview,
   getReviewAnchorDay,
@@ -269,5 +271,103 @@ describe("WeeklyFigure.hasBasis", () => {
     // ein gültiges Ergebnis, keine fehlende Grundlage.
     expect(review.goals.valueText).toBe("0 Meilensteine");
     expect(review.goals.hasBasis).toBe(true);
+  });
+});
+
+/**
+ * Genau ein Datensatz ist bei einer Einzelnutzer-App der Normalfall, nicht
+ * die Ausnahme. `summariseFinance` beugt den Singular bereits korrekt; diese
+ * Tests halten dieselbe Regel für die übrigen vier Verdichtungsfunktionen
+ * fest, damit ein Satz wie „1 geplante Aufgaben“ nicht wieder auftaucht.
+ */
+describe("WeeklyFigure basis text — Singular bei genau einem Datensatz", () => {
+  it("names a single planned task in the singular", () => {
+    const task: Task = {
+      ...buildEntityMeta(),
+      plannedDate: week.from,
+      priority: "normal",
+      status: "open",
+      title: "Einzige Aufgabe der Woche",
+    };
+
+    const review = buildWeeklyReview({ ...emptyInput, tasks: [task] }, week);
+
+    expect(review.tasks.basis).toBe("Grundlage: 1 geplante Aufgabe.");
+    expect(review.tasks.valueText).toBe("0 von 1");
+  });
+
+  it("names a single habit and its single counted unit in the singular", () => {
+    const habit: Habit = {
+      ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009201" }),
+      name: "Einzige Gewohnheit",
+      schedule: { count: 1, kind: "timesPerWeek" },
+      startDate: "2026-07-01",
+    };
+    const entry: HabitEntry = {
+      ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009202" }),
+      habitId: habit.id,
+      localDate: week.from,
+      status: "done",
+    };
+
+    const review = buildWeeklyReview(
+      { ...emptyInput, habitEntries: [entry], habits: [habit] },
+      week,
+    );
+
+    expect(review.habits.basis).toBe(
+      "Grundlage: 1 Gewohnheit, 1 zählende Einheit.",
+    );
+    expect(review.habits.valueText).toBe("1 von 1");
+  });
+
+  it("names a single skipped unit of a single habit in the singular", () => {
+    const habit: Habit = {
+      ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009203" }),
+      name: "Einzige übersprungene Gewohnheit",
+      schedule: { count: 1, kind: "timesPerWeek" },
+      startDate: "2026-07-01",
+    };
+    const entry: HabitEntry = {
+      ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009204" }),
+      habitId: habit.id,
+      localDate: week.from,
+      status: "skipped",
+    };
+
+    const review = buildWeeklyReview(
+      { ...emptyInput, habitEntries: [entry], habits: [habit] },
+      week,
+    );
+
+    expect(review.habits.basis).toBe(
+      "Grundlage: 1 Gewohnheit, alle 1 geplante Einheit übersprungen.",
+    );
+    expect(review.habits.hasBasis).toBe(false);
+  });
+
+  it("names a single active goal and its single completed milestone in the singular", () => {
+    const goal: Goal = {
+      ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009301" }),
+      progressMode: "milestones",
+      status: "active",
+      title: "Einziges Ziel",
+    };
+    const milestone: GoalMilestone = {
+      ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009302" }),
+      completedAt: `${week.from}T12:00:00.000Z`,
+      goalId: goal.id,
+      order: 0,
+      status: "completed",
+      title: "Meilenstein 1",
+    };
+
+    const review = buildWeeklyReview(
+      { ...emptyInput, goals: [goal], milestones: [milestone] },
+      week,
+    );
+
+    expect(review.goals.basis).toBe("Grundlage: 1 aktives Ziel.");
+    expect(review.goals.valueText).toBe("1 Meilenstein");
   });
 });
