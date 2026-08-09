@@ -340,8 +340,40 @@ describe("WeeklyFigure basis text — Singular bei genau einem Datensatz", () =>
       week,
     );
 
+    // „alle 1 geplante Einheit“ wäre kein Satz; bei genau einer Einheit sagt
+    // „die geplante Einheit“ dasselbe und bleibt lesbar.
     expect(review.habits.basis).toBe(
-      "Grundlage: 1 Gewohnheit, alle 1 geplante Einheit übersprungen.",
+      "Grundlage: 1 Gewohnheit, die geplante Einheit übersprungen.",
+    );
+    expect(review.habits.hasBasis).toBe(false);
+  });
+
+  // Die andere Hälfte desselben Ausdrucks: Ab zwei Einheiten trägt „alle“.
+  it("keeps the plural form when more than one unit was skipped", () => {
+    const habit: Habit = {
+      ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009213" }),
+      name: "Zweimal übersprungene Gewohnheit",
+      schedule: { count: 2, kind: "timesPerWeek" },
+      startDate: "2026-07-01",
+    };
+    const entries: HabitEntry[] = [week.from, week.to].map(
+      (localDate, index) => ({
+        ...buildEntityMeta({
+          id: `00000000-0000-4000-8000-00000000921${index + 4}`,
+        }),
+        habitId: habit.id,
+        localDate,
+        status: "skipped",
+      }),
+    );
+
+    const review = buildWeeklyReview(
+      { ...emptyInput, habitEntries: entries, habits: [habit] },
+      week,
+    );
+
+    expect(review.habits.basis).toBe(
+      "Grundlage: 1 Gewohnheit, alle 2 geplanten Einheiten übersprungen.",
     );
     expect(review.habits.hasBasis).toBe(false);
   });

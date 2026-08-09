@@ -54,12 +54,16 @@ Ein Issue ist fertig, wenn:
 
 - alle Akzeptanzkriterien erfüllt sind,
 - relevante Unit-/Komponenten-/E2E-Tests existieren,
-- `pnpm lint`, `pnpm typecheck` und `pnpm test` erfolgreich laufen,
+- alle acht Prüfungen der CI-Action lokal erfolgreich laufen, in dieser Reihenfolge:
+  `pnpm check:privacy`, `pnpm format:check`, `pnpm lint`, `pnpm typecheck`,
+  `pnpm test`, `pnpm build`, `pnpm check:bundle`, `pnpm test:e2e`,
 - bei einem kritischen Nutzerfluss der passende Playwright-Test erfolgreich läuft,
 - Offline- und Fehlerzustände bedacht wurden,
 - keine sensiblen Daten oder Secrets enthalten sind,
 - Dokumentation, Datenmodell und ADRs bei Bedarf aktualisiert sind,
 - der PR das Issue mit `Closes #<nummer>` referenziert.
+
+Lokal grün heißt nicht CI-grün: Der Linux-Runner rendert Schrift breiter als Windows. Die Prüfungen auf waagerechten Überlauf bei 320 px in `e2e/app.spec.ts` und `e2e/weekly-review.spec.ts` können deshalb lokal bestehen und auf CI fallen. Wer ein Layout bei 320 px ändert, lässt sich im Zweifel die tatsächlichen Elementbreiten ausgeben, statt sich auf ein bestandenes `toBe(false)` zu verlassen.
 
 Wenn das Repository noch kein `package.json` enthält, dokumentiere nur und führe keine erfundenen Befehle aus.
 
