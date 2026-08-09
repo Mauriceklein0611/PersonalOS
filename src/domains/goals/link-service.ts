@@ -39,6 +39,14 @@ export interface GoalLinkService {
   deleteGoalPermanently(goal: Goal): Promise<GoalDeletionResult>;
   /** Auswahlliste für andere Domains, ohne deren UI zu kennen. */
   listGoalOptions(): Promise<GoalOption[]>;
+  /**
+   * Titel zu Zielkennungen, um eine **bestehende** Verknüpfung zu benennen.
+   * Bewusst weiter gefasst als `listGoalOptions`: Zur Auswahl gehören nur
+   * Ziele, die man noch verfolgt — eine Aufgabe kann aber auf ein längst
+   * abgeschlossenes oder archiviertes Ziel zeigen, und dann soll die Karte
+   * dieses Ziel nennen statt es zu verschweigen.
+   */
+  listGoalTitles(): Promise<Map<string, string>>;
   summarize(goal: Goal): Promise<GoalLinkSummary>;
 }
 
@@ -104,6 +112,10 @@ export function createGoalLinkService(
       return stored
         .filter((goal) => goal.status === "active" || goal.status === "paused")
         .map((goal) => ({ id: goal.id, title: goal.title }));
+    },
+    async listGoalTitles() {
+      const stored = await goals.list({ includeArchived: true });
+      return new Map(stored.map((goal) => [goal.id, goal.title]));
     },
     async summarize(goal) {
       const [allTasks, allHabits] = await Promise.all([
