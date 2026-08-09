@@ -1,6 +1,7 @@
 import { Button } from "../../../components/ui";
 import { getTaskCategoryLabel, taskPriorityLabels, type Task } from "../model";
-import { isTaskOverdue, type TaskQueryContext } from "../queries";
+import { type TaskQueryContext } from "../queries";
+import { describeTaskTiming } from "../view-model";
 
 type TaskCardProps = {
   busy: boolean;
@@ -25,7 +26,7 @@ export function TaskCard({
 }: TaskCardProps) {
   const headingId = `task-${task.id}`;
   const category = getTaskCategoryLabel(task.categoryId);
-  const overdue = isTaskOverdue(task, context);
+  const timing = describeTaskTiming(task, context);
 
   return (
     <article
@@ -38,7 +39,16 @@ export function TaskCard({
           <p className="task-card-meta">
             <span>{taskPriorityLabels[task.priority]}</span>
             {category ? <span>{category}</span> : null}
-            {overdue ? <strong>Überfällig</strong> : null}
+            {/*
+              Der verstrichene Zeitpunkt wird benannt, nicht nur markiert:
+              „überfällig“ allein verriet nicht, ob das eigene Plandatum oder
+              eine Frist gemeint war. Eine Aufgabe ohne Plandatum sagt das
+              ebenfalls, damit sie nicht als eingeplant gelesen wird.
+            */}
+            {timing.isElapsed ? <strong>{timing.label}</strong> : null}
+            {timing.state === "deadlineOnly" ? (
+              <span>{timing.label}</span>
+            ) : null}
             {/* Erledigt und abgebrochen sind neutrale Zustände, kein Alarm. */}
             {task.status === "completed" ? <span>Erledigt</span> : null}
             {task.status === "cancelled" ? <span>Abgebrochen</span> : null}

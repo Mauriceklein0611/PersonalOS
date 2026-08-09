@@ -33,6 +33,7 @@ import {
 } from "../../journal/service";
 import type { Task } from "../../tasks/model";
 import { personalOsTaskService, type TaskService } from "../../tasks/service";
+import { describeTaskTiming } from "../../tasks/view-model";
 import { QuickExpenseForm } from "../components/QuickExpenseForm";
 import {
   buildTodayOverview,
@@ -364,7 +365,12 @@ export function TodayPage({
                   <li key={task.id}>
                     <div className="today-list-copy">
                       <h3>{task.title}</h3>
-                      <p>{describeTask(task, context.today)}</p>
+                      <p>
+                        {describeTaskTiming(task, context).label}
+                        {task.priority === "high"
+                          ? " · Hohe Priorität"
+                          : null}
+                      </p>
                     </div>
                     <Button
                       aria-label={`„${task.title}“ abschließen`}
@@ -499,13 +505,6 @@ async function readTodaySnapshot(
     journalEntries,
     tasks,
   };
-}
-
-function describeTask(task: Task, today: CalendarDay): string {
-  if (task.plannedDate !== undefined && task.plannedDate < today) {
-    return "Überfällig";
-  }
-  return task.priority === "high" ? "Hohe Priorität" : "Für heute geplant";
 }
 
 function describeMood(journal: {
