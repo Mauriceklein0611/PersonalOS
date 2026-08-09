@@ -257,6 +257,59 @@ describe("TodayPage", () => {
   });
 });
 
+describe("TodayPage – Plandatum und Frist", () => {
+  it("does not present a task that only carries a deadline as planned for today", async () => {
+    renderPage(
+      createServices({
+        tasks: [
+          createTask("t-deadline-only", { dueAt: "2026-08-04T16:00:00.000Z" }),
+        ],
+      }),
+    );
+
+    // Vorher las `describeTask` nur `plannedDate` und behauptete deshalb
+    // „Für heute geplant“ für eine Aufgabe, die nie eingeplant wurde.
+    expect(await screen.findByText("Frist ohne Plandatum")).toBeInTheDocument();
+    expect(screen.queryByText("Für heute geplant")).not.toBeInTheDocument();
+  });
+
+  it("names which of the two dates has passed", async () => {
+    renderPage(
+      createServices({
+        tasks: [
+          createTask("t-plan-elapsed", { plannedDate: "2026-08-03" }),
+          createTask("t-deadline-elapsed", {
+            dueAt: "2026-08-02T10:00:00.000Z",
+          }),
+        ],
+      }),
+    );
+
+    expect(
+      await screen.findByText("Plandatum verstrichen"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Frist verstrichen")).toBeInTheDocument();
+    expect(screen.queryByText("Überfällig")).not.toBeInTheDocument();
+  });
+
+  it("keeps the high priority hint next to the timing statement", async () => {
+    renderPage(
+      createServices({
+        tasks: [
+          createTask("t-priority", {
+            plannedDate: "2026-08-04",
+            priority: "high",
+          }),
+        ],
+      }),
+    );
+
+    expect(
+      await screen.findByText("Für heute geplant · Hohe Priorität"),
+    ).toBeInTheDocument();
+  });
+});
+
 function createTask(id: string, overrides: Partial<Task> = {}): Task {
   return {
     id,
