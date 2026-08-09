@@ -6,6 +6,12 @@ import { describeTaskTiming } from "../view-model";
 type TaskCardProps = {
   busy: boolean;
   context: TaskQueryContext;
+  /**
+   * Der Titel des verknüpften Ziels. Die Aufgabendomain löst die Kennung
+   * nicht selbst auf — der Titel kommt über den Link-Service der Zieldomain
+   * herein, damit keine Domain die andere direkt liest (`AGENTS.md` §3).
+   */
+  goalTitle?: string;
   onArchive: (task: Task) => void;
   onCancel: (task: Task) => void;
   onComplete: (task: Task) => void;
@@ -17,6 +23,7 @@ type TaskCardProps = {
 export function TaskCard({
   busy,
   context,
+  goalTitle,
   onArchive,
   onCancel,
   onComplete,
@@ -59,6 +66,17 @@ export function TaskCard({
 
       {task.notes ? <p className="task-notes">{task.notes}</p> : null}
       <dl className="task-details">
+        {/*
+          Ohne Verknüpfung fehlt die Zeile ganz; ohne auflösbaren Titel
+          ebenfalls. Ein Platzhalter oder eine nackte Kennung wäre für den
+          Nutzer keine Auskunft.
+        */}
+        {goalTitle ? (
+          <div>
+            <dt>Ziel</dt>
+            <dd>{goalTitle}</dd>
+          </div>
+        ) : null}
         {task.plannedDate ? (
           <div>
             <dt>Geplant</dt>

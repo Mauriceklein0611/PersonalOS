@@ -64,6 +64,9 @@ export function TasksPage({
   const timeZone = useTimeZone(timeZoneOverride);
   const [activeView, setActiveView] = useState<TaskView>("inbox");
   const [goalOptions, setGoalOptions] = useState<GoalOption[]>([]);
+  const [goalTitles, setGoalTitles] = useState<ReadonlyMap<string, string>>(
+    new Map(),
+  );
   const [busyTaskId, setBusyTaskId] = useState<string>();
   const [editingTask, setEditingTask] = useState<Task>();
   const [error, setError] = useState<string>();
@@ -87,13 +90,16 @@ export function TasksPage({
   // Aufgabenerfassung funktioniert unverändert weiter.
   useEffect(() => {
     let isCurrent = true;
-    void goalLinks
-      .listGoalOptions()
-      .then((options) => {
-        if (isCurrent) setGoalOptions(options);
+    void Promise.all([goalLinks.listGoalOptions(), goalLinks.listGoalTitles()])
+      .then(([options, titles]) => {
+        if (!isCurrent) return;
+        setGoalOptions(options);
+        setGoalTitles(titles);
       })
       .catch(() => {
-        if (isCurrent) setGoalOptions([]);
+        if (!isCurrent) return;
+        setGoalOptions([]);
+        setGoalTitles(new Map());
       });
     return () => {
       isCurrent = false;
@@ -314,6 +320,11 @@ export function TasksPage({
               <TaskCard
                 busy={busyTaskId === task.id}
                 context={context}
+                goalTitle={
+                  task.goalId === undefined
+                    ? undefined
+                    : goalTitles.get(task.goalId)
+                }
                 key={task.id}
                 onArchive={(selectedTask) => void archiveTask(selectedTask)}
                 onCancel={(selectedTask) =>
