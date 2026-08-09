@@ -15,7 +15,7 @@ import {
 import { calendarDayForInstant } from "../../../lib/dates/calendar-days";
 import { applyScoreWeights } from "../score-engine";
 import { insightStrengthLabels, type Insight } from "../insight-model";
-import { getWeekPeriod, shiftWeek, type WeeklyFigure } from "../weekly-review";
+import { getWeekPeriod } from "../weekly-review";
 import {
   personalOsInsightService,
   type InsightService,
@@ -26,7 +26,6 @@ import {
   scoreComponentKeys,
   type ScoreComponentConfig,
   type ScoreComponentKey,
-  type ScorePeriod,
 } from "../score-model";
 import {
   buildComponentViews,
@@ -69,7 +68,10 @@ export function InsightsPage({
   const [isLoading, setIsLoading] = useState(true);
   const [notice, setNotice] = useState<string>();
   const [overview, setOverview] = useState<WeeklyReviewOverview>();
-  const [week, setWeek] = useState<ScorePeriod>(() => getWeekPeriod(today));
+  // Insights zeigt nur die laufende Woche; das Blättern über Wochen lebt im
+  // Wochenrückblick (`/wochenrueckblick`), zusammen mit den Kennzahlen, die
+  // es einordnen.
+  const week = useMemo(() => getWeekPeriod(today), [today]);
   const [draft, setDraft] = useState<ScoreComponentConfig[]>();
   const [weightText, setWeightText] = useState<WeightDraft>();
   const [weightError, setWeightError] = useState<string>();
@@ -170,18 +172,6 @@ export function InsightsPage({
     return applyScoreWeights(overview.score, parsed);
   }, [draft, overview, weightText]);
 
-  const weeklyFigures = useMemo(() => {
-    if (!overview) return [];
-    const review = overview.review;
-    return [
-      { figure: review.tasks, label: "Aufgaben" },
-      { figure: review.habits, label: "Gewohnheiten" },
-      { figure: review.journal, label: "Journal" },
-      { figure: review.goals, label: "Ziele" },
-      { figure: review.finance, label: "Ausgaben" },
-    ] satisfies { figure: WeeklyFigure; label: string }[];
-  }, [overview]);
-
   const views = useMemo(
     () =>
       overview && draft
@@ -220,42 +210,23 @@ export function InsightsPage({
       {!isLoading && overview && views && draft && weightText ? (
         <>
           <section
-            aria-labelledby="insights-week-title"
-            className="page-section insights-week"
+            aria-labelledby="insights-weekly-review-title"
+            className="page-section insights-weekly-review-pointer"
           >
-            <h2 id="insights-week-title">Woche vom {describePeriod(week)}</h2>
-            <div className="insights-week-navigation">
-              <Button
-                onClick={() => setWeek(shiftWeek(week, -1))}
-                variant="secondary"
+            <h2 id="insights-weekly-review-title">Wochenrückblick</h2>
+            <p className="insights-note">
+              Aufgaben-, Gewohnheits-, Journal-, Ziel- und Ausgabenzahlen dieser
+              Woche mit Vorwochenvergleich stehen im eigenen Wochenrückblick,
+              nicht auf dieser Seite.
+            </p>
+            <div className="insights-weekly-review-actions">
+              <Link
+                className="ui-button ui-button-secondary"
+                to="/wochenrueckblick"
               >
-                Vorherige Woche
-              </Button>
-              <Button
-                disabled={week.to >= today}
-                onClick={() => setWeek(shiftWeek(week, 1))}
-                variant="secondary"
-              >
-                Nächste Woche
-              </Button>
-              {week.to >= today ? (
-                <p className="insights-note">
-                  Dies ist die laufende Woche. Ausgewertet wird bis heute.
-                </p>
-              ) : null}
+                Wochenrückblick öffnen
+              </Link>
             </div>
-
-            <ul className="insights-week-figures">
-              {weeklyFigures.map(({ figure, label }) => (
-                <li key={label}>
-                  <MetricTile
-                    context={figure.basis}
-                    label={label}
-                    value={figure.sourceCount === 0 ? null : figure.valueText}
-                  />
-                </li>
-              ))}
-            </ul>
           </section>
 
           <section
