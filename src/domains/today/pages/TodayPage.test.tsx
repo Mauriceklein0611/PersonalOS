@@ -25,10 +25,12 @@ function renderPage(
   services: Services,
   now = () => fixedNow,
   financeService = createMemoryFinanceService(),
+  dailyCapacityMinutes?: number,
 ) {
   return render(
     <MemoryRouter>
       <TodayPage
+        dailyCapacityMinutes={dailyCapacityMinutes}
         financeService={financeService}
         habitService={services.habitService}
         journalService={services.journalService}
@@ -254,6 +256,93 @@ describe("TodayPage", () => {
     expect(
       screen.queryByRole("link", { name: "Alle Aufgaben ansehen" }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("TodayPage – geplante Zeit", () => {
+  it("shows no sum while not a single task carries an estimate", async () => {
+    renderPage(
+      createServices({
+        tasks: [createTask("t1", { plannedDate: "2026-08-04" })],
+      }),
+    );
+
+    await screen.findByRole("heading", {
+      level: 2,
+      name: "Aufgaben für heute",
+    });
+    expect(screen.queryByText("Geplante Zeit heute")).not.toBeInTheDocument();
+  });
+
+  it("names the tasks without an estimate instead of counting them as zero", async () => {
+    renderPage(
+      createServices({
+        tasks: [
+          createTask("t1", { estimatedMinutes: 45, plannedDate: "2026-08-04" }),
+          createTask("t2", { estimatedMinutes: 30, plannedDate: "2026-08-04" }),
+          createTask("t3", { plannedDate: "2026-08-04" }),
+        ],
+      }),
+    );
+
+    const tile = (await screen.findByText("Geplante Zeit heute")).closest(
+      ".ui-metric-tile",
+    ) as HTMLElement;
+
+    expect(within(tile).getByText("1 h 15 min")).toBeInTheDocument();
+    expect(
+      within(tile).getByText(
+        "Grundlage: 2 geschätzte Aufgaben. 1 Aufgabe ohne Schätzung ist nicht enthalten.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  // Sachlich, ohne Dringlichkeitsrhetorik: eine Feststellung, keine Mahnung.
+  it("states plainly that the sum is above the budget", async () => {
+    renderPage(
+      createServices({
+        tasks: [
+          createTask("t1", {
+            estimatedMinutes: 200,
+            plannedDate: "2026-08-04",
+          }),
+        ],
+      }),
+      () => fixedNow,
+      undefined,
+      120,
+    );
+
+    const tile = (await screen.findByText("Geplante Zeit heute")).closest(
+      ".ui-metric-tile",
+    ) as HTMLElement;
+
+    expect(
+      within(tile).getByText(/Das liegt über deinem Tagesbudget von 2 h\./),
+    ).toBeInTheDocument();
+    for (const word of ["Achtung", "Warnung", "zu viel", "schaffst"]) {
+      expect(tile.textContent).not.toContain(word);
+    }
+  });
+
+  it("names the budget without a remark while the sum stays within it", async () => {
+    renderPage(
+      createServices({
+        tasks: [
+          createTask("t1", { estimatedMinutes: 60, plannedDate: "2026-08-04" }),
+        ],
+      }),
+      () => fixedNow,
+      undefined,
+      120,
+    );
+
+    const tile = (await screen.findByText("Geplante Zeit heute")).closest(
+      ".ui-metric-tile",
+    ) as HTMLElement;
+
+    expect(within(tile).getByText(/Tagesbudget: 2 h\./)).toBeInTheDocument();
+    expect(tile.textContent).not.toContain("über deinem");
   });
 });
 

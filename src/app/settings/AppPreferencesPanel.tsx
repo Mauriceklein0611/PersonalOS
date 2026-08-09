@@ -1,6 +1,6 @@
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type FocusEvent } from "react";
 
-import { Card, Select } from "../../components/ui";
+import { Card, Input, Select } from "../../components/ui";
 import { useAppSettings } from "./settings-context";
 import "./app-preferences-panel.css";
 
@@ -16,6 +16,9 @@ export function AppPreferencesPanel() {
   const { isStored, settings, update } = useAppSettings();
   const [error, setError] = useState<string>();
   const [message, setMessage] = useState<string>();
+  const [capacityError, setCapacityError] = useState<string>();
+
+  const storedCapacity = settings.dailyCapacityMinutes;
 
   const currencies = useMemo(
     () => withStoredValue(offeredCurrencies, settings.baseCurrency),
@@ -57,6 +60,40 @@ export function AppPreferencesPanel() {
     );
   };
 
+  /**
+   * Ein leeres Feld heißt „kein Budget", nicht „null Minuten". Deshalb wird
+   * der Wert entfernt statt auf 0 gesetzt; 0 wäre eine Aussage, die niemand
+   * getroffen hat.
+   */
+  const handleCapacityBlur = (event: FocusEvent<HTMLInputElement>) => {
+    const raw = event.target.value.trim();
+
+    if (raw === "") {
+      if (settings.dailyCapacityMinutes === undefined) return;
+      setCapacityError(undefined);
+      void save(
+        { dailyCapacityMinutes: undefined },
+        "Das Tagesbudget wurde entfernt.",
+      );
+      return;
+    }
+
+    const minutes = Number(raw);
+    if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1_440) {
+      setCapacityError(
+        "Gib eine ganze Zahl zwischen 1 und 1440 Minuten ein, oder lass das Feld leer.",
+      );
+      return;
+    }
+
+    setCapacityError(undefined);
+    if (minutes === settings.dailyCapacityMinutes) return;
+    void save(
+      { dailyCapacityMinutes: minutes },
+      "Das Tagesbudget wurde gespeichert.",
+    );
+  };
+
   return (
     <Card
       description="Diese Werte gelten in allen Bereichen und liegen im lokalen Datensatz. Sie sind Teil jedes Exports."
@@ -95,6 +132,28 @@ export function AppPreferencesPanel() {
             </option>
           ))}
         </Select>
+
+        {/*
+          Der Datensatz kommt asynchron. Statt den gespeicherten Wert in einen
+          eigenen Zustand zu spiegeln, mountet der `key` das Feld neu, sobald
+          er sich ändert — ein eingetippter, noch nicht gespeicherter Wert
+          bleibt dadurch stehen, bis er wirklich gespeichert wurde.
+        */}
+        <Input
+          defaultValue={
+            storedCapacity === undefined ? "" : String(storedCapacity)
+          }
+          error={capacityError}
+          hint="Freiwillig. Ohne Angabe wird die geplante Zeit des Tages nur summiert, nicht eingeordnet. Die Summe ist eine Planungshilfe und keine Aussage über deine Leistungsfähigkeit."
+          inputMode="numeric"
+          key={storedCapacity ?? "kein Budget"}
+          label="Tagesbudget in Minuten"
+          max={1440}
+          min={1}
+          onBlur={handleCapacityBlur}
+          step={5}
+          type="number"
+        />
       </div>
 
       <dl className="app-preferences-summary">
