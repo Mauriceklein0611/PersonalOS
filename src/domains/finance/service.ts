@@ -4,6 +4,7 @@ import {
   sumMoney,
   type Money,
 } from "../../lib/money/money";
+import type { CalendarDay } from "../../lib/dates/date-values";
 import { findBudget } from "./budget";
 import type {
   FinanceCategory,
@@ -11,15 +12,25 @@ import type {
   FinanceKind,
   MonthlyBudget,
   MonthlyBudgetDetails,
+  RecurringTransaction,
+  RecurringTransactionDetails,
   Transaction,
   TransactionDetails,
 } from "./model";
 import {
+  buildTransactionFromTemplate,
+  listDueRecurringTransactions,
+  monthOfCalendarDay,
+  type DueRecurringTransaction,
+} from "./recurring";
+import {
   personalOsFinanceCategoryRepository,
   personalOsMonthlyBudgetRepository,
+  personalOsRecurringTransactionRepository,
   personalOsTransactionRepository,
   type FinanceCategoryRepository,
   type MonthlyBudgetRepository,
+  type RecurringTransactionRepository,
   type TransactionFilter,
   type TransactionRepository,
 } from "./repository";
@@ -41,6 +52,25 @@ export type MonthlyTotals = {
 
 export type FinanceService = {
   archiveCategory(id: string): Promise<FinanceCategory>;
+  archiveRecurringTransaction(id: string): Promise<RecurringTransaction>;
+  /** Schreibt die Buchung einer Vorlage — nur auf ausdrückliche Bestätigung. */
+  confirmRecurringTransaction(
+    due: DueRecurringTransaction,
+  ): Promise<Transaction>;
+  createRecurringTransaction(
+    details: RecurringTransactionDetails,
+  ): Promise<RecurringTransaction>;
+  /** Die im Monat des Stichtags offenen Vorlagen. Reines Lesen. */
+  listDueRecurringTransactions(
+    today: CalendarDay,
+  ): Promise<DueRecurringTransaction[]>;
+  listRecurringTransactions(options?: {
+    includeArchived?: boolean;
+  }): Promise<RecurringTransaction[]>;
+  updateRecurringTransaction(
+    id: string,
+    patch: Partial<RecurringTransactionDetails>,
+  ): Promise<RecurringTransaction>;
   listBudgets(month: string): Promise<MonthlyBudget[]>;
   /**
    * Entfernt endgültig. Der eindeutige Index über Monat und Kategorie gilt
@@ -74,8 +104,29 @@ export function createFinanceService(
   categories: FinanceCategoryRepository = personalOsFinanceCategoryRepository,
   transactions: TransactionRepository = personalOsTransactionRepository,
   budgets: MonthlyBudgetRepository = personalOsMonthlyBudgetRepository,
+  recurring: RecurringTransactionRepository = personalOsRecurringTransactionRepository,
 ): FinanceService {
   return {
+    archiveRecurringTransaction: (id) => recurring.archive(id),
+    createRecurringTransaction: (details) => recurring.create(details),
+    listRecurringTransactions: (options) => recurring.list(options),
+    updateRecurringTransaction: (id, patch) => recurring.update(id, patch),
+    /**
+     * Die **einzige** Stelle, an der aus einer Vorlage eine Buchung entsteht,
+     * und sie läuft nur auf ausdrückliche Bestätigung. Es gibt keinen Pfad,
+     * der das im Hintergrund tut. Siehe
+     * [ADR 0013](../../../docs/decisions/0013-recurring-transactions-are-confirmed-templates.md).
+     */
+    async confirmRecurringTransaction(due) {
+      return transactions.create(buildTransactionFromTemplate(due));
+    },
+    async listDueRecurringTransactions(today) {
+      const [templates, booked] = await Promise.all([
+        recurring.list(),
+        transactions.listFiltered({ month: monthOfCalendarDay(today) }),
+      ]);
+      return listDueRecurringTransactions(templates, booked, today);
+    },
     archiveCategory: (id) => categories.archive(id),
     listBudgets: (month) => budgets.listForMonth(month),
     removeBudget: (id) => budgets.deletePermanently(id),

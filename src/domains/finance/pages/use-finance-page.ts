@@ -14,12 +14,15 @@ import type {
   FinanceCategoryDetails,
   MonthlyBudget,
   MonthlyBudgetDetails,
+  RecurringTransaction,
+  RecurringTransactionDetails,
   SavingsContribution,
   SavingsGoal,
   Transaction,
   TransactionDetails,
 } from "../model";
 import { buildMonthlyOverview, type MonthlyOverview } from "../overview";
+import type { DueRecurringTransaction } from "../recurring";
 import { monthOf } from "../repository";
 import {
   personalOsSavingsService,
@@ -55,8 +58,16 @@ export type FinancePageState = {
   today: CalendarDay;
   transactions: Transaction[];
   undo: FinanceUndoAction | undefined;
+  /** Die im laufenden Monat offenen Vorlagen — Vorschläge, keine Buchungen. */
+  dueRecurring: DueRecurringTransaction[];
+  recurringTemplates: RecurringTransaction[];
+  archiveRecurringTemplate: (template: RecurringTransaction) => Promise<void>;
   archiveTransaction: (entry: Transaction) => Promise<void>;
+  confirmRecurring: (due: DueRecurringTransaction) => Promise<boolean>;
   createCategory: (details: FinanceCategoryDetails) => Promise<boolean>;
+  createRecurringTemplate: (
+    details: RecurringTransactionDetails,
+  ) => Promise<boolean>;
   createTransaction: (details: TransactionDetails) => Promise<boolean>;
   dismissNotice: () => void;
   reloadSavings: () => Promise<void>;
@@ -90,6 +101,12 @@ export function useFinancePage({
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgets, setBudgets] = useState<MonthlyBudget[]>([]);
   const [budgetMonth, setBudgetMonth] = useState<string>(() => monthOf(today));
+  const [recurringTemplates, setRecurringTemplates] = useState<
+    RecurringTransaction[]
+  >([]);
+  const [dueRecurring, setDueRecurring] = useState<DueRecurringTransaction[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
@@ -111,16 +128,25 @@ export function useFinancePage({
   }, [savingsService]);
 
   const reload = useCallback(async () => {
-    const [storedCategories, storedTransactions, storedBudgets] =
-      await Promise.all([
-        service.listCategories(),
-        service.listTransactions(),
-        service.listBudgets(budgetMonth),
-      ]);
+    const [
+      storedCategories,
+      storedTransactions,
+      storedBudgets,
+      storedTemplates,
+      storedDue,
+    ] = await Promise.all([
+      service.listCategories(),
+      service.listTransactions(),
+      service.listBudgets(budgetMonth),
+      service.listRecurringTransactions(),
+      service.listDueRecurringTransactions(today),
+    ]);
     setCategories(storedCategories);
     setTransactions(storedTransactions);
     setBudgets(storedBudgets);
-  }, [budgetMonth, service]);
+    setRecurringTemplates(storedTemplates);
+    setDueRecurring(storedDue);
+  }, [budgetMonth, service, today]);
 
   // Ein Monatswechsel lädt die Budgets dieses Monats nach.
   useEffect(() => {
@@ -283,6 +309,50 @@ export function useFinancePage({
     [announce, runAction, service],
   );
 
+  /**
+   * Die einzige Stelle in der Oberfläche, die aus einer Vorlage eine Buchung
+   * macht — und sie hängt an einem Klick des Nutzers. Es gibt keinen Effekt,
+   * der das beim Laden erledigt. Siehe
+   * [ADR 0013](../../../../docs/decisions/0013-recurring-transactions-are-confirmed-templates.md).
+   */
+  const confirmRecurring = useCallback(
+    async (due: DueRecurringTransaction) => {
+      const saved = await runAction(
+        () => service.confirmRecurringTransaction(due),
+        "Die Buchung aus der Vorlage konnte nicht gespeichert werden.",
+      );
+      if (saved) {
+        announce(`„${due.template.name}“ wurde als Buchung übernommen.`);
+      }
+      return saved;
+    },
+    [announce, runAction, service],
+  );
+
+  const createRecurringTemplate = useCallback(
+    async (details: RecurringTransactionDetails) => {
+      const saved = await runAction(
+        () => service.createRecurringTransaction(details),
+        "Die Vorlage konnte nicht gespeichert werden.",
+      );
+      if (saved) announce("Die Vorlage wurde angelegt.");
+      return saved;
+    },
+    [announce, runAction, service],
+  );
+
+  const archiveRecurringTemplate = useCallback(
+    async (template: RecurringTransaction) => {
+      const archived = await runAction(
+        () => service.archiveRecurringTransaction(template.id),
+        "Die Vorlage konnte nicht archiviert werden.",
+      );
+      // Bereits erzeugte Buchungen bleiben; nur der Vorschlag verschwindet.
+      if (archived) announce("Die Vorlage wird nicht mehr vorgeschlagen.");
+    },
+    [announce, runAction, service],
+  );
+
   const createCategory = useCallback(
     async (details: FinanceCategoryDetails) => {
       const created = await runAction(
@@ -378,13 +448,18 @@ export function useFinancePage({
   }, []);
 
   return {
+    archiveRecurringTemplate,
     archiveTransaction,
     budgetEntries,
     budgetMonth,
     categories,
     categoriesById,
+    confirmRecurring,
     createCategory,
+    createRecurringTemplate,
     createTransaction,
+    dueRecurring,
+    recurringTemplates,
     currency,
     dismissNotice,
     error,

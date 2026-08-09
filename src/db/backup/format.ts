@@ -7,10 +7,11 @@ import {
   personalOsSchemaVersion,
   personalOsTableNames,
   personalOsTableNamesV1,
+  personalOsTableNamesV4,
   type PersonalOsTableName,
 } from "../schema";
 
-export const backupFormatVersion = 3;
+export const backupFormatVersion = 4;
 
 /**
  * Version 1 kennt `hiddenInsights` noch nicht. Sie bleibt lesbar; die Tabelle
@@ -20,8 +21,13 @@ export const backupFormatVersion = 3;
  * Versionen 1 und 2 bleiben unverändert lesbar; ihre Beiträge sind schlicht
  * mit keiner Buchung verknüpft. Siehe
  * [ADR 0011](../../../docs/decisions/0011-savings-contribution-links-a-transaction.md).
+ *
+ * Version 4 kennt `recurringTransactions` und `recurringTransactionId` auf
+ * einer Buchung. Die Versionen 1 bis 3 bleiben lesbar: Sie haben keine
+ * Vorlagen, und ihre Buchungen sind allesamt von Hand erfasst. Siehe
+ * [ADR 0013](../../../docs/decisions/0013-recurring-transactions-are-confirmed-templates.md).
  */
-export const supportedBackupFormatVersions = [1, 2, 3] as const;
+export const supportedBackupFormatVersions = [1, 2, 3, 4] as const;
 
 export const maximumBackupBytes = 10_000_000;
 
@@ -36,7 +42,12 @@ const countSchema = z.partialRecord(tableNameSchema, z.int().nonnegative());
 export const personalOsBackupSchema = z
   .object({
     format: z.literal("personalos"),
-    formatVersion: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    formatVersion: z.union([
+      z.literal(1),
+      z.literal(2),
+      z.literal(3),
+      z.literal(4),
+    ]),
     schemaVersion: z.int().positive(),
     exportedAt: isoInstantSchema,
     appVersion: z.string().min(1).max(100),
@@ -48,11 +59,17 @@ export const personalOsBackupSchema = z
 export type PersonalOsBackup = z.infer<typeof personalOsBackupSchema>;
 export type BackupFormatVersion = PersonalOsBackup["formatVersion"];
 
-/** Die Tabellen, für die eine Formatversion eine Datensatzzahl nennen muss. */
+/**
+ * Die Tabellen, für die eine Formatversion eine Datensatzzahl nennen muss.
+ * Eine ältere Version kann nur zählen, was sie kennt: Format 1 kennt weder
+ * `hiddenInsights` noch die Vorlagen, die Formate 2 und 3 kennen die Vorlagen
+ * nicht.
+ */
 export function countedTableNames(
   formatVersion: BackupFormatVersion,
 ): readonly PersonalOsTableName[] {
-  return formatVersion === 1 ? personalOsTableNamesV1 : personalOsTableNames;
+  if (formatVersion === 1) return personalOsTableNamesV1;
+  return formatVersion === 4 ? personalOsTableNames : personalOsTableNamesV4;
 }
 
 export function createBackupEnvelope(

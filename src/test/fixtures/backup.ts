@@ -142,4 +142,14 @@ export const backupDataFixture: BackupData = {
       hiddenAt: instant,
     },
   ],
+  recurringTransactions: [
+    {
+      ...meta("000000000120"),
+      categoryId: financeCategoryId,
+      dayOfMonth: 1,
+      kind: "expense",
+      money: { amountMinor: 95_000, currency: "EUR" },
+      name: "Synthetische Miete",
+    },
+  ],
 };

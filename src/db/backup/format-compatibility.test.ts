@@ -55,9 +55,35 @@ function createVersionOneBackup() {
  * [ADR 0011](../../../docs/decisions/0011-savings-contribution-links-a-transaction.md).
  */
 function createVersionTwoBackup() {
+  const envelope = createBackupEnvelope(exportedAt, withoutTemplates());
   return {
-    ...createBackupEnvelope(exportedAt, backupDataFixture),
+    ...envelope,
+    counts: withoutTemplateCount(envelope.counts),
     formatVersion: 2,
+  };
+}
+
+/**
+ * Ein Export vor Format 4 kennt die Vorlagen nicht — weder in den Daten noch
+ * in den Zahlen. Siehe
+ * [ADR 0013](../../../docs/decisions/0013-recurring-transactions-are-confirmed-templates.md).
+ */
+function withoutTemplates() {
+  return { ...backupDataFixture, recurringTransactions: [] };
+}
+
+function withoutTemplateCount(counts: Record<string, number | undefined>) {
+  const { recurringTransactions, ...rest } = counts;
+  void recurringTransactions;
+  return rest;
+}
+
+function createVersionThreeBackup() {
+  const envelope = createBackupEnvelope(exportedAt, withoutTemplates());
+  return {
+    ...envelope,
+    counts: withoutTemplateCount(envelope.counts),
+    formatVersion: 3,
   };
 }
 
@@ -75,12 +101,74 @@ function createLinkedData() {
 }
 
 describe("Backup-Format", () => {
-  it("writes new exports in version 3", () => {
+  it("writes new exports in version 4", () => {
     const envelope = createBackupEnvelope(exportedAt, backupDataFixture);
 
-    expect(backupFormatVersion).toBe(3);
-    expect(envelope.formatVersion).toBe(3);
+    expect(backupFormatVersion).toBe(4);
+    expect(envelope.formatVersion).toBe(4);
     expect(envelope.counts.hiddenInsights).toBe(1);
+    expect(envelope.counts.recurringTransactions).toBe(1);
+  });
+
+  // Ein Export vor Format 4 hat keine Vorlagen; seine Buchungen sind allesamt
+  // von Hand erfasst.
+  it("still reads a version 3 export as having no templates", () => {
+    const service = createBackupService(database);
+
+    const preview = service.parse(JSON.stringify(createVersionThreeBackup()));
+
+    expect(preview.formatVersion).toBe(3);
+    expect(preview.backup.data.recurringTransactions).toEqual([]);
+    expect(
+      preview.backup.data.transactions[0]!.recurringTransactionId,
+    ).toBeUndefined();
+    expect(preview.warnings).toEqual([]);
+  });
+
+  it("restores a version 3 export without losing a record", async () => {
+    const service = createBackupService(database);
+    const preview = service.parse(JSON.stringify(createVersionThreeBackup()));
+
+    await service.replace(preview, () => undefined);
+
+    expect(await database.table("transactions").count()).toBe(1);
+    expect(await database.table("recurringTransactions").count()).toBe(0);
+  });
+
+  it("refuses a version 3 export that carries templates anyway", () => {
+    const service = createBackupService(database);
+    const tampered = {
+      ...createVersionThreeBackup(),
+      data: {
+        ...createVersionThreeBackup().data,
+        recurringTransactions: backupDataFixture.recurringTransactions,
+      },
+    };
+
+    expect(() => service.parse(JSON.stringify(tampered))).toThrow();
+  });
+
+  it("round-trips a template and its booking in version 4", async () => {
+    const service = createBackupService(database);
+    const template = backupDataFixture.recurringTransactions[0]!;
+    const data = {
+      ...backupDataFixture,
+      transactions: backupDataFixture.transactions.map((transaction) => ({
+        ...transaction,
+        recurringTransactionId: template.id,
+      })),
+    };
+    const preview = service.parse(
+      JSON.stringify(createBackupEnvelope(exportedAt, data)),
+    );
+
+    await service.replace(preview, () => undefined);
+
+    const restored = await service.create();
+    expect(restored.data.recurringTransactions).toEqual([template]);
+    expect(restored.data.transactions[0]!.recurringTransactionId).toBe(
+      template.id,
+    );
   });
 
   it("still reads a version 2 export as unlinked contributions", () => {

@@ -2,9 +2,14 @@ import type {
   FinanceCategory,
   FinanceCategoryDetails,
   MonthlyBudget,
+  RecurringTransaction,
   Transaction,
   TransactionDetails,
 } from "../../domains/finance/model";
+import {
+  buildTransactionFromTemplate,
+  listDueRecurringTransactions,
+} from "../../domains/finance/recurring";
 import type { TransactionFilter } from "../../domains/finance/repository";
 import type {
   CategoryRemoval,
@@ -26,9 +31,43 @@ export function createMemoryFinanceService(): FinanceService {
   });
 
   const budgets: MonthlyBudget[] = [];
+  const recurring: RecurringTransaction[] = [];
 
   return {
     archiveCategory: async (id) => requireCategory(id),
+    archiveRecurringTransaction: async (id) => {
+      const entry = recurring.find((row) => row.id === id);
+      if (!entry) throw new Error("unknown recurring transaction");
+      entry.archivedAt = "2026-08-04T09:00:00.000Z";
+      return entry;
+    },
+    // Dieselbe Regel wie im echten Service: Bestätigen ist die einzige Stelle,
+    // die aus einer Vorlage eine Buchung macht.
+    confirmRecurringTransaction: async (due) => {
+      const transaction = {
+        ...meta(),
+        ...buildTransactionFromTemplate(due),
+      } as Transaction;
+      transactions.push(transaction);
+      return transaction;
+    },
+    createRecurringTransaction: async (details) => {
+      const template = { ...meta(), ...details } as RecurringTransaction;
+      recurring.push(template);
+      return template;
+    },
+    listDueRecurringTransactions: async (today) =>
+      listDueRecurringTransactions(recurring, transactions, today),
+    listRecurringTransactions: async (options) =>
+      recurring.filter(
+        (row) => options?.includeArchived || row.archivedAt === undefined,
+      ),
+    updateRecurringTransaction: async (id, patch) => {
+      const entry = recurring.find((row) => row.id === id);
+      if (!entry) throw new Error("unknown recurring transaction");
+      Object.assign(entry, patch);
+      return entry;
+    },
     listBudgets: async (month) =>
       budgets.filter((budget) => budget.month === month),
     removeBudget: async (id) => {

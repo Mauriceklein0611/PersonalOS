@@ -231,7 +231,37 @@ const transactionFields = {
   categoryId: entityIdSchema,
   bookedOn: calendarDaySchema,
   description: longText.optional(),
+  /**
+   * Gesetzt, wenn die Buchung aus einer bestätigten Vorlage entstanden ist.
+   * Ihr Fehlen heißt „von Hand erfasst"; deshalb bleiben alle vor der Vorlage
+   * geschriebenen Buchungen ohne Migration gültig. Siehe
+   * [ADR 0013](../../../docs/decisions/0013-recurring-transactions-are-confirmed-templates.md).
+   */
+  recurringTransactionId: entityIdSchema.optional(),
 };
+
+/**
+ * Eine Vorlage erzeugt von sich aus **nie** eine Buchung. Sie beschreibt nur,
+ * was der Nutzer im Monat erwartet; erst seine Bestätigung schreibt einen
+ * Datensatz. `dayOfMonth` ist auf 28 begrenzt, weil jeder Monat einen 28. hat
+ * und jede Ausweichregel für den 31. eine stille Annahme wäre.
+ */
+const recurringTransactionFields = {
+  kind: z.enum(["income", "expense"]),
+  money: moneySchema,
+  categoryId: entityIdSchema,
+  dayOfMonth: z.int().min(1).max(28),
+  description: longText.optional(),
+  name: shortText,
+};
+
+export const recurringTransactionDetailsSchema = z
+  .object(recurringTransactionFields)
+  .strict();
+
+export const recurringTransactionSchema = entityMetaSchema.safeExtend(
+  recurringTransactionFields,
+);
 
 export const transactionDetailsSchema = z.object(transactionFields).strict();
 
@@ -356,6 +386,9 @@ export const backupDataSchema = z
     // Ein Export im Format 1 kennt die Tabelle noch nicht. Er bleibt gültig
     // und wird als „nichts ausgeblendet“ gelesen.
     hiddenInsights: z.array(hiddenInsightSchema).default([]),
+    // Dieselbe Regel für die Vorlagen: Formate 1 bis 3 kennen sie nicht und
+    // werden als „keine Vorlage angelegt“ gelesen.
+    recurringTransactions: z.array(recurringTransactionSchema).default([]),
   })
   .strict();
 
