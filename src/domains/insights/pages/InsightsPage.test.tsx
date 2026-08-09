@@ -209,52 +209,35 @@ describe("InsightsPage – vollständige Daten", () => {
   });
 });
 
-describe("InsightsPage – Woche", () => {
-  it("names the week and marks the running one", async () => {
+describe("InsightsPage – Wochenrückblick-Verweis", () => {
+  it("points to the dedicated weekly review page instead of repeating its figures", async () => {
     renderPage(createStubService());
 
     expect(
-      await screen.findByRole("heading", {
-        level: 2,
-        name: "Woche vom 03.08.2026 bis 09.08.2026",
-      }),
+      await screen.findByRole("heading", { level: 2, name: "Wochenrückblick" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Dies ist die laufende Woche. Ausgewertet wird bis heute.",
-      ),
-    ).toBeInTheDocument();
-    // In die Zukunft führt kein Weg.
-    expect(
-      screen.getByRole("button", { name: "Nächste Woche" }),
-    ).toBeDisabled();
+    const link = screen.getByRole("link", { name: "Wochenrückblick öffnen" });
+    expect(link).toHaveAttribute("href", "/wochenrueckblick");
   });
 
-  it("steps back a week and keeps every figure with its basis", async () => {
-    const user = userEvent.setup();
+  it("no longer shows a week heading, week navigation or weekly figures here", async () => {
     renderPage(createStubService());
-    await screen.findByRole("heading", { level: 2, name: /Woche vom/ });
+    await screen.findByRole("heading", { level: 2, name: "Wochenrückblick" });
 
-    await user.click(screen.getByRole("button", { name: "Vorherige Woche" }));
-
+    // Diese Kennzahlen ziehen komplett auf die neue Seite; eine zweite Kopie
+    // hier wäre dieselbe Zahl an zwei Stellen.
     expect(
-      await screen.findByRole("heading", {
-        level: 2,
-        name: "Woche vom 27.07.2026 bis 02.08.2026",
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Nächste Woche" })).toBeEnabled();
-  });
-
-  it("gives every weekly figure a basis instead of a bare number", async () => {
-    renderPage(createStubService());
-
-    await screen.findByRole("heading", { level: 2, name: /Woche vom/ });
+      screen.queryByRole("heading", { name: /^Woche vom/ }),
+    ).not.toBeInTheDocument();
     expect(
-      screen.getByText("Grundlage: 6 geplante Aufgaben."),
-    ).toBeInTheDocument();
-    expect(screen.getByText("2 von 6")).toBeInTheDocument();
-    expect(screen.getByText("4 von 7 Tagen")).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Vorherige Woche" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Nächste Woche" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Grundlage: 6 geplante Aufgaben."),
+    ).not.toBeInTheDocument();
   });
 });
 

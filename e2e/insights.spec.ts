@@ -15,23 +15,10 @@ test("explains the life score with and without a data basis", async ({
     ),
   ).toBeVisible();
 
-  // Eine Woche ohne Daten ist ein hilfreicher Zustand, keine leere Fläche.
-  await expect(
-    page.getByRole("heading", { level: 2, name: /^Woche vom/ }),
-  ).toBeVisible();
+  // Eine Woche ohne Beobachtungen ist ein hilfreicher Zustand, keine leere
+  // Fläche. Die Wochenzahlen selbst stehen jetzt auf /wochenrueckblick, siehe
+  // weekly-review.spec.ts.
   await expect(page.getByText("Noch keine Beobachtung")).toBeVisible();
-  await expect(
-    page.getByText("Für diese Woche war keine Aufgabe geplant."),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Nächste Woche" }),
-  ).toBeDisabled();
-
-  await page.getByRole("button", { name: "Vorherige Woche" }).click();
-  await expect(
-    page.getByRole("button", { name: "Nächste Woche" }),
-  ).toBeEnabled();
-  await page.getByRole("button", { name: "Nächste Woche" }).click();
 
   // Ohne einen einzigen Eintrag gibt es keine Aussage — und keine Null.
   await expect(page.getByText("Keine Angabe").first()).toBeVisible();
@@ -67,10 +54,6 @@ test("explains the life score with and without a data basis", async ({
   await expect(
     page.getByRole("heading", { level: 2, name: "Life Score" }),
   ).toBeVisible();
-
-  // Die Woche hat jetzt eine Grundlage, und jede Zahl nennt sie.
-  await expect(page.getByText("2 von 3", { exact: true })).toBeVisible();
-  await expect(page.getByText("Grundlage: 3 geplante Aufgaben.")).toBeVisible();
 
   // Zwei von drei geplanten Aufgaben gleicher Priorität sind 67 von 100.
   await expect(

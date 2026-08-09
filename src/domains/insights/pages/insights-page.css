@@ -137,14 +137,14 @@
   gap: var(--space-3);
 }
 
-.insights-week-navigation {
+/* Verweis auf den ausgelagerten Wochenrückblick, keine eigene Kachelliste. */
+.insights-weekly-review-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
 }
 
-.insights-week-figures,
 .insights-observation-list {
   display: grid;
   gap: var(--space-3);
@@ -225,9 +225,5 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 14rem);
     align-items: end;
     gap: var(--space-4);
-  }
-
-  .insights-week-figures {
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   }
 }

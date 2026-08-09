@@ -51,6 +51,12 @@ test("keeps every shell route reachable at 320 pixels", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: "Ziele" }),
   ).toBeVisible();
 
+  await mobileNavigation.getByRole("button", { name: "Mehr" }).click();
+  await mobileNavigation.getByRole("link", { name: "Wochenrückblick" }).click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Wochenrückblick" }),
+  ).toBeVisible();
+
   const hasHorizontalOverflow = await page.evaluate(
     () =>
       document.documentElement.scrollWidth >
