@@ -215,6 +215,84 @@ describe("TasksPage", () => {
   });
 });
 
+describe("TasksPage – Plandatum und Frist", () => {
+  it("keeps a missed planned date, a missed deadline and a deadline without a plan apart", async () => {
+    const user = userEvent.setup();
+    const { service } = createMemoryTaskService([
+      createDatedTask("01", "Plandatum verpasst", {
+        plannedDate: "2026-08-03",
+      }),
+      createDatedTask("02", "Frist verpasst", {
+        dueAt: "2026-08-02T10:00:00.000Z",
+      }),
+      createDatedTask("03", "Nur eine Frist", {
+        dueAt: "2026-08-04T18:00:00.000Z",
+      }),
+    ]);
+
+    render(
+      <TasksPage
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    await user.click(await screen.findByRole("tab", { name: /^Heute/ }));
+
+    // Vorher trugen alle drei dasselbe Wort „Überfällig“ — oder gar nichts.
+    expect(
+      await screen.findByText("Plandatum verstrichen"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Frist verstrichen")).toBeInTheDocument();
+    expect(screen.getByText("Frist ohne Plandatum")).toBeInTheDocument();
+    expect(screen.queryByText("Überfällig")).not.toBeInTheDocument();
+  });
+
+  it("says nothing about an elapsed date once the task is done", async () => {
+    const user = userEvent.setup();
+    const { service } = createMemoryTaskService([
+      createDatedTask("04", "Längst erledigt", {
+        completedAt: "2026-08-04T08:00:00.000Z",
+        dueAt: "2026-08-02T10:00:00.000Z",
+        plannedDate: "2026-08-03",
+        status: "completed",
+      }),
+    ]);
+
+    render(
+      <TasksPage
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    await user.click(await screen.findByRole("tab", { name: /^Erledigt/ }));
+
+    expect(
+      await screen.findByRole("heading", { level: 2, name: "Längst erledigt" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/verstrichen/)).not.toBeInTheDocument();
+  });
+});
+
+function createDatedTask(
+  suffix: string,
+  title: string,
+  overrides: Partial<Task>,
+): Task {
+  return {
+    id: `00000000-0000-4000-8000-0000000007${suffix}`,
+    createdAt: baseInstant,
+    updatedAt: baseInstant,
+    title,
+    priority: "normal",
+    status: "open",
+    ...overrides,
+  };
+}
+
 function createTask(): Task {
   return {
     id: "00000000-0000-4000-8000-000000000909",
