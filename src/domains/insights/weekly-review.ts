@@ -168,7 +168,13 @@ function summariseHabits(
   // deshalb entscheidet `hasBasis` hier, nicht `sourceCount`.
   if (counted === 0) {
     return {
-      basis: `Grundlage: ${habitCount} ${habitCount === 1 ? "Gewohnheit" : "Gewohnheiten"}, alle ${target} ${target === 1 ? "geplante Einheit" : "geplanten Einheiten"} übersprungen.`,
+      // „alle 1 geplante Einheit“ wäre kein Satz. Bei genau einer Einheit
+      // trägt „die“ die Aussage, dass nichts übrig bleibt, ebenso gut.
+      basis: `Grundlage: ${habitCount} ${habitCount === 1 ? "Gewohnheit" : "Gewohnheiten"}, ${
+        target === 1
+          ? "die geplante Einheit"
+          : `alle ${target} geplanten Einheiten`
+      } übersprungen.`,
       hasBasis: false,
       ratio: null,
       sourceCount: habitCount,
