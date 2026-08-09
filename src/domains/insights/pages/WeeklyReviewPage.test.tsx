@@ -51,15 +51,17 @@ const reviewInput = {
  * die Darstellung. Der Stub liefert die vollständige Vertragsform von
  * `InsightService`, auch wenn diese Seite nur `review` liest.
  */
-function createStubService(input: {
-  goals: typeof lifeScoreGoals;
-  habitEntries: typeof lifeScoreHabitEntries;
-  habits: typeof lifeScoreHabits;
-  journalEntries: typeof lifeScoreJournalEntries;
-  milestones: typeof lifeScoreMilestones;
-  tasks: readonly Task[];
-  transactions: typeof lifeScoreTransactions;
-} = reviewInput): InsightService {
+function createStubService(
+  input: {
+    goals: typeof lifeScoreGoals;
+    habitEntries: typeof lifeScoreHabitEntries;
+    habits: typeof lifeScoreHabits;
+    journalEntries: typeof lifeScoreJournalEntries;
+    milestones: typeof lifeScoreMilestones;
+    tasks: readonly Task[];
+    transactions: typeof lifeScoreTransactions;
+  } = reviewInput,
+): InsightService {
   const components = createDefaultScoreComponents();
   const settings = { ...buildEntityMeta(), components, enabled: true };
 
@@ -162,9 +164,7 @@ describe("WeeklyReviewPage – Grundgerüst", () => {
         name: "Woche vom 27.07.2026 bis 02.08.2026",
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Nächste Woche" }),
-    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Nächste Woche" })).toBeEnabled();
     expect(
       screen.queryByText(
         "Dies ist die laufende Woche. Ausgewertet wird bis heute.",
@@ -183,51 +183,40 @@ describe("WeeklyReviewPage – Grundgerüst", () => {
   });
 });
 
-/**
- * Die Kennzahlen dieser Woche erscheinen doppelt: einmal in der Übersicht,
- * einmal je Bereich im Vorwochenvergleich. Die Prüfung bleibt deshalb auf
- * die Übersichtsliste beschränkt.
- */
-function weekOverviewList() {
-  const list = document.querySelector(".weekly-review-figures");
-  expect(list).not.toBeNull();
-  return within(list as HTMLElement);
-}
-
 describe("WeeklyReviewPage – Datengrundlage der Woche", () => {
   it("gives the task, habit and goal figure a basis and a period", async () => {
     renderPage(createStubService());
     await screen.findByRole("heading", { level: 2, name: /Woche vom/ });
-    const overview = weekOverviewList();
 
     expect(
-      overview.getByText(
+      screen.getByText(
         "Zeitraum: 03.08.2026 bis 09.08.2026 · Grundlage: 6 geplante Aufgaben.",
       ),
     ).toBeInTheDocument();
-    expect(overview.getByText("2 von 6")).toBeInTheDocument();
+    expect(screen.getByText("2 von 6")).toBeInTheDocument();
 
     expect(
-      overview.getByText(
+      screen.getByText(
         "Zeitraum: 03.08.2026 bis 09.08.2026 · Grundlage: 2 Gewohnheiten, 13 zählende Einheiten. 1 von 14 geplanten Einheiten übersprungen; sie zählen nicht mit.",
       ),
     ).toBeInTheDocument();
-    expect(overview.getByText("5 von 13")).toBeInTheDocument();
+    expect(screen.getByText("5 von 13")).toBeInTheDocument();
 
     expect(
-      overview.getByText(
+      screen.getByText(
         "Zeitraum: 03.08.2026 bis 09.08.2026 · Grundlage: 4 aktive Ziele.",
       ),
     ).toBeInTheDocument();
-    expect(overview.getByText("0 Meilensteine")).toBeInTheDocument();
+    // Beide Wochen zeigen zufällig denselben Wert (0 Meilensteine); die Zahl
+    // steht deshalb zweimal auf der Seite, einmal je Woche.
+    expect(screen.getAllByText("0 Meilensteine")).toHaveLength(2);
   });
 
   it("carries only the day count from the journal, no free text", async () => {
     renderPage(createStubService());
     await screen.findByRole("heading", { level: 2, name: /Woche vom/ });
-    const overview = weekOverviewList();
 
-    expect(overview.getByText("4 von 7 Tagen")).toBeInTheDocument();
+    expect(screen.getByText("4 von 7 Tagen")).toBeInTheDocument();
     expect(
       screen.queryByText(/Nur Freitext, keine Selbsteinschätzung/),
     ).not.toBeInTheDocument();
@@ -236,14 +225,13 @@ describe("WeeklyReviewPage – Datengrundlage der Woche", () => {
   it("shows a missing basis as an explicit statement, not as zero", async () => {
     renderPage(createStubService({ ...reviewInput, tasks: [] }));
     await screen.findByRole("heading", { level: 2, name: /Woche vom/ });
-    const overview = weekOverviewList();
 
     expect(
-      overview.getByText(
+      screen.getByText(
         "Zeitraum: 03.08.2026 bis 09.08.2026 · Für diese Woche war keine Aufgabe geplant.",
       ),
     ).toBeInTheDocument();
-    expect(overview.getByText("Keine Angabe")).toBeInTheDocument();
+    expect(screen.getAllByText("Keine Angabe").length).toBeGreaterThan(0);
   });
 });
 

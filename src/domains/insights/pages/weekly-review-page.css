@@ -22,7 +22,6 @@
   gap: var(--space-3);
 }
 
-.weekly-review-figures,
 .weekly-review-comparison-list {
   display: grid;
   gap: var(--space-3);
@@ -64,11 +63,5 @@
 @media (min-width: 40rem) {
   .weekly-review-comparison-tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 48rem) {
-  .weekly-review-figures {
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   }
 }
