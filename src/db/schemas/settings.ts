@@ -9,6 +9,14 @@ const settingsFields = {
   timeZone: timeZoneSchema,
   theme: z.enum(["system", "light", "dark"]),
   baseCurrency: currencyCodeSchema,
+  /**
+   * Freiwilliges Tagesbudget in Minuten. Fehlt der Wert, gibt es kein Budget
+   * — nicht „null Minuten". Deshalb optional und nicht mit einer Vorgabe
+   * belegt: Ein erfundenes Budget wäre eine Aussage über den Nutzer, die er
+   * nie getroffen hat. Ein Tag hat 1440 Minuten; darüber wäre die Zahl keine
+   * Planungshilfe mehr.
+   */
+  dailyCapacityMinutes: z.int().positive().max(1_440).optional(),
 } as const;
 
 export const settingsV1Schema = entityMetaSchema.safeExtend({
@@ -35,6 +43,7 @@ export type SettingsDetails = z.infer<typeof settingsDetailsSchema>;
 export function toSettingsDetails(settings: Settings): SettingsDetails {
   return {
     baseCurrency: settings.baseCurrency,
+    dailyCapacityMinutes: settings.dailyCapacityMinutes,
     locale: settings.locale,
     theme: settings.theme,
     timeZone: settings.timeZone,

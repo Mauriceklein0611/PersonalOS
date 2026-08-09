@@ -50,3 +50,13 @@ export function useBaseCurrency(override?: string): string {
   const value = useContext(AppSettingsContext);
   return override ?? value?.settings.baseCurrency ?? "EUR";
 }
+
+/**
+ * Das freiwillige Tagesbudget in Minuten. `undefined` heißt, dass keines
+ * gesetzt ist — es gibt bewusst keine Vorgabe, weil ein erfundenes Budget
+ * eine Aussage über den Nutzer wäre, die er nie getroffen hat.
+ */
+export function useDailyCapacityMinutes(override?: number): number | undefined {
+  const value = useContext(AppSettingsContext);
+  return override ?? value?.settings.dailyCapacityMinutes;
+}

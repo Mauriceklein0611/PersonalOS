@@ -154,6 +154,102 @@ describe("today queries", () => {
   });
 });
 
+describe("today capacity", () => {
+  // Ohne eine einzige Schätzung gibt es keine Summe, statt einer Null.
+  it("stays absent while no open task carries an estimate", () => {
+    const overview = buildTodayOverview(
+      createInput({
+        tasks: [
+          createTask("t1", { plannedDate: today }),
+          createTask("t2", { plannedDate: today }),
+        ],
+      }),
+      createContext(),
+    );
+
+    expect(overview.capacity).toBeUndefined();
+  });
+
+  // Ungeschätzte Aufgaben zählen mit — als eigene Zahl, nicht als null
+  // Minuten. Sonst läse sich ein ungeschätzter Tag als leerer Tag.
+  it("sums the estimates and counts the tasks without one separately", () => {
+    const overview = buildTodayOverview(
+      createInput({
+        tasks: [
+          createTask("t1", { estimatedMinutes: 45, plannedDate: today }),
+          createTask("t2", { estimatedMinutes: 30, plannedDate: today }),
+          createTask("t3", { plannedDate: today }),
+        ],
+      }),
+      createContext(),
+    );
+
+    expect(overview.capacity).toEqual({
+      budgetMinutes: undefined,
+      estimatedTaskCount: 2,
+      isOverBudget: false,
+      totalMinutes: 75,
+      unestimatedTaskCount: 1,
+    });
+  });
+
+  it("reports no budget comparison while none is set", () => {
+    const overview = buildTodayOverview(
+      createInput({
+        tasks: [
+          createTask("t1", { estimatedMinutes: 600, plannedDate: today }),
+        ],
+      }),
+      createContext(),
+    );
+
+    expect(overview.capacity?.budgetMinutes).toBeUndefined();
+    expect(overview.capacity?.isOverBudget).toBe(false);
+  });
+
+  it("marks the sum as over the budget only once it exceeds it", () => {
+    const build = (estimatedMinutes: number) =>
+      buildTodayOverview(
+        createInput({
+          dailyCapacityMinutes: 120,
+          tasks: [createTask("t1", { estimatedMinutes, plannedDate: today })],
+        }),
+        createContext(),
+      ).capacity;
+
+    expect(build(119)?.isOverBudget).toBe(false);
+    // Genau auf dem Budget ist nicht darüber.
+    expect(build(120)?.isOverBudget).toBe(false);
+    expect(build(121)?.isOverBudget).toBe(true);
+    expect(build(121)?.budgetMinutes).toBe(120);
+  });
+
+  // Die Summe beschreibt den heutigen Tag, nicht den Rest der Woche.
+  it("ignores estimates of tasks that are not open today", () => {
+    const overview = buildTodayOverview(
+      createInput({
+        tasks: [
+          createTask("t1", { estimatedMinutes: 45, plannedDate: today }),
+          createTask("t2", {
+            estimatedMinutes: 90,
+            plannedDate: "2026-08-07",
+          }),
+          createTask("t3", {
+            completedAt: "2026-08-04T09:00:00.000Z",
+            estimatedMinutes: 60,
+            plannedDate: today,
+            status: "completed",
+          }),
+        ],
+      }),
+      createContext(),
+    );
+
+    expect(overview.capacity?.totalMinutes).toBe(45);
+    expect(overview.capacity?.estimatedTaskCount).toBe(1);
+  });
+});
+
 function createContext(overrides: Partial<TodayContext> = {}): TodayContext {
   return { hour: 9, timeZone: "Europe/Berlin", today, ...overrides };
 }

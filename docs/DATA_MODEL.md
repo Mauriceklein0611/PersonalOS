@@ -51,8 +51,11 @@ type Settings = EntityMeta & {
   theme: 'system' | 'light' | 'dark';
   baseCurrency: string;
   weekStartsOn: 1;
+  dailyCapacityMinutes?: number; // 1 bis 1440, ganzzahlig
 };
 ```
+
+`dailyCapacityMinutes` ist ein freiwilliges Tagesbudget. Fehlt das Feld, ist kein Budget gesetzt — das ist ausdrücklich nicht dasselbe wie null Minuten, und es gibt keine Vorgabe: Ein erfundenes Budget wäre eine Aussage über den Nutzer, die er nie getroffen hat. Weil das Feld optional ist, bleiben alle vor seiner Einführung geschriebenen Datensätze ohne Migration gültig; die Dexie-Version bleibt unverändert.
 
 Es gibt genau einen Settings-Datensatz. Er entsteht beim ersten erfolgreichen Öffnen der Datenbank (`seedSettingsRecord` in `src/db/settings/repository.ts`) mit `locale: "de-DE"`, `theme: "system"`, `baseCurrency: "EUR"`, `weekStartsOn: 1` und der erkannten Zeitzone; ohne belastbare Angabe des Browsers ist das `UTC`. Der Seed ist idempotent und läuft in einer Transaktion, ein zweiter Start legt also keinen zweiten Datensatz an. Ein vorhandener, aber archivierter Datensatz zählt ebenfalls als vorhanden.
 

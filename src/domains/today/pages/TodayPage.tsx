@@ -7,7 +7,10 @@ import {
 } from "react";
 import { Link } from "react-router";
 
-import { useTimeZone } from "../../../app/settings/settings-context";
+import {
+  useDailyCapacityMinutes,
+  useTimeZone,
+} from "../../../app/settings/settings-context";
 import {
   Button,
   EmptyState,
@@ -38,6 +41,7 @@ import { QuickExpenseForm } from "../components/QuickExpenseForm";
 import {
   buildTodayOverview,
   createTodayContext,
+  type TodayCapacity,
   type TodayGreeting,
   type TodayInput,
 } from "../queries";
@@ -70,6 +74,7 @@ const emptyInput: TodayInput = {
 };
 
 export type TodayPageProps = {
+  dailyCapacityMinutes?: number;
   financeService?: FinanceService;
   habitService?: HabitService;
   journalService?: JournalService;
@@ -79,6 +84,7 @@ export type TodayPageProps = {
 };
 
 export function TodayPage({
+  dailyCapacityMinutes: dailyCapacityOverride,
   financeService = personalOsFinanceService,
   habitService = personalOsHabitService,
   journalService = personalOsJournalService,
@@ -87,6 +93,7 @@ export function TodayPage({
   timeZone: timeZoneOverride,
 }: TodayPageProps) {
   const timeZone = useTimeZone(timeZoneOverride);
+  const dailyCapacityMinutes = useDailyCapacityMinutes(dailyCapacityOverride);
   const context = useMemo(
     () => createTodayContext(now(), timeZone),
     [now, timeZone],
@@ -134,8 +141,8 @@ export function TodayPage({
   // Die Verdichtung läuft über alle Aufgaben, Habits und Journaleinträge und
   // darf nicht bei jedem Tastendruck im Schnellerfassen-Feld neu rechnen.
   const overview = useMemo(
-    () => buildTodayOverview(input, context),
-    [context, input],
+    () => buildTodayOverview({ ...input, dailyCapacityMinutes }, context),
+    [context, dailyCapacityMinutes, input],
   );
 
   async function runAction(
@@ -313,6 +320,17 @@ export function TodayPage({
               label="Abendreflexion"
               value={overview.journal.hasEntryToday ? "Erfasst" : "Offen"}
             />
+            {/*
+              Ohne eine einzige Schätzung erscheint die Kachel gar nicht:
+              Eine Summe aus null Schätzungen wäre eine Behauptung.
+            */}
+            {overview.capacity ? (
+              <MetricTile
+                context={describeCapacity(overview.capacity)}
+                label="Geplante Zeit heute"
+                value={formatMinutes(overview.capacity.totalMinutes)}
+              />
+            ) : null}
           </div>
 
           <form
@@ -503,6 +521,49 @@ async function readTodaySnapshot(
     journalEntries,
     tasks,
   };
+}
+
+/** „90 Min." bis unter einer Stunde, darüber „1 h 30 min". */
+function formatMinutes(minutes: number): string {
+  if (minutes < 60) return `${minutes} Min.`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
+
+/**
+ * Nennt die Datengrundlage und, falls ein Budget gesetzt ist, das Verhältnis
+ * dazu. Sachlich formuliert: Die Summe liegt über dem Budget — das ist eine
+ * Feststellung, keine Mahnung und keine Aussage über den Nutzer.
+ */
+function describeCapacity(capacity: TodayCapacity): string {
+  const parts = [
+    `Grundlage: ${capacity.estimatedTaskCount} ${
+      capacity.estimatedTaskCount === 1
+        ? "geschätzte Aufgabe"
+        : "geschätzte Aufgaben"
+    }`,
+  ];
+
+  if (capacity.unestimatedTaskCount > 0) {
+    parts.push(
+      `${capacity.unestimatedTaskCount} ${
+        capacity.unestimatedTaskCount === 1
+          ? "Aufgabe ohne Schätzung ist nicht enthalten"
+          : "Aufgaben ohne Schätzung sind nicht enthalten"
+      }`,
+    );
+  }
+
+  if (capacity.budgetMinutes !== undefined) {
+    parts.push(
+      capacity.isOverBudget
+        ? `Das liegt über deinem Tagesbudget von ${formatMinutes(capacity.budgetMinutes)}`
+        : `Tagesbudget: ${formatMinutes(capacity.budgetMinutes)}`,
+    );
+  }
+
+  return `${parts.join(". ")}.`;
 }
 
 function describeMood(journal: {

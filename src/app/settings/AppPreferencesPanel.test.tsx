@@ -104,4 +104,68 @@ describe("AppPreferencesPanel", () => {
       expect(screen.getByLabelText("Übersichtswährung")).toHaveValue("EUR");
     });
   });
+
+  it("starts without a daily budget and stores one that is entered", async () => {
+    const repository = createSettingsRepository(database);
+    const user = userEvent.setup();
+    renderPanel(repository);
+
+    const field = await screen.findByLabelText("Tagesbudget in Minuten");
+    expect(field).toHaveValue(null);
+
+    await user.type(field, "240");
+    await user.tab();
+
+    expect(
+      await screen.findByText("Das Tagesbudget wurde gespeichert."),
+    ).toBeInTheDocument();
+    await waitFor(async () => {
+      expect((await repository.loadOrCreate()).dailyCapacityMinutes).toBe(240);
+    });
+  });
+
+  // Ein leeres Feld heißt „kein Budget", nicht „null Minuten".
+  it("removes the budget when the field is cleared", async () => {
+    const repository = createSettingsRepository(database);
+    await repository.save({ dailyCapacityMinutes: 180 });
+    const user = userEvent.setup();
+    renderPanel(repository);
+
+    // Das Feld wird neu gemountet, sobald der gespeicherte Wert eintrifft —
+    // deshalb jedes Mal neu abfragen statt eine Referenz festzuhalten.
+    await waitFor(() =>
+      expect(screen.getByLabelText("Tagesbudget in Minuten")).toHaveValue(180),
+    );
+
+    await user.clear(screen.getByLabelText("Tagesbudget in Minuten"));
+    await user.tab();
+
+    expect(
+      await screen.findByText("Das Tagesbudget wurde entfernt."),
+    ).toBeInTheDocument();
+    await waitFor(async () => {
+      expect(
+        (await repository.loadOrCreate()).dailyCapacityMinutes,
+      ).toBeUndefined();
+    });
+  });
+
+  it("explains a value outside the allowed range instead of storing it", async () => {
+    const repository = createSettingsRepository(database);
+    const user = userEvent.setup();
+    renderPanel(repository);
+
+    const field = await screen.findByLabelText("Tagesbudget in Minuten");
+    await user.type(field, "1500");
+    await user.tab();
+
+    expect(
+      await screen.findByText(
+        "Gib eine ganze Zahl zwischen 1 und 1440 Minuten ein, oder lass das Feld leer.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      (await repository.loadOrCreate()).dailyCapacityMinutes,
+    ).toBeUndefined();
+  });
 });

@@ -43,7 +43,18 @@ export type TodayJournalStatus = {
   showEveningHint: boolean;
 };
 
+export type TodayCapacity = {
+  /** Fehlt, wenn kein Tagesbudget gesetzt ist — nicht null Minuten. */
+  budgetMinutes?: number;
+  estimatedTaskCount: number;
+  isOverBudget: boolean;
+  totalMinutes: number;
+  unestimatedTaskCount: number;
+};
+
 export type TodayOverview = {
+  /** Fehlt, solange keine einzige offene Aufgabe eine Schätzung trägt. */
+  capacity?: TodayCapacity;
   completedTaskCount: number;
   dueHabits: TodayHabit[];
   greeting: TodayGreeting;
@@ -57,6 +68,8 @@ export type TodayOverview = {
 };
 
 export type TodayInput = {
+  /** Aus dem Settings-Datensatz; fehlt, solange kein Budget gesetzt ist. */
+  dailyCapacityMinutes?: number;
   entriesByHabit: ReadonlyMap<string, readonly HabitEntry[]>;
   habits: readonly Habit[];
   journalEntries: readonly JournalEntry[];
@@ -112,6 +125,7 @@ export function buildTodayOverview(
   );
 
   return {
+    capacity: buildCapacity(openTasks, input.dailyCapacityMinutes),
     completedTaskCount: countTasksCompletedOn(input.tasks, context),
     dueHabits,
     greeting: getGreeting(context.hour),
@@ -122,6 +136,38 @@ export function buildTodayOverview(
     openTasks,
     overdueTaskCount,
     settledHabits,
+  };
+}
+
+/**
+ * Die Summe der Schätzungen des Tages. Sie ist eine Planungshilfe, keine
+ * Aussage über Leistungsfähigkeit, und sie erscheint nur, wenn wenigstens
+ * eine Aufgabe geschätzt ist: Ohne eine einzige Schätzung wäre jede Zahl
+ * eine Behauptung.
+ *
+ * Aufgaben ohne Schätzung zählen ausdrücklich mit — als eigene Zahl, nicht
+ * als null Minuten. Sonst läse sich ein ungeschätzter Tag als leerer Tag.
+ */
+function buildCapacity(
+  openTasks: readonly Task[],
+  budgetMinutes: number | undefined,
+): TodayCapacity | undefined {
+  const estimated = openTasks.filter(
+    (task) => task.estimatedMinutes !== undefined,
+  );
+  if (estimated.length === 0) return undefined;
+
+  const totalMinutes = estimated.reduce(
+    (total, task) => total + (task.estimatedMinutes ?? 0),
+    0,
+  );
+
+  return {
+    budgetMinutes,
+    estimatedTaskCount: estimated.length,
+    isOverBudget: budgetMinutes !== undefined && totalMinutes > budgetMinutes,
+    totalMinutes,
+    unestimatedTaskCount: openTasks.length - estimated.length,
   };
 }
 
