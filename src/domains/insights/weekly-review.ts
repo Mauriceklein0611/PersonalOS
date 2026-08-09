@@ -16,9 +16,17 @@ import type { InsightPeriod } from "./insight-model";
  * Eine Kennzahl der Woche. `ratio` ist `null`, wenn es keine Grundlage gibt —
  * niemals 0. `basis` nennt, worauf die Zahl beruht; ohne sie wäre die Zahl
  * eine Behauptung.
+ *
+ * `hasBasis` ist das strukturelle Signal für „keine Grundlage" — nicht
+ * `ratio === null` (das ist bei Finanzen und Zielen auch mit Grundlage
+ * `null`, weil dort kein Anteil berechnet wird) und nicht `sourceCount === 0`
+ * (Journal hat bei null Einträgen trotzdem eine Grundlage: die Woche selbst
+ * mit sieben Tagen). Darstellungen entscheiden ausschließlich anhand dieses
+ * Felds, nie anhand von `valueText`.
  */
 export type WeeklyFigure = {
   basis: string;
+  hasBasis: boolean;
   ratio: number | null;
   sourceCount: number;
   valueText: string;
@@ -102,6 +110,7 @@ function summariseTasks(
   if (planned.length === 0) {
     return {
       basis: "Für diese Woche war keine Aufgabe geplant.",
+      hasBasis: false,
       ratio: null,
       sourceCount: 0,
       valueText: "Keine Angabe",
@@ -110,6 +119,7 @@ function summariseTasks(
 
   return {
     basis: `Grundlage: ${planned.length} geplante Aufgaben.`,
+    hasBasis: true,
     ratio: completed.length / planned.length,
     sourceCount: planned.length,
     valueText: `${completed.length} von ${planned.length}`,
@@ -146,6 +156,7 @@ function summariseHabits(
   if (target === 0) {
     return {
       basis: "In dieser Woche war keine Gewohnheit fällig.",
+      hasBasis: false,
       ratio: null,
       sourceCount: 0,
       valueText: "Keine Angabe",
@@ -153,10 +164,12 @@ function summariseHabits(
   }
 
   // Übersprungene Einheiten zählen nicht im Nenner; bleibt nichts übrig, gibt
-  // es keine Quote statt einer erfundenen.
+  // es keine Quote statt einer erfundenen. `habitCount` ist trotzdem > 0 —
+  // deshalb entscheidet `hasBasis` hier, nicht `sourceCount`.
   if (counted === 0) {
     return {
       basis: `Grundlage: ${habitCount} Gewohnheiten, alle ${target} geplanten Einheiten übersprungen.`,
+      hasBasis: false,
       ratio: null,
       sourceCount: habitCount,
       valueText: "Keine Angabe",
@@ -169,6 +182,7 @@ function summariseHabits(
       : ` ${skipped} von ${target} geplanten Einheiten übersprungen; sie zählen nicht mit.`;
   return {
     basis: `Grundlage: ${habitCount} Gewohnheiten, ${counted} zählende Einheiten.${skippedNote}`,
+    hasBasis: true,
     ratio: done / counted,
     sourceCount: habitCount,
     valueText: `${done} von ${counted}`,
@@ -197,6 +211,9 @@ function summariseJournal(
       days.size === 0
         ? "In dieser Woche gibt es keinen Eintrag."
         : "Grundlage: Tage mit mindestens einem Eintrag.",
+    // Die Woche selbst ist die Grundlage, auch bei null Einträgen: „0 von 7
+    // Tagen" ist eine gültige Aussage, keine fehlende.
+    hasBasis: true,
     ratio: days.size / 7,
     sourceCount: days.size,
     valueText: `${days.size} von 7 Tagen`,
@@ -225,6 +242,7 @@ function summariseGoals(
   if (active.length === 0) {
     return {
       basis: "Es ist kein Ziel aktiv.",
+      hasBasis: false,
       ratio: null,
       sourceCount: 0,
       valueText: "Keine Angabe",
@@ -233,6 +251,9 @@ function summariseGoals(
 
   return {
     basis: `Grundlage: ${active.length} aktive Ziele.`,
+    // Kein Meilenstein in der Woche ist ein gültiges Ergebnis, keine fehlende
+    // Grundlage: Die aktiven Ziele selbst tragen die Zahl.
+    hasBasis: true,
     ratio: null,
     sourceCount: active.length,
     valueText: `${completedInWeek.length} Meilensteine`,
@@ -254,6 +275,7 @@ function summariseFinance(
   if (inWeek.length === 0) {
     return {
       basis: "In dieser Woche ist keine Ausgabe gebucht.",
+      hasBasis: false,
       ratio: null,
       sourceCount: 0,
       valueText: "Keine Angabe",
@@ -265,6 +287,9 @@ function summariseFinance(
     return {
       basis:
         "Die Buchungen verwenden verschiedene Währungen. Eine Summe wäre nur mit einer Umrechnung möglich.",
+      // Buchungen liegen vor, aber keine summierbare Zahl — strukturell
+      // dasselbe wie keine Grundlage.
+      hasBasis: false,
       ratio: null,
       sourceCount: inWeek.length,
       valueText: "Keine Angabe",
@@ -279,6 +304,7 @@ function summariseFinance(
 
   return {
     basis: `Grundlage: ${inWeek.length} ${inWeek.length === 1 ? "Ausgabe" : "Ausgaben"} dieser Woche.`,
+    hasBasis: true,
     ratio: null,
     sourceCount: inWeek.length,
     valueText: formatMoney(createMoney(amountMinor, currency!)),
