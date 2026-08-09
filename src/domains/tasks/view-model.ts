@@ -61,7 +61,9 @@ export function describeTaskTiming(
   // Was erledigt ist, wird nicht rückwirkend zur Mahnung.
   const isOpen = task.status === "open";
   const planElapsed =
-    isOpen && task.plannedDate !== undefined && task.plannedDate < context.today;
+    isOpen &&
+    task.plannedDate !== undefined &&
+    task.plannedDate < context.today;
   const deadlineElapsed =
     isOpen && deadlineDay !== undefined && deadlineDay < context.today;
 

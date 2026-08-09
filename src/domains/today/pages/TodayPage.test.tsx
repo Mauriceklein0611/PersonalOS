@@ -269,9 +269,7 @@ describe("TodayPage – Plandatum und Frist", () => {
 
     // Vorher las `describeTask` nur `plannedDate` und behauptete deshalb
     // „Für heute geplant“ für eine Aufgabe, die nie eingeplant wurde.
-    expect(
-      await screen.findByText("Frist ohne Plandatum"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Frist ohne Plandatum")).toBeInTheDocument();
     expect(screen.queryByText("Für heute geplant")).not.toBeInTheDocument();
   });
 

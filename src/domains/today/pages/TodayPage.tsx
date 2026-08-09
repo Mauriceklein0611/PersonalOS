@@ -367,9 +367,7 @@ export function TodayPage({
                       <h3>{task.title}</h3>
                       <p>
                         {describeTaskTiming(task, context).label}
-                        {task.priority === "high"
-                          ? " · Hohe Priorität"
-                          : null}
+                        {task.priority === "high" ? " · Hohe Priorität" : null}
                       </p>
                     </div>
                     <Button
