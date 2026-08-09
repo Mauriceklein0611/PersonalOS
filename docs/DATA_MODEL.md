@@ -20,9 +20,9 @@ type EntityMeta = {
 
 Die gemeinsamen Werte werden in `src/db/types.ts` und `src/lib/` mit Zod validiert. UUIDs sind Version 4, Zeitpunkte besitzen UTC- und Millisekundenpräzision (`YYYY-MM-DDTHH:mm:ss.sssZ`), und reine Kalendertage werden niemals implizit in eine Zeitzone umgerechnet.
 
-## Persistenzvertrag v5
+## Persistenzvertrag v6
 
-Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`. Version `3` dedupliziert und sortiert bestehende Wochentagpläne; ein historisch akzeptiertes `endDate` vor `startDate` wird entfernt. Version `4` legt den Store `hiddenInsights` an. Version `5` ergänzt den eindeutigen Index `&sourceTransactionId` auf `savingsContributions`; bestehende Beiträge tragen kein Quellfeld und bleiben unverändert gültig. Alle Aufstiege sind vorwärtsgerichtet. Die Versionsnummer der Datenbank ist unabhängig von der Exportformat-Version.
+Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`. Version `3` dedupliziert und sortiert bestehende Wochentagpläne; ein historisch akzeptiertes `endDate` vor `startDate` wird entfernt. Version `4` legt den Store `hiddenInsights` an. Version `5` ergänzt den eindeutigen Index `&sourceTransactionId` auf `savingsContributions`; bestehende Beiträge tragen kein Quellfeld und bleiben unverändert gültig. Version `6` legt den Store `recurringTransactions` an und ergänzt den nicht eindeutigen Index `recurringTransactionId` auf `transactions`; bestehende Buchungen tragen das Feld nicht und bleiben unverändert gültig. Alle Aufstiege sind vorwärtsgerichtet. Die Versionsnummer der Datenbank ist unabhängig von der Exportformat-Version.
 
 | Store | Datensätze |
 |---|---|
@@ -35,12 +35,13 @@ Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Qu
 | `savingsGoals`, `savingsContributions` | Sparziele und Beiträge |
 | `scoreSettings`, `scoreSnapshots` | versionierte Score-Konfiguration und optionale Snapshots |
 | `hiddenInsights` | ausgeblendete Insights; die einzige persistierte Spur einer Regel |
+| `recurringTransactions` | Vorlagen für wiederkehrende Buchungen; erzeugen nie selbst eine Buchung |
 
 Alle Stores verwenden die clientseitig erzeugte UUID `id` als Primärschlüssel. Fachlich eindeutige Kombinationen wie Habit/Tag, Journal/Tag und Budgetmonat/Kategorie besitzen zusätzlich einen eindeutigen Index. Domain-Repositories erweitern den gemeinsamen Metadatenvertrag um ihr eigenes Zod-Schema; rohe Dexie-Zugriffe bleiben auf `src/db/` beschränkt.
 
 Der Voll-Export bildet alle Stores unter ihren unveränderten Namen ab. Die Record-Schemas stehen in `src/db/schemas/domain-records.ts`; Format, Counts und Metadaten in `src/db/backup/format.ts`. Ein Restore prüft IDs, eindeutige Kombinationen sowie Goal-, Habit-, Finanzkategorie-, Sparziel- und Buchungsreferenzen, bevor lokale Daten ersetzt werden.
 
-Neue Exporte tragen die Formatversion `3`. Sie kann auf einem Sparbeitrag `sourceTransactionId` enthalten. Die Versionen `1` und `2` bleiben lesbar: Version `1` kennt `hiddenInsights` nicht, Version `2` keine verknüpften Beiträge.
+Neue Exporte tragen die Formatversion `4`. Sie kennt `recurringTransactions` und `recurringTransactionId` auf einer Buchung. Die Versionen `1` bis `3` bleiben lesbar: Version `1` kennt `hiddenInsights` nicht, Version `2` keine verknüpften Beiträge, und die Versionen `1` bis `3` keine Vorlagen — ihre Buchungen sind allesamt von Hand erfasst.
 
 ## Settings
 
@@ -206,6 +207,16 @@ type Transaction = EntityMeta & {
   categoryId: string;
   bookedOn: string; // YYYY-MM-DD
   description?: string;
+  recurringTransactionId?: string; // aus einer bestätigten Vorlage entstanden
+};
+
+type RecurringTransaction = EntityMeta & {
+  kind: 'income' | 'expense';
+  money: Money;
+  categoryId: string;
+  dayOfMonth: number; // 1 bis 28
+  description?: string;
+  name: string;
 };
 
 type MonthlyBudget = EntityMeta & {
@@ -237,6 +248,9 @@ Invarianten:
 - Kategorien mit verwendeten Transaktionen werden archiviert statt hart gelöscht.
 - Beträge werden ausschließlich als ganzzahlige Minor Units gerechnet. Die Anzahl der Nachkommastellen wird aus der Währung abgeleitet, nicht auf zwei festgelegt. Ein Saldo ist die ganzzahlige Differenz zweier Summen und niemals ein Gleitkommawert.
 - `financeCategories` und `transactions` existieren seit Schema v1. Der erste Umsetzungsstand in #17 brauchte deshalb keine Migration.
+- Eine `RecurringTransaction` erzeugt **nie** von sich aus eine Buchung; erst eine ausdrückliche Bestätigung schreibt einen Datensatz in `transactions`. Siehe [ADR 0013](decisions/0013-recurring-transactions-are-confirmed-templates.md).
+- Ob eine Vorlage in einem Monat bereits bestätigt wurde, wird aus den Buchungen abgeleitet — eine nicht archivierte Buchung mit ihrer `recurringTransactionId` in diesem Monat. Es gibt bewusst kein Feld an der Vorlage, das denselben Sachverhalt ein zweites Mal behauptet.
+- `dayOfMonth` ist auf 1 bis 28 begrenzt, weil jeder Monat diesen Tag hat und jede Ausweichregel für den 31. eine stille Annahme über die Absicht des Nutzers wäre.
 - Ohne vorhandene Kategorie legt die Oberfläche einen synthetischen, vollständig editierbaren Startsatz an. Diese Namen sind Beispiele und keine Annahme über die Lebensumstände.
 - `monthlyBudgets` besitzt den eindeutigen Index `[month+categoryId]`. Er gilt **datenbankweit**, nicht nur für nicht archivierte Datensätze. Ein Budget wird deshalb endgültig entfernt statt archiviert; ein archivierter Datensatz würde die Kombination dauerhaft blockieren. Die Historie liegt in den Buchungen, nicht im Budget. Das Entfernen bietet ein „Rückgängig“, das denselben Stand wieder setzt.
 - Der Budgetverbrauch zählt ausschließlich nicht archivierte Ausgaben derselben Kategorie im gewählten lokalen Monat. Er wird berechnet und nie gespeichert.

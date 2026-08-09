@@ -6,6 +6,7 @@ import {
   personalOsSchemaV3,
   personalOsSchemaV4,
   personalOsSchemaV5,
+  personalOsSchemaV6,
 } from "../schema";
 import { migrateToVersion2 } from "./v2-add-week-start";
 import { migrateToVersion3 } from "./v3-normalize-habit-schedules";
@@ -21,4 +22,9 @@ export function registerDatabaseMigrations(database: Dexie): void {
   // Bestehende Beiträge haben kein Quellfeld und bleiben unverändert gültig;
   // es gibt deshalb keinen Bestand zu überführen.
   database.version(5).stores(personalOsSchemaV5);
+  // Version 6 legt `recurringTransactions` an und ergänzt den Index über
+  // `recurringTransactionId` auf den Buchungen. Bestehende Buchungen tragen
+  // das Feld nicht; sein Fehlen heißt „von Hand erfasst". Es gibt deshalb
+  // keinen Bestand zu überführen.
+  database.version(6).stores(personalOsSchemaV6);
 }

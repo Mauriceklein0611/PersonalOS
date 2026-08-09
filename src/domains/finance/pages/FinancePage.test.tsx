@@ -306,3 +306,100 @@ describe("FinancePage", () => {
     expect(screen.getByText(/Die Buchungen bleiben erhalten/)).toBeVisible();
   });
 });
+
+describe("FinancePage – wiederkehrende Buchungen", () => {
+  async function createTemplate(day: string) {
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByRole("textbox", { name: "Name der Vorlage" }),
+      "Miete",
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /Betrag der Vorlage/ }),
+      "950,00",
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Kategorie der Vorlage" }),
+      ["Wohnen"],
+    );
+    const dayField = screen.getByRole("spinbutton", { name: "Monatstag" });
+    await user.clear(dayField);
+    await user.type(dayField, day);
+    await user.click(screen.getByRole("button", { name: "Vorlage anlegen" }));
+  }
+
+  /**
+   * Der Kern von ADR 0013: Eine Vorlage bucht nie von selbst. Das Anlegen
+   * allein darf keine Buchung erzeugen — auch nicht, wenn der Monatstag
+   * längst erreicht ist.
+   */
+  it("creates no booking from a template on its own", async () => {
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+
+    await createTemplate("1");
+
+    expect(await screen.findByText(/Die Vorlage wurde angelegt/)).toBeVisible();
+    expect(await service.listTransactions()).toEqual([]);
+    // Der Vorschlag steht da und wartet.
+    expect(
+      screen.getByRole("button", { name: /„Miete“ als Buchung übernehmen/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("writes the booking only once the suggestion is confirmed", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+    await createTemplate("1");
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: /„Miete“ als Buchung übernehmen/,
+      }),
+    );
+
+    expect(
+      await screen.findByText(/„Miete“ wurde als Buchung übernommen/),
+    ).toBeVisible();
+    const [booked] = await service.listTransactions();
+    expect(booked?.money.amountMinor).toBe(95_000);
+    // Erkennbar als aus einer Vorlage entstanden.
+    expect(booked?.recurringTransactionId).toBeDefined();
+  });
+
+  it("stops proposing a template that was confirmed this month", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+    await createTemplate("1");
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: /„Miete“ als Buchung übernehmen/,
+      }),
+    );
+
+    expect(
+      await screen.findByText("In diesem Monat ist keine Vorlage offen."),
+    ).toBeVisible();
+  });
+
+  // Der Monatstag liegt in der Zukunft: noch kein Vorschlag, aber die Vorlage
+  // steht in der Liste.
+  it("waits for the day of month before proposing", async () => {
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+
+    await createTemplate("20");
+
+    expect(
+      await screen.findByText("In diesem Monat ist keine Vorlage offen."),
+    ).toBeVisible();
+    expect(screen.getByText(/Miete · Ausgabe über/)).toBeInTheDocument();
+  });
+});

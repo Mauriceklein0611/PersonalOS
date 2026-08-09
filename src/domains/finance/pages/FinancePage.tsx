@@ -7,6 +7,7 @@ import { BudgetSection } from "./BudgetSection";
 import { CategorySection } from "./CategorySection";
 import { formatMonth } from "./format";
 import { MonthOverview } from "./MonthOverview";
+import { RecurringSection } from "./RecurringSection";
 import { SavingsPanel } from "./SavingsPanel";
 import { TransactionForm } from "./TransactionForm";
 import { TransactionList } from "./TransactionList";
@@ -57,6 +58,18 @@ export function FinancePage(props: FinancePageProps) {
             currency={page.currency}
             onSubmit={page.createTransaction}
             today={page.today}
+          />
+
+          {/* Vorschläge stehen beim Erfassen, nicht bei der Auswertung. */}
+          <RecurringSection
+            categories={page.categories}
+            categoriesById={page.categoriesById}
+            currency={page.currency}
+            due={page.dueRecurring}
+            onArchive={page.archiveRecurringTemplate}
+            onConfirm={page.confirmRecurring}
+            onCreate={page.createRecurringTemplate}
+            templates={page.recurringTemplates}
           />
 
           <MonthOverview

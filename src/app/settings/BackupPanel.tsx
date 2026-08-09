@@ -30,6 +30,7 @@ const countLabels: Record<keyof BackupPreview["counts"], string> = {
   scoreSettings: "Score-Einstellungen",
   scoreSnapshots: "Score-Snapshots",
   hiddenInsights: "Ausgeblendete Insights",
+  recurringTransactions: "Buchungsvorlagen",
 };
 
 export type BackupPanelProps = {

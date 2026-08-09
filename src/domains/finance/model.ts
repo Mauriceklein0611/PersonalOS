@@ -5,6 +5,8 @@ import {
   financeCategorySchema,
   monthlyBudgetDetailsSchema,
   monthlyBudgetSchema,
+  recurringTransactionDetailsSchema,
+  recurringTransactionSchema,
   savingsContributionDetailsSchema,
   savingsContributionSchema,
   savingsGoalDetailsSchema,
@@ -18,6 +20,8 @@ export {
   financeCategorySchema,
   monthlyBudgetDetailsSchema,
   monthlyBudgetSchema,
+  recurringTransactionDetailsSchema,
+  recurringTransactionSchema,
   savingsContributionDetailsSchema,
   savingsContributionSchema,
   savingsGoalDetailsSchema,
@@ -35,6 +39,10 @@ export type FinanceCategoryDetails = z.infer<
 >;
 export type Transaction = z.infer<typeof transactionSchema>;
 export type TransactionDetails = z.infer<typeof transactionDetailsSchema>;
+export type RecurringTransaction = z.infer<typeof recurringTransactionSchema>;
+export type RecurringTransactionDetails = z.infer<
+  typeof recurringTransactionDetailsSchema
+>;
 export type FinanceKind = Transaction["kind"];
 
 export const financeKinds = ["income", "expense"] as const;

@@ -16,6 +16,8 @@ import {
   financeCategorySchema,
   monthlyBudgetDetailsSchema,
   monthlyBudgetSchema,
+  recurringTransactionDetailsSchema,
+  recurringTransactionSchema,
   savingsContributionDetailsSchema,
   savingsContributionSchema,
   savingsGoalDetailsSchema,
@@ -27,6 +29,8 @@ import {
   type FinanceKind,
   type MonthlyBudget,
   type MonthlyBudgetDetails,
+  type RecurringTransaction,
+  type RecurringTransactionDetails,
   type SavingsContribution,
   type SavingsContributionDetails,
   type SavingsGoal,
@@ -264,8 +268,43 @@ export function createSavingsContributionRepository(
   });
 }
 
+export type RecurringTransactionRepository = Repository<
+  RecurringTransaction,
+  RecurringTransactionDetails
+>;
+
+/**
+ * Vorlagen sind gewöhnliche Datensätze; alle Besonderheiten stecken in der
+ * Auswertung (`recurring.ts`) und nicht in der Ablage. Siehe
+ * [ADR 0013](../../../docs/decisions/0013-recurring-transactions-are-confirmed-templates.md).
+ */
+export function createRecurringTransactionRepository(
+  database: PersonalOsDatabase,
+  dependencies: EntityMetadataDependencies = {},
+): RecurringTransactionRepository {
+  return new DexieRepository<RecurringTransaction, RecurringTransactionDetails>(
+    {
+      clock: dependencies.clock,
+      createEntity: (
+        input: RecurringTransactionDetails,
+        metadata: EntityMeta,
+      ) => ({
+        ...metadata,
+        ...input,
+      }),
+      createSchema: recurringTransactionDetailsSchema,
+      database,
+      entitySchema: recurringTransactionSchema,
+      idGenerator: dependencies.idGenerator,
+      tableName: "recurringTransactions",
+    },
+  );
+}
+
 export const personalOsFinanceCategoryRepository =
   createFinanceCategoryRepository(personalOsDatabase);
+export const personalOsRecurringTransactionRepository =
+  createRecurringTransactionRepository(personalOsDatabase);
 export const personalOsSavingsContributionRepository =
   createSavingsContributionRepository(personalOsDatabase);
 export const personalOsSavingsGoalRepository =

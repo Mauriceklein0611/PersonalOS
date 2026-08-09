@@ -11,6 +11,10 @@ import {
   savingsContributionV4Fixture,
   transactionV4Fixture,
 } from "../../test/fixtures/database-v4";
+import {
+  createVersion5Database,
+  transactionV5Fixture,
+} from "../../test/fixtures/database-v5";
 import { PersonalOsDatabase } from "../database";
 import {
   personalOsSchemaV1,
@@ -156,6 +160,54 @@ describe("database migrations", () => {
       id: "00000000-0000-4000-8000-000000009506",
     });
     expect(await table.count()).toBe(2);
+    database.close();
+  });
+
+  /**
+   * Version 6 legt `recurringTransactions` an und ergänzt einen Index auf den
+   * Buchungen. Beides ist rein additiv: Der Aufstieg darf keinen bestehenden
+   * Datensatz anfassen. Siehe
+   * [ADR 0013](../../../docs/decisions/0013-recurring-transactions-are-confirmed-templates.md).
+   */
+  it("adds the template store without touching a version 5 booking", async () => {
+    const name = createDatabaseName();
+    await createVersion5Database(name);
+
+    const database = new PersonalOsDatabase(name);
+    await database.open();
+
+    expect(database.verno).toBe(personalOsSchemaVersion);
+    expect(await database.table("recurringTransactions").count()).toBe(0);
+    // Unverändert, insbesondere ohne erfundenes `recurringTransactionId`.
+    expect(
+      await database.table("transactions").get(transactionV5Fixture.id),
+    ).toEqual(transactionV5Fixture);
+
+    database.close();
+  });
+
+  // Eine Vorlage erzeugt über die Monate hinweg viele Buchungen; der Index
+  // darf sie deshalb nicht auf eine einzige begrenzen.
+  it("lets many bookings point at the same template", async () => {
+    const name = createDatabaseName();
+    await createVersion5Database(name);
+    const database = new PersonalOsDatabase(name);
+    await database.open();
+    const table = database.table("transactions");
+    const templateId = "00000000-0000-4000-8000-000000009603";
+
+    for (const [index, bookedOn] of ["2026-08-01", "2026-09-01"].entries()) {
+      await table.add({
+        ...transactionV5Fixture,
+        bookedOn,
+        id: `00000000-0000-4000-8000-00000000961${index}`,
+        recurringTransactionId: templateId,
+      });
+    }
+
+    expect(
+      await table.where("recurringTransactionId").equals(templateId).count(),
+    ).toBe(2);
     database.close();
   });
 });
