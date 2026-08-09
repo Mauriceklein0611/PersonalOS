@@ -207,6 +207,15 @@ a {
 }
 
 /*
+ * Ohne dies setzt das breiteste Kind die Mindestbreite der Spur: Ein Grid-Kind
+ * schrumpft von sich aus nicht unter seinen Inhalt. Bei 320 px genügt dafür
+ * ein langer Seitentitel, und die ganze Seite läuft waagerecht über.
+ */
+.route-page > * {
+  min-width: 0;
+}
+
+/*
  * Karten stehen ab genügend Breite nebeneinander statt gestapelt. Ein Block
  * mit `data-span="full"` bleibt über die volle Breite, etwa der Seitenkopf
  * oder ein Raster, das seine eigene Breite braucht.
@@ -237,6 +246,8 @@ a {
 .centered-state h1 {
   max-width: 20ch;
   margin: 0;
+  /* „Wochenrückblick“ passt bei 320 px in keiner Display-Größe in eine Zeile. */
+  overflow-wrap: anywhere;
   font-size: var(--font-size-display);
   font-weight: var(--font-weight-kpi);
   letter-spacing: -0.03em;
