@@ -47,7 +47,7 @@ const weekdayNames = [
   "sonntags",
 ];
 
-// --- Regel 1: Werktage gegen Wochenende bei Gewohnheiten -------------------
+// --- Regel 1: Werktage gegen Wochenende bei Routinen -------------------
 
 const habitRuleWeeks = 6;
 const minimumComparableWeeks = 4;

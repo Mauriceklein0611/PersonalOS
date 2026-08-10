@@ -95,7 +95,7 @@ export const habitProgressPeriodLabels: Record<HabitProgressPeriod, string> = {
 
 /**
  * Der Zeitraum beginnt nie vor dem Startdatum, damit die Quote keine Tage
- * bewertet, an denen es die Gewohnheit noch nicht gab.
+ * bewertet, an denen es die Routine noch nicht gab.
  */
 export function getHabitProgressRange(
   habit: Habit,

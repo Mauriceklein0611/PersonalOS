@@ -27,10 +27,10 @@ test("completes the whole daily loop offline after the first load", async ({
     page.getByRole("heading", { level: 1, name: "Heute" }),
   ).toBeVisible();
 
-  await page.goto("/gewohnheiten");
-  await page.getByRole("button", { name: "Neue Gewohnheit" }).click();
+  await page.goto("/routinen");
+  await page.getByRole("button", { name: "Neue Routine" }).click();
   await page.getByRole("textbox", { name: /Name/ }).fill("Abendspaziergang");
-  await page.getByRole("button", { name: "Gewohnheit anlegen" }).click();
+  await page.getByRole("button", { name: "Routine anlegen" }).click();
   await expect(
     page.getByRole("article", { name: "Abendspaziergang" }),
   ).toBeVisible();
@@ -60,7 +60,7 @@ test("completes the whole daily loop offline after the first load", async ({
       .getByRole("button", { name: "„Abendspaziergang“ heute erledigen" })
       .click();
     await expect(
-      page.getByText("Alle 1 fälligen Gewohnheiten sind für heute erfasst."),
+      page.getByText("Alle 1 fälligen Routinen sind für heute erfasst."),
     ).toBeVisible();
     await page.getByRole("button", { name: "Rückgängig" }).click();
     await expect(
@@ -70,7 +70,7 @@ test("completes the whole daily loop offline after the first load", async ({
       .getByRole("button", { name: "„Abendspaziergang“ heute erledigen" })
       .click();
     await expect(
-      page.getByText("Alle 1 fälligen Gewohnheiten sind für heute erfasst."),
+      page.getByText("Alle 1 fälligen Routinen sind für heute erfasst."),
     ).toBeVisible();
 
     // Aufgabe abschließen
@@ -80,7 +80,7 @@ test("completes the whole daily loop offline after the first load", async ({
     await expect(page.getByText("Keine offene Aufgabe")).toBeVisible();
 
     // Abendreflexion
-    await page.goto("/journal");
+    await page.goto("/routinen/journal");
     await page
       .getByRole("group", { name: "Stimmung" })
       .getByRole("radio", { name: "4 von 5" })
@@ -101,7 +101,7 @@ test("completes the whole daily loop offline after the first load", async ({
       page.getByText("Heute erfasste Stimmung: 4 von 5."),
     ).toBeVisible();
     await expect(
-      page.getByText("Alle 1 fälligen Gewohnheiten sind für heute erfasst."),
+      page.getByText("Alle 1 fälligen Routinen sind für heute erfasst."),
     ).toBeVisible();
 
     expect(

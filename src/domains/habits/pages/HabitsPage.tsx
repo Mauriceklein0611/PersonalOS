@@ -142,7 +142,7 @@ export function HabitsPage({
       },
       () => {
         if (isCurrent) {
-          setError("Die Gewohnheiten konnten nicht geladen werden.");
+          setError("Die Routinen konnten nicht geladen werden.");
           setIsLoading(false);
         }
       },
@@ -289,8 +289,8 @@ export function HabitsPage({
     const archived = await runHabitAction(
       habit,
       () => service.archive(habit.id),
-      "Die Gewohnheit wurde archiviert. Die Check-ins bleiben erhalten.",
-      "Die Gewohnheit konnte nicht archiviert werden.",
+      "Die Routine wurde archiviert. Die Check-ins bleiben erhalten.",
+      "Die Routine konnte nicht archiviert werden.",
     );
     if (archived) {
       setUndo({
@@ -320,8 +320,8 @@ export function HabitsPage({
     await runHabitAction(
       habit,
       () => service.restore(habit.id),
-      "Die Gewohnheit ist wieder aktiv.",
-      "Die Gewohnheit konnte nicht wiederhergestellt werden.",
+      "Die Routine ist wieder aktiv.",
+      "Die Routine konnte nicht wiederhergestellt werden.",
     );
   }
 
@@ -334,17 +334,17 @@ export function HabitsPage({
           habit,
           () => service.updateDetails(habit.id, details),
           "Gespeichert. Der Rhythmus gilt ab heute; erfasste Check-ins bleiben unverändert.",
-          "Die Gewohnheit konnte nicht gespeichert werden.",
+          "Die Routine konnte nicht gespeichert werden.",
         );
       }
       setError(undefined);
       setUndo(undefined);
       await service.create(details);
       await load();
-      setNotice("Die Gewohnheit wurde angelegt.");
+      setNotice("Die Routine wurde angelegt.");
       return true;
     } catch {
-      setError("Die Gewohnheit konnte nicht gespeichert werden.");
+      setError("Die Routine konnte nicht gespeichert werden.");
       return false;
     } finally {
       setIsSaving(false);
@@ -360,7 +360,7 @@ export function HabitsPage({
       <header className="page-header">
         <div className="page-header-copy">
           <p className="page-eyebrow">Routinen</p>
-          <h1 id="page-title">Gewohnheiten</h1>
+          <h1 id="page-title">Routinen</h1>
           <p className="page-description">
             Begleite wiederkehrende Routinen ohne Druck oder versteckte
             Bewertung.
@@ -369,7 +369,7 @@ export function HabitsPage({
       </header>
 
       <div className="habit-page-actions">
-        <Button onClick={() => setEditor({})}>Neue Gewohnheit</Button>
+        <Button onClick={() => setEditor({})}>Neue Routine</Button>
       </div>
 
       {error ? (
@@ -379,7 +379,7 @@ export function HabitsPage({
       ) : null}
 
       <div
-        aria-label="Gewohnheitsansicht"
+        aria-label="Routinenansicht"
         className="habit-view-tabs"
         role="tablist"
       >
@@ -394,7 +394,7 @@ export function HabitsPage({
             type="button"
           >
             <span>{view.label}</span>
-            <span aria-label={`${viewCounts[view.id]} Gewohnheiten`}>
+            <span aria-label={`${viewCounts[view.id]} Routinen`}>
               {viewCounts[view.id]}
             </span>
           </button>
@@ -409,7 +409,7 @@ export function HabitsPage({
       >
         {isLoading ? (
           <p className="habit-view-status" role="status">
-            Gewohnheiten werden geladen …
+            Routinen werden geladen …
           </p>
         ) : activeView === "today" ? (
           <>
@@ -418,7 +418,7 @@ export function HabitsPage({
               <EmptyState
                 description={
                   activeHabits.length === 0
-                    ? "Lege eine Gewohnheit an, um deinen Tagesrhythmus zu begleiten."
+                    ? "Lege eine Routine an, um deinen Tagesrhythmus zu begleiten."
                     : "Für heute ist alles erfasst. Du kannst den Tag so lassen."
                 }
                 title="Nichts offen"
@@ -467,13 +467,13 @@ export function HabitsPage({
             ) : null}
 
             <HabitStateList
-              description="Diese Gewohnheiten sind heute laut Rhythmus nicht geplant."
+              description="Diese Routinen sind heute laut Rhythmus nicht geplant."
               habits={restingHabits}
               onEdit={(habit) => setEditor({ habit })}
               title="Heute nicht fällig"
             />
             <HabitStateList
-              description="Diese Gewohnheiten starten erst an ihrem Startdatum."
+              description="Diese Routinen starten erst an ihrem Startdatum."
               detail={(habit) =>
                 `Start am ${formatCalendarDay(habit.startDate)}`
               }
@@ -482,7 +482,7 @@ export function HabitsPage({
               title="Startet später"
             />
             <HabitStateList
-              description="Diese Gewohnheiten sind seit ihrem Enddatum pausiert. Die erfassten Check-ins bleiben erhalten."
+              description="Diese Routinen sind seit ihrem Enddatum pausiert. Die erfassten Check-ins bleiben erhalten."
               detail={(habit) =>
                 habit.endDate
                   ? `Pausiert seit ${formatCalendarDay(habit.endDate)}`
@@ -522,7 +522,7 @@ export function HabitsPage({
             </p>
             {weekHabits.length === 0 ? (
               <EmptyState
-                description="In dieser Woche war keine Gewohnheit aktiv."
+                description="In dieser Woche war keine Routine aktiv."
                 title="Keine Einträge"
               />
             ) : (
@@ -553,7 +553,7 @@ export function HabitsPage({
                             ]
                           : []
                       }
-                      source={`Grundlage: ${weekHabits.length} in dieser Woche aktive Gewohnheiten. Übersprungene Tage zählen nicht als erledigt.`}
+                      source={`Grundlage: ${weekHabits.length} in dieser Woche aktive Routinen. Übersprungene Tage zählen nicht als erledigt.`}
                       title="Wochenverlauf"
                     />
                     {weekHasPlannedDays ? (
@@ -594,7 +594,7 @@ export function HabitsPage({
           <>
             <h2>Fortschritt</h2>
             <Select
-              hint="Der Zeitraum beginnt frühestens am Startdatum der Gewohnheit."
+              hint="Der Zeitraum beginnt frühestens am Startdatum der Routine."
               label="Zeitraum"
               onChange={(event) =>
                 setProgressPeriod(
@@ -618,7 +618,7 @@ export function HabitsPage({
             </p>
             {trackedHabits.length === 0 ? (
               <EmptyState
-                description="Sobald du eine Gewohnheit anlegst, entsteht hier die Auswertung."
+                description="Sobald du eine Routine anlegst, entsteht hier die Auswertung."
                 title="Noch keine Auswertung"
               />
             ) : (
@@ -644,12 +644,12 @@ export function HabitsPage({
           <>
             <h2>Archiv</h2>
             <p className="habit-view-hint">
-              Archivierte Gewohnheiten erscheinen nicht mehr im Tagesablauf.
-              Ihre Check-ins bleiben als Historie gespeichert.
+              Archivierte Routinen erscheinen nicht mehr im Tagesablauf. Ihre
+              Check-ins bleiben als Historie gespeichert.
             </p>
             {archivedHabits.length === 0 ? (
               <EmptyState
-                description="Hier sammeln sich Gewohnheiten, die du gerade nicht begleiten möchtest."
+                description="Hier sammeln sich Routinen, die du gerade nicht begleiten möchtest."
                 title="Nichts archiviert"
               />
             ) : (

@@ -305,7 +305,7 @@ describe("calculateLifeScore – Fokus", () => {
   });
 });
 
-describe("calculateLifeScore – Gewohnheiten", () => {
+describe("calculateLifeScore – Routinen", () => {
   it("takes skipped units out of the denominator and reports them separately", () => {
     const habits = findScoreComponent(run(), "habits");
 

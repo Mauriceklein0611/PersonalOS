@@ -95,8 +95,8 @@ describe("QuickExpenseForm", () => {
       screen.queryByRole("button", { name: "Ausgabe buchen" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Kategorie im Finanzbereich anlegen" }),
-    ).toHaveAttribute("href", "/finanzen");
+      screen.getByRole("link", { name: "Kategorie im Bereich Geld anlegen" }),
+    ).toHaveAttribute("href", "/geld");
   });
 
   it("keeps an income category out of the quick capture", async () => {

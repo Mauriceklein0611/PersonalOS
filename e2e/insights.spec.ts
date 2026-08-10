@@ -4,10 +4,10 @@ test("explains the life score with and without a data basis", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/insights");
+  await page.goto("/auswertung/ueberblick");
 
   await expect(
-    page.getByRole("heading", { level: 1, name: "Insights" }),
+    page.getByRole("heading", { level: 1, name: "Auswertung" }),
   ).toBeVisible();
   await expect(
     page.getByText(
@@ -50,7 +50,7 @@ test("explains the life score with and without a data basis", async ({
     ).toHaveCount(0);
   }
 
-  await page.goto("/insights");
+  await page.goto("/auswertung/ueberblick");
   await expect(
     page.getByRole("heading", { level: 2, name: "Life Score" }),
   ).toBeVisible();

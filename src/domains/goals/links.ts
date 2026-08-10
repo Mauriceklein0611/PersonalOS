@@ -54,7 +54,7 @@ export function describeGoalLinks(summary: GoalLinkSummary): string {
   if (summary.activeHabitCount > 0) {
     parts.push(
       `${summary.activeHabitCount} ${
-        summary.activeHabitCount === 1 ? "Gewohnheit" : "Gewohnheiten"
+        summary.activeHabitCount === 1 ? "Routine" : "Routinen"
       }`,
     );
   }

@@ -100,7 +100,7 @@ export function GoalsPage({
   );
 
   // Verknüpfte Elemente werden nur gelesen; die Zielseite kennt keine UI der
-  // Aufgaben- oder Gewohnheitsdomain.
+  // Aufgaben- oder Routinendomain.
   useEffect(() => {
     if (!selected) return;
     let isCurrent = true;
@@ -316,7 +316,7 @@ export function GoalsPage({
     if (removed) {
       // Endgültiges Löschen ist nicht umkehrbar, deshalb kein Undo-Angebot.
       setNotice(
-        "Das Ziel wurde endgültig gelöscht. Aufgaben und Gewohnheiten sind erhalten geblieben.",
+        "Das Ziel wurde endgültig gelöscht. Aufgaben und Routinen sind erhalten geblieben.",
       );
       setUndo(undefined);
     }
@@ -487,7 +487,7 @@ export function GoalsPage({
                   ) : null}
                   {links.habitNames.length > 0 ? (
                     <p className="goal-meta">
-                      Gewohnheiten: {links.habitNames.join(", ")}
+                      Routinen: {links.habitNames.join(", ")}
                     </p>
                   ) : null}
                 </div>
@@ -618,7 +618,7 @@ export function GoalsPage({
             „{deletion.goal.title}“ und seine Meilensteine werden entfernt.{" "}
             {deletion.tasks + deletion.habits === 0
               ? "Es ist nichts mit diesem Ziel verknüpft."
-              : `${deletion.tasks} Aufgaben und ${deletion.habits} Gewohnheiten verlieren nur die Verknüpfung; die Einträge selbst bleiben erhalten.`}
+              : `${deletion.tasks} Aufgaben und ${deletion.habits} Routinen verlieren nur die Verknüpfung; die Einträge selbst bleiben erhalten.`}
           </p>
         ) : null}
       </Dialog>

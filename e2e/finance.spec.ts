@@ -4,10 +4,10 @@ test("records income and expenses and protects used categories", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/finanzen");
+  await page.goto("/geld");
 
   await expect(
-    page.getByRole("heading", { level: 1, name: "Finanzen" }),
+    page.getByRole("heading", { level: 1, name: "Geld" }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 2, name: "Buchung erfassen" }),
@@ -128,7 +128,7 @@ test("counts a linked contribution once and names the bound amount", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/finanzen");
+  await page.goto("/geld");
 
   // Eine Ausgabe, die eine Sparbewegung ist: Sie verlässt das Konto einmal.
   await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("250,00");
@@ -191,7 +191,7 @@ test("tracks a savings goal only through its contributions", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/finanzen");
+  await page.goto("/geld");
 
   // Der Gesamtstand steht seit #71 hier und nicht mehr in der Monatsreihe.
   const panel = page.locator(".savings-panel");
@@ -276,7 +276,7 @@ test("tracks a savings goal only through its contributions", async ({
  */
 test("stays operable while two charts are drawn at once", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/finanzen");
+  await page.goto("/geld");
 
   await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("250,00");
   await page

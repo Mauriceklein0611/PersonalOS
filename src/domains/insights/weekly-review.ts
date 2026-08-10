@@ -155,7 +155,7 @@ function summariseHabits(
 
   if (target === 0) {
     return {
-      basis: "In dieser Woche war keine Gewohnheit fällig.",
+      basis: "In dieser Woche war keine Routine fällig.",
       hasBasis: false,
       ratio: null,
       sourceCount: 0,
@@ -170,7 +170,7 @@ function summariseHabits(
     return {
       // „alle 1 geplante Einheit“ wäre kein Satz. Bei genau einer Einheit
       // trägt „die“ die Aussage, dass nichts übrig bleibt, ebenso gut.
-      basis: `Grundlage: ${habitCount} ${habitCount === 1 ? "Gewohnheit" : "Gewohnheiten"}, ${
+      basis: `Grundlage: ${habitCount} ${habitCount === 1 ? "Routine" : "Routinen"}, ${
         target === 1
           ? "die geplante Einheit"
           : `alle ${target} geplanten Einheiten`
@@ -189,7 +189,7 @@ function summariseHabits(
       ? ""
       : ` ${skipped} von ${target} geplanten Einheiten übersprungen; sie zählen nicht mit.`;
   return {
-    basis: `Grundlage: ${habitCount} ${habitCount === 1 ? "Gewohnheit" : "Gewohnheiten"}, ${counted} zählende ${counted === 1 ? "Einheit" : "Einheiten"}.${skippedNote}`,
+    basis: `Grundlage: ${habitCount} ${habitCount === 1 ? "Routine" : "Routinen"}, ${counted} zählende ${counted === 1 ? "Einheit" : "Einheiten"}.${skippedNote}`,
     hasBasis: true,
     ratio: done / counted,
     sourceCount: habitCount,

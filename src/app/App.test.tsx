@@ -9,16 +9,38 @@ import { appRoutes } from "./router";
 
 const routeCases = [
   ["/", "Heute"],
-  ["/aufgaben", "Aufgaben"],
-  ["/gewohnheiten", "Gewohnheiten"],
-  ["/journal", "Journal"],
-  ["/ziele", "Ziele"],
-  ["/finanzen", "Finanzen"],
-  ["/insights", "Insights"],
-  ["/wochenrueckblick", "Wochenrückblick"],
+  ["/planen/aufgaben", "Aufgaben"],
+  ["/planen/ziele", "Ziele"],
+  ["/routinen/uebersicht", "Routinen"],
+  ["/routinen/journal", "Journal"],
+  ["/geld", "Geld"],
+  ["/auswertung/ueberblick", "Auswertung"],
+  ["/auswertung/wochenrueckblick", "Wochenrückblick"],
   ["/einstellungen", "Einstellungen"],
   ["/komponenten", "Komponenten"],
   ["/gibt-es-nicht", "Diese Seite gibt es nicht."],
+] as const;
+
+/**
+ * Jeder Pfad aus der Zeit vor den vier Bereichen mit dem Ziel, auf dem er
+ * landen muss. Lesezeichen, Verlauf und PWA-Verknüpfungen tragen diese Pfade;
+ * ein toter Link kostet Vertrauen in eine App, die sonst nie etwas verliert.
+ */
+const redirectCases = [
+  ["/aufgaben", "Aufgaben"],
+  ["/ziele", "Ziele"],
+  ["/gewohnheiten", "Routinen"],
+  ["/journal", "Journal"],
+  ["/finanzen", "Geld"],
+  ["/insights", "Auswertung"],
+  ["/wochenrueckblick", "Wochenrückblick"],
+] as const;
+
+/** Die Bereichseinstiege führen auf ihren ersten Unterbereich. */
+const areaEntryCases = [
+  ["/planen", "Aufgaben"],
+  ["/routinen", "Routinen"],
+  ["/auswertung", "Auswertung"],
 ] as const;
 
 function renderRoute(path: string) {
@@ -37,6 +59,28 @@ describe("App shell", () => {
   });
 
   it.each(routeCases)("lazy-loads %s as %s", async (path, heading) => {
+    renderRoute(path);
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: heading }),
+    ).toBeInTheDocument();
+  });
+
+  it.each(redirectCases)(
+    "keeps %s reachable and lands on %s",
+    async (path, heading) => {
+      const router = createMemoryRouter(appRoutes, { initialEntries: [path] });
+      render(<App router={router} />);
+
+      expect(
+        await screen.findByRole("heading", { level: 1, name: heading }),
+      ).toBeInTheDocument();
+      // Der alte Pfad bleibt nicht in der Adresse stehen.
+      expect(router.state.location.pathname).not.toBe(path);
+    },
+  );
+
+  it.each(areaEntryCases)("opens %s on %s", async (path, heading) => {
     renderRoute(path);
 
     expect(

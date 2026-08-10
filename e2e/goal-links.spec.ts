@@ -6,7 +6,7 @@ test("links a task to a goal and keeps it when the goal is deleted", async ({
   await page.setViewportSize({ width: 320, height: 720 });
 
   // Ziel anlegen.
-  await page.goto("/ziele");
+  await page.goto("/planen/ziele");
   await page.getByRole("textbox", { name: /Titel/ }).fill("Synthetisches Ziel");
   await page.getByRole("button", { name: "Ziel anlegen" }).click();
   await expect(
@@ -17,7 +17,7 @@ test("links a task to a goal and keeps it when the goal is deleted", async ({
   ).toBeVisible();
 
   // Aufgabe anlegen und mit dem Ziel verknüpfen.
-  await page.goto("/aufgaben");
+  await page.goto("/planen/aufgaben");
   await page
     .getByRole("textbox", { name: "Neue Aufgabe" })
     .fill("Synthetische Aufgabe");
@@ -37,7 +37,7 @@ test("links a task to a goal and keeps it when the goal is deleted", async ({
   ).toBeHidden();
 
   // Die Zielseite zeigt die Verknüpfung.
-  await page.goto("/ziele");
+  await page.goto("/planen/ziele");
   await expect(
     page.getByText("Verknüpft: 1 Aufgabe, davon 0 erledigt."),
   ).toBeVisible();
@@ -47,15 +47,15 @@ test("links a task to a goal and keeps it when the goal is deleted", async ({
   await page.getByRole("button", { name: "Ziel endgültig löschen" }).click();
   const dialog = page.getByRole("dialog", { name: "Ziel endgültig löschen" });
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText("1 Aufgaben und 0 Gewohnheiten");
+  await expect(dialog).toContainText("1 Aufgaben und 0 Routinen");
   await dialog.getByRole("button", { name: "Endgültig löschen" }).click();
 
   await expect(
-    page.getByText("Aufgaben und Gewohnheiten sind erhalten geblieben."),
+    page.getByText("Aufgaben und Routinen sind erhalten geblieben."),
   ).toBeVisible();
   await expect(page.getByText("Noch kein Ziel")).toBeVisible();
 
   // Die Aufgabe existiert weiterhin, nur ohne Zielbezug.
-  await page.goto("/aufgaben");
+  await page.goto("/planen/aufgaben");
   await expect(page.getByText("Synthetische Aufgabe")).toBeVisible();
 });

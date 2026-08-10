@@ -4,7 +4,7 @@ test("persists a task through editing, completion, reopening and archive undo", 
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/aufgaben");
+  await page.goto("/planen/aufgaben");
 
   await page
     .getByRole("textbox", { name: "Neue Aufgabe" })

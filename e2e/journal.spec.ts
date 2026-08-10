@@ -4,7 +4,7 @@ test("stores a short and a full evening reflection for the local day", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/journal");
+  await page.goto("/routinen/journal");
 
   await expect(
     page.getByText("Für diesen Tag ist noch nichts gespeichert."),

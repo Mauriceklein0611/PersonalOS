@@ -95,7 +95,7 @@ describe("database migrations", () => {
       createdAt: "2026-08-03T08:00:00.000Z",
       updatedAt: "2026-08-03T08:00:00.000Z",
       endDate: "2026-08-02",
-      name: "Synthetische Gewohnheit",
+      name: "Synthetische Routine",
       schedule: { kind: "weekdays", days: [5, 1, 5] },
       startDate: "2026-08-03",
     };

@@ -14,7 +14,7 @@ export const scoreComponentLabels: Record<ScoreComponentKey, string> = {
   finance: "Finanzen",
   focus: "Fokus",
   goals: "Ziele",
-  habits: "Gewohnheiten",
+  habits: "Routinen",
   wellbeing: "Wohlbefinden",
 };
 
@@ -26,7 +26,7 @@ export const scoreComponentDescriptions: Record<ScoreComponentKey, string> = {
     "Wie viele der Aufgaben, die du für diese Tage geplant hattest, du abgeschlossen hast.",
   goals: "Wie weit deine aktiven Ziele fortgeschritten sind.",
   habits:
-    "Wie viele der zählenden Einheiten deiner Gewohnheiten du erledigt hast. Bewusst übersprungene Einheiten zählen nicht mit.",
+    "Wie viele der zählenden Einheiten deiner Routinen du erledigt hast. Bewusst übersprungene Einheiten zählen nicht mit.",
   wellbeing:
     "Der Durchschnitt deiner eigenen Angaben zu Stimmung, Energie und Stress.",
 };

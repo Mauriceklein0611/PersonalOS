@@ -42,11 +42,11 @@ const trackerRows: Array<{
   states: TrackerCellState[];
 }> = [
   {
-    label: "Beispielgewohnheit A",
+    label: "Beispielroutine A",
     states: ["done", "done", "partial", "done", "open", "none", "none"],
   },
   {
-    label: "Beispielgewohnheit B",
+    label: "Beispielroutine B",
     states: ["skipped", "done", "done", "open", "open", "none", "none"],
   },
 ];
@@ -330,7 +330,7 @@ export function Component() {
         <PreviewItem label="Beobachtung über einer Schwelle">
           <ul className="preview-signal-list">
             <SignalRow
-              action={<a href="#signal-preview">Zu den Finanzen</a>}
+              action={<a href="#signal-preview">Zum Bereich Geld</a>}
               tone="attention"
             >
               Beispielkategorie: 82 % des Monatsbudgets nach 12 Tagen
@@ -476,11 +476,11 @@ function TrackerGrid({ label }: { label: string }) {
     >
       <table className="ui-tracker-grid">
         <caption className="visually-hidden">
-          {label}: Zeilen sind Gewohnheiten, Spalten sind Tage der Woche 32.
+          {label}: Zeilen sind Routinen, Spalten sind Tage der Woche 32.
         </caption>
         <thead>
           <tr>
-            <th scope="col">Gewohnheit</th>
+            <th scope="col">Routine</th>
             {trackerDays.map((day) => (
               <th key={day} scope="col">
                 <span aria-hidden="true">{day.slice(0, 2)}</span>

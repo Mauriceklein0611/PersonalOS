@@ -48,7 +48,7 @@ function buildHabit(overrides: Partial<Habit> = {}): Habit {
   return {
     createdAt: "2026-08-01T08:00:00.000Z",
     id: "00000000-0000-4000-8000-000000004301",
-    name: "Synthetische Gewohnheit",
+    name: "Synthetische Routine",
     schedule: { kind: "daily" },
     startDate: "2026-08-01",
     updatedAt: "2026-08-01T08:00:00.000Z",
@@ -82,7 +82,7 @@ describe("summarizeGoalLinks", () => {
     expect(summary.completedTaskCount).toBe(1);
     expect(summary.activeHabitCount).toBe(1);
     expect(describeGoalLinks(summary)).toBe(
-      "Verknüpft: 2 Aufgaben, davon 1 erledigt · 1 Gewohnheit.",
+      "Verknüpft: 2 Aufgaben, davon 1 erledigt · 1 Routine.",
     );
   });
 
@@ -160,7 +160,7 @@ describe("goal link service", () => {
     });
     const habit = await habits.create({
       goalId: goal.id,
-      name: "Synthetische Gewohnheit",
+      name: "Synthetische Routine",
       schedule: { kind: "daily" },
       startDate: "2026-08-01",
     });
@@ -179,7 +179,7 @@ describe("goal link service", () => {
     const storedHabit = await habits.require(habit.id);
     expect(storedTask.title).toBe("Synthetische Aufgabe");
     expect(storedTask.goalId).toBeUndefined();
-    expect(storedHabit.name).toBe("Synthetische Gewohnheit");
+    expect(storedHabit.name).toBe("Synthetische Routine");
     expect(storedHabit.goalId).toBeUndefined();
   });
 
@@ -197,7 +197,7 @@ describe("goal link service", () => {
     });
     const habit = await habits.create({
       goalId: goal.id,
-      name: "Synthetische Gewohnheit",
+      name: "Synthetische Routine",
       schedule: { kind: "daily" },
       startDate: "2026-08-01",
     });

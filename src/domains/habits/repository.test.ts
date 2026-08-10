@@ -31,7 +31,7 @@ describe("habit repositories", () => {
     });
 
     const habit = await repository.create({
-      name: "Synthetische Gewohnheit",
+      name: "Synthetische Routine",
       schedule: { kind: "weekdays", days: [1, 3, 5] },
       startDate: "2026-08-03",
     });

@@ -4,7 +4,7 @@ test("takes a goal from creation through milestones to completion", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/ziele");
+  await page.goto("/planen/ziele");
 
   await expect(
     page.getByRole("heading", { level: 1, name: "Ziele" }),

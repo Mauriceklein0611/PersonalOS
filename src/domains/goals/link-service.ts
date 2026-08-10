@@ -87,7 +87,7 @@ export function createGoalLinkService(
         database,
         ["goals", "goalMilestones", "tasks", "habits"],
         async () => {
-          // Aufgaben und Gewohnheiten bleiben erhalten; nur die Referenz geht.
+          // Aufgaben und Routinen bleiben erhalten; nur die Referenz geht.
           for (const taskId of taskIds) {
             await tasks.update(taskId, { goalId: undefined });
           }

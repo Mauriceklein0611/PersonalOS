@@ -113,12 +113,12 @@ describe("TodayPage", () => {
     expect(await screen.findByText("Keine offene Aufgabe")).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole("button", { name: "„Gewohnheit h1“ heute erledigen" }),
+      screen.getByRole("button", { name: "„Routine h1“ heute erledigen" }),
     );
 
     expect(
       await screen.findByText(
-        "Alle 1 fälligen Gewohnheiten sind für heute erfasst.",
+        "Alle 1 fälligen Routinen sind für heute erfasst.",
       ),
     ).toBeInTheDocument();
     expect(services.habitService.checkIn).toHaveBeenCalledWith(
@@ -147,13 +147,13 @@ describe("TodayPage", () => {
     expect(services.taskService.reopen).toHaveBeenCalledWith("t1");
 
     await user.click(
-      screen.getByRole("button", { name: "„Gewohnheit h1“ heute erledigen" }),
+      screen.getByRole("button", { name: "„Routine h1“ heute erledigen" }),
     );
     await user.click(await screen.findByRole("button", { name: "Rückgängig" }));
 
     expect(
       await screen.findByRole("button", {
-        name: "„Gewohnheit h1“ heute erledigen",
+        name: "„Routine h1“ heute erledigen",
       }),
     ).toBeInTheDocument();
     expect(services.habitService.reopenCheckIn).toHaveBeenCalledWith(
@@ -206,17 +206,13 @@ describe("TodayPage", () => {
     await screen.findByText("Life Score");
     const labels = screen
       .getAllByText(
-        /^(Aufgaben heute|Gewohnheiten heute|Life Score|Restbudget des Monats|Abendreflexion|Geplante Zeit heute)$/,
+        /^(Aufgaben heute|Routinen heute|Life Score|Budget übrig|Abendreflexion|Geplante Zeit heute)$/,
       )
       .map((element) => element.textContent);
 
-    // Ohne gesetztes Budget bleibt die vierte Kachel weg: Ein Restbudget ohne
+    // Ohne gesetztes Budget bleibt die vierte Kachel weg: Ein übriges Budget ohne
     // Budget wäre keine Zahl, sondern eine Behauptung.
-    expect(labels).toEqual([
-      "Aufgaben heute",
-      "Gewohnheiten heute",
-      "Life Score",
-    ]);
+    expect(labels).toEqual(["Aufgaben heute", "Routinen heute", "Life Score"]);
   });
 
   it("names the life score with its completeness and links the explanation", async () => {
@@ -301,7 +297,7 @@ describe("TodayPage", () => {
     );
     expect(
       screen.getByRole("link", { name: "Alle Aufgaben ansehen" }),
-    ).toHaveAttribute("href", "/aufgaben");
+    ).toHaveAttribute("href", "/planen/aufgaben");
   });
 
   it("stays quiet when the list is complete", async () => {
@@ -426,7 +422,7 @@ describe("TodayPage – Signale", () => {
 describe("TodayPage – Tagesfortschritt", () => {
   /*
    * Der Ring ist das prominenteste Element der Seite. Solange er allein die
-   * Gewohnheiten maß, blieb er an einem Tag ohne fällige Gewohnheit leer,
+   * Routinen maß, blieb er an einem Tag ohne fällige Routine leer,
    * auch wenn jede Aufgabe erledigt war.
    */
   it("counts tasks and habits together", async () => {
@@ -441,7 +437,7 @@ describe("TodayPage – Tagesfortschritt", () => {
 
     expect(
       await screen.findByText(
-        "0 von 2 Einheiten erledigt (Aufgaben und Gewohnheiten)",
+        "0 von 2 Einheiten erledigt (Aufgaben und Routinen)",
       ),
     ).toBeInTheDocument();
   });
@@ -517,7 +513,7 @@ function createHabit(id: string, overrides: Partial<Habit> = {}): Habit {
     id,
     createdAt: baseInstant,
     updatedAt: baseInstant,
-    name: `Gewohnheit ${id}`,
+    name: `Routine ${id}`,
     schedule: { kind: "daily" },
     startDate: "2026-08-01",
     ...overrides,

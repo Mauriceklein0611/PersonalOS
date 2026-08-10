@@ -32,7 +32,7 @@ export type QuickExpenseFormProps = {
 /**
  * Ausgaben-Schnellerfassung: Betrag und Kategorie, alles Weitere ist bereits
  * entschieden. Das Datum ist heute; wer ein anderes braucht, bucht im
- * Finanzbereich. Ohne gepflegte Ausgabenkategorie bleibt die Erfassung
+ * Bereich Geld. Ohne gepflegte Ausgabenkategorie bleibt die Erfassung
  * deaktiviert — eine erfundene Kategorie wäre eine stille Falschangabe.
  */
 export function QuickExpenseForm({
@@ -103,7 +103,7 @@ export function QuickExpenseForm({
           dich an, weil eine erfundene Kategorie deine Auswertung verfälschen
           würde.
         </p>
-        <Link to="/finanzen">Kategorie im Finanzbereich anlegen</Link>
+        <Link to="/geld">Kategorie im Bereich Geld anlegen</Link>
       </section>
     );
   }

@@ -8,7 +8,7 @@ export function createHabit(overrides: Partial<Habit> = {}): Habit {
     id: habitId,
     createdAt: baseInstant,
     updatedAt: baseInstant,
-    name: "Synthetische Gewohnheit",
+    name: "Synthetische Routine",
     schedule: { kind: "daily" },
     startDate: "2026-08-03",
     ...overrides,

@@ -86,7 +86,7 @@ export function parseHabitFormValues(
     ? { success: true, data: result.data }
     : {
         success: false,
-        errors: { form: "Prüfe die eingegebenen Gewohnheitsdaten." },
+        errors: { form: "Prüfe die eingegebenen Routinendaten." },
       };
 }
 

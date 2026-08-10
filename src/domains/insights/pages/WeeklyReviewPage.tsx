@@ -28,7 +28,7 @@ type FigureKey = "tasks" | "habits" | "journal" | "goals" | "finance";
  */
 const figureOrder: readonly { key: FigureKey; label: string }[] = [
   { key: "tasks", label: "Aufgaben" },
-  { key: "habits", label: "Gewohnheiten" },
+  { key: "habits", label: "Routinen" },
   { key: "journal", label: "Journal" },
   { key: "goals", label: "Ziele" },
   { key: "finance", label: "Ausgaben" },
@@ -99,7 +99,7 @@ export function WeeklyReviewPage({
           <p className="page-eyebrow">Ohne Bewertung</p>
           <h1 id="page-title">Wochenrückblick</h1>
           <p className="page-description">
-            Aufgaben-, Gewohnheits- und Zielentwicklung dieser Woche neben der
+            Aufgaben-, Routinen- und Zielentwicklung dieser Woche neben der
             Vorwoche – als Zahlen mit Zeitraum und Datenbasis, nicht als
             Bewertung. Aus dem Journal geht nur die Anzahl der Tage mit einem
             Eintrag ein, kein Freitext.

@@ -32,14 +32,12 @@ describe("HabitsPage", () => {
     renderPage(service);
 
     await screen.findByRole("heading", { level: 2, name: "Heute fällig" });
-    await user.click(screen.getByRole("button", { name: "Neue Gewohnheit" }));
+    await user.click(screen.getByRole("button", { name: "Neue Routine" }));
     await user.type(
       screen.getByRole("textbox", { name: /Name/ }),
       "Wasser trinken",
     );
-    await user.click(
-      screen.getByRole("button", { name: "Gewohnheit anlegen" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Routine anlegen" }));
 
     expect(
       await screen.findByRole("heading", { level: 3, name: "Wasser trinken" }),
@@ -233,7 +231,7 @@ describe("HabitsPage", () => {
 
     expect(
       await screen.findByText(
-        "Die Gewohnheit wurde archiviert. Die Check-ins bleiben erhalten.",
+        "Die Routine wurde archiviert. Die Check-ins bleiben erhalten.",
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText("Morgenroutine")).not.toBeInTheDocument();
