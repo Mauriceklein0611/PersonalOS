@@ -21,6 +21,7 @@ import type {
   Transaction,
   TransactionDetails,
 } from "../model";
+import { buildMonthForecast, type MonthForecast } from "../forecast";
 import { buildMonthlyOverview, type MonthlyOverview } from "../overview";
 import type { DueRecurringTransaction } from "../recurring";
 import { monthOf } from "../repository";
@@ -51,6 +52,7 @@ export type FinancePageState = {
   categoriesById: ReadonlyMap<string, FinanceCategory>;
   currency: string;
   error: string | undefined;
+  forecast: MonthForecast;
   isLoading: boolean;
   monthOverview: { error?: string; overview?: MonthlyOverview };
   notice: string | undefined;
@@ -208,6 +210,19 @@ export function useFinancePage({
   const categoriesById = useMemo(
     () => new Map(categories.map((category) => [category.id, category])),
     [categories],
+  );
+
+  // Die Schätzung gilt dem laufenden Monat. Für einen zurückliegenden Monat
+  // gibt es nichts mehr zu erwarten; dort steht das Ist.
+  const forecast = useMemo(
+    () =>
+      buildMonthForecast({
+        categories,
+        dueTemplates: budgetMonth === monthOf(today) ? dueRecurring : [],
+        month: budgetMonth,
+        transactions,
+      }),
+    [budgetMonth, categories, dueRecurring, today, transactions],
   );
 
   /*
@@ -491,6 +506,7 @@ export function useFinancePage({
     currency,
     dismissNotice,
     error,
+    forecast,
     isLoading,
     monthOverview,
     notice,
