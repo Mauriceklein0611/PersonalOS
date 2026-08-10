@@ -199,6 +199,7 @@ type FinanceCategory = EntityMeta & {
   name: string;
   kind: 'income' | 'expense';
   color?: string;
+  isFixedCost?: boolean; // nur bei kind: 'expense' sinnvoll
 };
 
 type Transaction = EntityMeta & {
@@ -248,6 +249,8 @@ Invarianten:
 - Kategorien mit verwendeten Transaktionen werden archiviert statt hart gelöscht.
 - Beträge werden ausschließlich als ganzzahlige Minor Units gerechnet. Die Anzahl der Nachkommastellen wird aus der Währung abgeleitet, nicht auf zwei festgelegt. Ein Saldo ist die ganzzahlige Differenz zweier Summen und niemals ein Gleitkommawert.
 - `financeCategories` und `transactions` existieren seit Schema v1. Der erste Umsetzungsstand in #17 brauchte deshalb keine Migration.
+- `isFixedCost` auf einer Ausgabenkategorie ist optional. Sein Fehlen heißt „nicht als Fixkosten gepflegt" und ausdrücklich **nicht** „variabel"; alle vor der Einführung geschriebenen Kategorien bleiben ohne Migration gültig.
+- „Frei verfügbar" ist definiert als `Einnahmen − gebuchte Fixkosten − noch offene Fixkosten − geplante Sparbeträge − variable Ausgaben`, alles innerhalb des Monats. Die noch offenen Fixkosten kommen aus den fälligen Vorlagen: Eine Miete, die am 28. abgeht, ist am 5. schon gebunden. Doppelt gezählt wird nichts — eine bestätigte Vorlage steht nicht mehr als fällig an, und von den Sparbeiträgen geht nur der unverknüpfte Teil ab, weil ein verknüpfter bereits in den Ausgaben steckt. Ohne eine einzige als Fixkosten gepflegte Kategorie entfällt die Zahl.
 - Eine `RecurringTransaction` erzeugt **nie** von sich aus eine Buchung; erst eine ausdrückliche Bestätigung schreibt einen Datensatz in `transactions`. Siehe [ADR 0013](decisions/0013-recurring-transactions-are-confirmed-templates.md).
 - Ob eine Vorlage in einem Monat bereits bestätigt wurde, wird aus den Buchungen abgeleitet — eine nicht archivierte Buchung mit ihrer `recurringTransactionId` in diesem Monat. Es gibt bewusst kein Feld an der Vorlage, das denselben Sachverhalt ein zweites Mal behauptet.
 - `dayOfMonth` ist auf 1 bis 28 begrenzt, weil jeder Monat diesen Tag hat und jede Ausweichregel für den 31. eine stille Annahme über die Absicht des Nutzers wäre.

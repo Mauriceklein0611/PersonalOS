@@ -211,6 +211,13 @@ const financeCategoryFields = {
   name: shortText,
   kind: z.enum(["income", "expense"]),
   color: z.string().max(100).optional(),
+  /**
+   * Ob Ausgaben dieser Kategorie Fixkosten sind — monatlich in ähnlicher Höhe
+   * fällig und der Höhe nach kaum beeinflussbar. Optional, damit alle vor der
+   * Einführung geschriebenen Kategorien ohne Migration gültig bleiben; ihr
+   * Fehlen heißt „nicht als Fixkosten gepflegt" und nicht „variabel".
+   */
+  isFixedCost: z.boolean().optional(),
 };
 
 export const financeCategoryDetailsSchema = z

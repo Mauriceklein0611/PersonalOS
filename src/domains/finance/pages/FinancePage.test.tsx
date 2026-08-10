@@ -403,3 +403,37 @@ describe("FinancePage – wiederkehrende Buchungen", () => {
     expect(screen.getByText(/Miete · Ausgabe über/)).toBeInTheDocument();
   });
 });
+
+describe("FinancePage – frei verfügbar", () => {
+  // Ohne gepflegte Fixkosten erscheint die Zahl nicht, statt eine falsche.
+  it("shows no figure while no category is kept as a fixed cost", async () => {
+    const service = createMemoryFinanceService();
+    renderPage(service);
+
+    await screen.findByRole("heading", { level: 2, name: "Monatsübersicht" });
+    expect(screen.queryByText("Frei verfügbar")).not.toBeInTheDocument();
+  });
+
+  it("names the whole calculation once a fixed cost category exists", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service);
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+
+    await addExpense("950,00", "Wohnen");
+    await user.click(
+      await screen.findByRole("checkbox", { name: /„Wohnen“ sind Fixkosten/ }),
+    );
+
+    const tile = (await screen.findByText("Frei verfügbar")).closest(
+      ".ui-metric-tile",
+    ) as HTMLElement;
+    // Keine Empfehlung, keine Bewertung — nur der Rechenweg.
+    expect(
+      within(tile).getByText(/Einnahmen .* minus gebuchte Fixkosten/),
+    ).toBeInTheDocument();
+    for (const word of ["solltest", "zu viel", "Achtung", "Empfehlung"]) {
+      expect(tile.textContent).not.toContain(word);
+    }
+  });
+});

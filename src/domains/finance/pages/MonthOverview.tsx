@@ -86,6 +86,24 @@ export function MonthOverview({
             />
           </div>
 
+          {/*
+            Ohne eine als Fixkosten gepflegte Kategorie fehlt die Zahl ganz.
+            Eine Aufteilung ohne Fixkosten wäre keine Aussage, sondern eine
+            falsche.
+          */}
+          {overview.freelyAvailable ? (
+            <div className="finance-freely-available">
+              <MetricTile
+                context={describeFreelyAvailable(overview)}
+                label="Frei verfügbar"
+                value={formatSignedMinorUnits(
+                  overview.freelyAvailable.amountMinor,
+                  overview.currency,
+                )}
+              />
+            </div>
+          ) : null}
+
           <p className="finance-hint">
             {describeComparison(overview)} · Grundlage:{" "}
             {overview.transactionCount}{" "}
@@ -231,4 +249,31 @@ function describeSavingsFlow(overview: MonthlyOverview): string {
   return `${formatMoney(
     createMoney(unlinkedMinor, overview.currency),
   )} sind nicht mit einer Ausgabe verknüpft und deshalb hier zusätzlich abgezogen. ${basis}`;
+}
+
+/**
+ * Nennt den Rechenweg vollständig, damit die Zahl nachvollziehbar ist statt
+ * behauptet. Keine Empfehlung und keine Bewertung — nur, was abgezogen wurde.
+ */
+function describeFreelyAvailable(overview: MonthlyOverview): string {
+  const freely = overview.freelyAvailable;
+  if (!freely) return "";
+  const money = (minor: number) =>
+    formatSignedMinorUnits(minor, overview.currency);
+
+  const parts = [
+    `Einnahmen ${money(overview.income.amountMinor)}`,
+    `gebuchte Fixkosten ${money(freely.bookedFixedMinor)}`,
+  ];
+  if (freely.openFixedCount > 0) {
+    parts.push(
+      `${freely.openFixedCount} noch offene ${
+        freely.openFixedCount === 1 ? "Fixkostenvorlage" : "Fixkostenvorlagen"
+      } ${money(freely.openFixedMinor)}`,
+    );
+  }
+  parts.push(`geplantes Sparen ${money(freely.plannedSavingsMinor)}`);
+  parts.push(`variable Ausgaben ${money(freely.variableMinor)}`);
+
+  return `${parts[0]} minus ${parts.slice(1).join(", ")}.`;
 }

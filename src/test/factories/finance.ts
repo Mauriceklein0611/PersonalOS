@@ -132,7 +132,13 @@ export function createMemoryFinanceService(): FinanceService {
       delete entry.archivedAt;
       return entry;
     },
-    updateCategory: async (id) => requireCategory(id),
+    // Der Patch wird tatsächlich angewendet; sonst prüften die Seitentests
+    // eine Änderung, die es nie gab.
+    updateCategory: async (id, patch) => {
+      const category = requireCategorySync(id);
+      Object.assign(category, patch);
+      return category;
+    },
     updateTransaction: async (id) => {
       const entry = transactions.find((row) => row.id === id);
       if (!entry) throw new Error("unknown transaction");

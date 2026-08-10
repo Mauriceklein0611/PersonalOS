@@ -7,11 +7,13 @@ import {
 import { findBudget, monthOfDay, shiftMonth } from "./budget";
 import { MixedCurrencyError } from "./mixed-currency";
 import type {
+  FinanceCategory,
   MonthlyBudget,
   SavingsContribution,
   SavingsGoal,
   Transaction,
 } from "./model";
+import type { DueRecurringTransaction } from "./recurring";
 import { calculateSavingsProgress } from "./savings";
 
 /** Anteil einer Kategorie an den Ausgaben des Monats. */
@@ -69,6 +71,21 @@ export type MonthlySavingsFlow = {
   unlinkedMinor: number;
 };
 
+/**
+ * Der Rechenweg liegt offen, damit die Oberfläche ihn nennen kann statt eine
+ * Zahl zu behaupten. Alle Beträge sind Minor Units derselben Währung.
+ */
+export type FreelyAvailable = {
+  /** Einnahmen − gebuchte Fixkosten − offene Fixkosten − Sparen − variable. */
+  amountMinor: number;
+  bookedFixedMinor: number;
+  /** Vorlagen, die diesen Monat noch offen sind. */
+  openFixedCount: number;
+  openFixedMinor: number;
+  plannedSavingsMinor: number;
+  variableMinor: number;
+};
+
 export type MonthlyOverview = {
   balanceMinor: number;
   /** Saldo abzüglich der Sparbeiträge, die keine Ausgabe belegt. */
@@ -79,6 +96,8 @@ export type MonthlyOverview = {
   expense: Money;
   /** Absteigend nach Betrag; nur Ausgaben, nur nicht archivierte Buchungen. */
   expenseByCategory: CategoryShare[];
+  /** Fehlt, solange keine Kategorie als Fixkosten gepflegt ist. */
+  freelyAvailable: FreelyAvailable | undefined;
   income: Money;
   month: string;
   previousExpense: MonthComparison;
@@ -89,8 +108,12 @@ export type MonthlyOverview = {
 
 export type MonthlyOverviewInput = {
   budgets: readonly MonthlyBudget[];
+  /** Für die Fixkosten-Aufteilung; ohne sie fehlt „frei verfügbar". */
+  categories?: readonly FinanceCategory[];
   contributions: readonly SavingsContribution[];
   currency: string;
+  /** Die im Monat noch offenen Vorlagen; sie binden Geld, das noch nicht gebucht ist. */
+  dueTemplates?: readonly DueRecurringTransaction[];
   month: string;
   savingsGoals: readonly SavingsGoal[];
   transactions: readonly Transaction[];
@@ -103,8 +126,10 @@ export type MonthlyOverviewInput = {
  */
 export function buildMonthlyOverview({
   budgets,
+  categories = [],
   contributions,
   currency,
+  dueTemplates = [],
   month,
   savingsGoals,
   transactions,
@@ -134,12 +159,94 @@ export function buildMonthlyOverview({
     currency,
     expense,
     expenseByCategory: rankExpenseCategories(inMonth, expense.amountMinor),
+    freelyAvailable: summariseFreelyAvailable({
+      categories,
+      dueTemplates,
+      income,
+      inMonth,
+      unlinkedSavingsMinor: savingsThisMonth.unlinkedMinor,
+    }),
     income,
     month,
     previousExpense: compareWithPreviousMonth(active, month, currency),
     savings: summariseSavings(savingsGoals, contributions, currency),
     savingsThisMonth,
     transactionCount: inMonth.length,
+  };
+}
+
+/**
+ * „Frei verfügbar" beantwortet, was diesen Monat **noch** ausgegeben werden
+ * kann. Deshalb zählen nicht nur die bereits gebuchten Fixkosten, sondern auch
+ * die noch offenen: Eine Miete, die am 28. abgeht, ist am 5. schon gebunden,
+ * auch wenn noch keine Buchung existiert. Ohne diesen Teil wäre die Zahl
+ * rechnerisch dasselbe wie `balanceAfterSavingsMinor` und das Fixkosten-Flag
+ * ohne Wirkung.
+ *
+ * Doppelt gezählt wird nichts:
+ * - Eine bestätigte Vorlage ist gebucht und steht nicht mehr als fällig an.
+ * - Ein Sparbeitrag, der eine Ausgabe belegt (`linkedMinor`), steckt bereits
+ *   in den Ausgaben; abgezogen wird nur der unverknüpfte Teil.
+ *
+ * Ohne eine einzige als Fixkosten gepflegte Kategorie fehlt die Zahl ganz —
+ * eine Aufteilung ohne Fixkosten wäre keine Aussage, sondern eine falsche.
+ */
+function summariseFreelyAvailable({
+  categories,
+  dueTemplates,
+  income,
+  inMonth,
+  unlinkedSavingsMinor,
+}: {
+  categories: readonly FinanceCategory[];
+  dueTemplates: readonly DueRecurringTransaction[];
+  income: Money;
+  inMonth: readonly Transaction[];
+  unlinkedSavingsMinor: number;
+}): FreelyAvailable | undefined {
+  const fixedCostCategoryIds = new Set(
+    categories
+      .filter(
+        (category) =>
+          category.kind === "expense" && category.isFixedCost === true,
+      )
+      .map((category) => category.id),
+  );
+  if (fixedCostCategoryIds.size === 0) return undefined;
+
+  let bookedFixedMinor = 0;
+  let variableMinor = 0;
+  for (const transaction of inMonth) {
+    if (transaction.kind !== "expense") continue;
+    if (fixedCostCategoryIds.has(transaction.categoryId)) {
+      bookedFixedMinor += transaction.money.amountMinor;
+    } else {
+      variableMinor += transaction.money.amountMinor;
+    }
+  }
+
+  const openFixed = dueTemplates.filter(
+    (due) =>
+      due.template.kind === "expense" &&
+      fixedCostCategoryIds.has(due.template.categoryId),
+  );
+  const openFixedMinor = openFixed.reduce(
+    (total, due) => total + due.template.money.amountMinor,
+    0,
+  );
+
+  return {
+    amountMinor:
+      income.amountMinor -
+      bookedFixedMinor -
+      openFixedMinor -
+      unlinkedSavingsMinor -
+      variableMinor,
+    bookedFixedMinor,
+    openFixedCount: openFixed.length,
+    openFixedMinor,
+    plannedSavingsMinor: unlinkedSavingsMinor,
+    variableMinor,
   };
 }
 
