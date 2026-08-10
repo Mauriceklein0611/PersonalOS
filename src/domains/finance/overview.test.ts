@@ -9,7 +9,13 @@ import {
   financeMonthTransactions,
 } from "../../test/fixtures/finance-month";
 import { MixedCurrencyError } from "./mixed-currency";
-import type { SavingsContribution, SavingsGoal, Transaction } from "./model";
+import type {
+  FinanceCategory,
+  SavingsContribution,
+  SavingsGoal,
+  Transaction,
+} from "./model";
+import type { DueRecurringTransaction } from "./recurring";
 import { buildMonthlyOverview, type MonthlyOverviewInput } from "./overview";
 
 function build(overrides: Partial<MonthlyOverviewInput> = {}) {
@@ -326,5 +332,137 @@ function withYenGoal(): Pick<
       yenContribution,
     ],
     savingsGoals: [financeMonthSavingsGoals[0]!, yenGoal],
+  };
+}
+
+/**
+ * „Frei verfügbar" beantwortet, was diesen Monat **noch** ausgegeben werden
+ * kann. Der Fixtures-Monat: Einnahmen 2.400,00, Ausgaben 1.103,00 (davon
+ * 680,00 Miete), unverknüpfte Sparbeiträge 750,00.
+ */
+describe("frei verfügbar", () => {
+  const rentIsFixed: FinanceCategory[] = [
+    {
+      ...categoryMeta("000000009901"),
+      id: financeMonthCategories.rent,
+      isFixedCost: true,
+      kind: "expense",
+      name: "Wohnen",
+    },
+    {
+      ...categoryMeta("000000009902"),
+      id: financeMonthCategories.groceries,
+      kind: "expense",
+      name: "Lebensmittel",
+    },
+  ];
+
+  // Ohne gepflegte Fixkosten erscheint die Zahl nicht, statt eine falsche.
+  it("stays absent while no category is kept as a fixed cost", () => {
+    expect(build().freelyAvailable).toBeUndefined();
+    expect(
+      build({
+        categories: rentIsFixed.map((category) => ({
+          ...category,
+          isFixedCost: undefined,
+        })),
+      }).freelyAvailable,
+    ).toBeUndefined();
+  });
+
+  it("splits the month into fixed, variable and planned saving", () => {
+    const freely = build({ categories: rentIsFixed }).freelyAvailable;
+
+    expect(freely).toEqual({
+      amountMinor: 54_700,
+      bookedFixedMinor: 68_000,
+      openFixedCount: 0,
+      openFixedMinor: 0,
+      plannedSavingsMinor: 75_000,
+      variableMinor: 42_300,
+    });
+  });
+
+  /**
+   * Der Kern: Eine Miete, die am 28. abgeht, ist am 5. schon gebunden. Ohne
+   * die offenen Vorlagen wäre die Zahl rechnerisch dasselbe wie
+   * `balanceAfterSavingsMinor` und das Fixkosten-Flag ohne Wirkung.
+   */
+  it("subtracts fixed costs that are still open this month", () => {
+    const withoutTemplates = build({ categories: rentIsFixed });
+    const withTemplate = build({
+      categories: rentIsFixed,
+      dueTemplates: [dueTemplate(30_000, financeMonthCategories.rent)],
+    });
+
+    expect(withoutTemplates.freelyAvailable?.amountMinor).toBe(
+      withoutTemplates.balanceAfterSavingsMinor,
+    );
+    expect(withTemplate.freelyAvailable?.amountMinor).toBe(24_700);
+    expect(withTemplate.freelyAvailable?.openFixedMinor).toBe(30_000);
+    expect(withTemplate.freelyAvailable?.openFixedCount).toBe(1);
+  });
+
+  // Eine bestätigte Vorlage ist gebucht und steht nicht mehr als fällig an;
+  // eine Vorlage einer variablen Kategorie bindet nichts.
+  it("ignores a due template of a category that is not a fixed cost", () => {
+    const freely = build({
+      categories: rentIsFixed,
+      dueTemplates: [dueTemplate(30_000, financeMonthCategories.groceries)],
+    }).freelyAvailable;
+
+    expect(freely?.openFixedMinor).toBe(0);
+    expect(freely?.amountMinor).toBe(54_700);
+  });
+
+  /**
+   * Ein Sparbeitrag, der eine Ausgabe belegt, steckt bereits in den Ausgaben.
+   * Er darf nicht ein zweites Mal abgezogen werden.
+   */
+  it("counts a contribution that backs a booking only once", () => {
+    const backed = financeMonthContributions.map((contribution, index) =>
+      index === 0
+        ? {
+            ...contribution,
+            money: { amountMinor: 24_550, currency: "EUR" },
+            sourceTransactionId: financeMonthTransactions[2]!.id,
+          }
+        : contribution,
+    );
+
+    const freely = build({
+      categories: rentIsFixed,
+      contributions: backed,
+    }).freelyAvailable;
+
+    // Nur die 500,00 des unverknüpften Beitrags gehen ab, nicht zusätzlich
+    // die 245,50, die schon als Ausgabe zählen.
+    expect(freely?.plannedSavingsMinor).toBe(50_000);
+    expect(freely?.amountMinor).toBe(240_000 - 68_000 - 50_000 - 42_300);
+  });
+});
+
+function categoryMeta(suffix: string) {
+  return {
+    createdAt: "2026-08-01T08:00:00.000Z",
+    id: `00000000-0000-4000-8000-${suffix}`,
+    updatedAt: "2026-08-01T08:00:00.000Z",
+  };
+}
+
+function dueTemplate(
+  amountMinor: number,
+  categoryId: string,
+): DueRecurringTransaction {
+  return {
+    proposedDate: "2026-08-28",
+    template: {
+      ...categoryMeta("000000009903"),
+      categoryId,
+      dayOfMonth: 28,
+      kind: "expense",
+      money: { amountMinor, currency: "EUR" },
+      name: "Synthetische Vorlage",
+    },
   };
 }

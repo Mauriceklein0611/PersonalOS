@@ -1,6 +1,12 @@
 import { useState, type FormEvent } from "react";
 
-import { Button, IconButton, Input, Select } from "../../../components/ui";
+import {
+  Button,
+  Checkbox,
+  IconButton,
+  Input,
+  Select,
+} from "../../../components/ui";
 import { isCategoryNameValid } from "../finance-form-values";
 import {
   financeKindLabels,
@@ -13,16 +19,19 @@ import {
 export type CategorySectionProps = {
   categories: readonly FinanceCategory[];
   onCreate: (details: FinanceCategoryDetails) => Promise<boolean>;
+  onToggleFixedCost: (category: FinanceCategory, isFixedCost: boolean) => void;
   onRemove: (category: FinanceCategory) => void;
 };
 
 export function CategorySection({
   categories,
   onCreate,
+  onToggleFixedCost,
   onRemove,
 }: CategorySectionProps) {
   const [name, setName] = useState("");
   const [kind, setKind] = useState<FinanceKind>("expense");
+  const [isFixedCost, setIsFixedCost] = useState(false);
   const [error, setError] = useState<string>();
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -33,8 +42,14 @@ export function CategorySection({
     }
 
     setError(undefined);
-    if (await onCreate({ kind, name: name.trim() })) {
+    const created = await onCreate({
+      kind,
+      name: name.trim(),
+      ...(kind === "expense" && isFixedCost ? { isFixedCost: true } : {}),
+    });
+    if (created) {
       setName("");
+      setIsFixedCost(false);
     }
   }
 
@@ -72,6 +87,15 @@ export function CategorySection({
             </option>
           ))}
         </Select>
+        {/* Nur Ausgaben können Fixkosten sein; bei Einnahmen wäre die Frage
+            sinnlos. */}
+        {kind === "expense" ? (
+          <Checkbox
+            checked={isFixedCost}
+            label="Fixkosten"
+            onChange={(event) => setIsFixedCost(event.currentTarget.checked)}
+          />
+        ) : null}
         <Button type="submit" variant="secondary">
           Kategorie anlegen
         </Button>
@@ -83,6 +107,17 @@ export function CategorySection({
             <div className="finance-list-copy">
               <h3>{category.name}</h3>
               <p>{financeKindLabels[category.kind]}</p>
+              {/* Auch die Startkategorien müssen sich pflegen lassen, sonst
+                  bliebe „frei verfügbar" dauerhaft ohne Grundlage. */}
+              {category.kind === "expense" ? (
+                <Checkbox
+                  checked={category.isFixedCost === true}
+                  label={`„${category.name}“ sind Fixkosten`}
+                  onChange={(event) =>
+                    onToggleFixedCost(category, event.currentTarget.checked)
+                  }
+                />
+              ) : null}
             </div>
             <IconButton
               label={`Kategorie „${category.name}“ entfernen`}

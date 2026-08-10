@@ -73,6 +73,10 @@ export type FinancePageState = {
   reloadSavings: () => Promise<void>;
   removeBudget: (budget: MonthlyBudget) => Promise<void>;
   removeCategory: (category: FinanceCategory) => Promise<void>;
+  setCategoryFixedCost: (
+    category: FinanceCategory,
+    isFixedCost: boolean,
+  ) => Promise<void>;
   runUndo: (action: FinanceUndoAction) => Promise<void>;
   setBudget: (details: MonthlyBudgetDetails) => Promise<boolean>;
   shiftBudgetMonth: (offset: number) => void;
@@ -215,8 +219,12 @@ export function useFinancePage({
       return {
         overview: buildMonthlyOverview({
           budgets,
+          categories,
           contributions: savingsContributions,
           currency,
+          // Nur im laufenden Monat sind offene Vorlagen eine Aussage; für
+          // einen zurückliegenden Monat wäre „noch offen" sinnlos.
+          dueTemplates: budgetMonth === monthOf(today) ? dueRecurring : [],
           month: budgetMonth,
           savingsGoals,
           transactions,
@@ -233,9 +241,12 @@ export function useFinancePage({
   }, [
     budgetMonth,
     budgets,
+    categories,
     currency,
+    dueRecurring,
     savingsContributions,
     savingsGoals,
+    today,
     transactions,
   ]);
 
@@ -349,6 +360,23 @@ export function useFinancePage({
       );
       // Bereits erzeugte Buchungen bleiben; nur der Vorschlag verschwindet.
       if (archived) announce("Die Vorlage wird nicht mehr vorgeschlagen.");
+    },
+    [announce, runAction, service],
+  );
+
+  const setCategoryFixedCost = useCallback(
+    async (category: FinanceCategory, isFixedCost: boolean) => {
+      const saved = await runAction(
+        () => service.updateCategory(category.id, { isFixedCost }),
+        "Die Kategorie konnte nicht geändert werden.",
+      );
+      if (saved) {
+        announce(
+          isFixedCost
+            ? `„${category.name}“ zählt jetzt zu den Fixkosten.`
+            : `„${category.name}“ zählt nicht mehr zu den Fixkosten.`,
+        );
+      }
     },
     [announce, runAction, service],
   );
@@ -471,6 +499,7 @@ export function useFinancePage({
     removeCategory,
     runUndo,
     setBudget,
+    setCategoryFixedCost,
     shiftBudgetMonth,
     timeZone,
     today,

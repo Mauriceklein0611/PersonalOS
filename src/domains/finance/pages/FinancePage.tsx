@@ -114,6 +114,9 @@ export function FinancePage(props: FinancePageProps) {
             categories={page.categories}
             onCreate={page.createCategory}
             onRemove={(category) => void page.removeCategory(category)}
+            onToggleFixedCost={(category, isFixedCost) =>
+              void page.setCategoryFixedCost(category, isFixedCost)
+            }
           />
         </div>
       )}
