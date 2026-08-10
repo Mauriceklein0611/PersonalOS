@@ -26,7 +26,8 @@ const routes: RouteObject[] = [
         ErrorBoundary: DomainErrorBoundary,
       },
       {
-        path: "aufgaben",
+        // Derselbe Pfad, den die Navigation seit den vier Bereichen anbietet.
+        path: "planen/aufgaben",
         Component: WorkingRoute,
         ErrorBoundary: DomainErrorBoundary,
       },

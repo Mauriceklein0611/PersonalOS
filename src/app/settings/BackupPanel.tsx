@@ -17,7 +17,7 @@ import "./backup-panel.css";
 const countLabels: Record<keyof BackupPreview["counts"], string> = {
   settings: "Einstellungen",
   tasks: "Aufgaben",
-  habits: "Gewohnheiten",
+  habits: "Routinen",
   habitEntries: "Habit-Check-ins",
   journalEntries: "Journaleinträge",
   goals: "Ziele",
@@ -29,7 +29,7 @@ const countLabels: Record<keyof BackupPreview["counts"], string> = {
   savingsContributions: "Sparbeiträge",
   scoreSettings: "Score-Einstellungen",
   scoreSnapshots: "Score-Snapshots",
-  hiddenInsights: "Ausgeblendete Insights",
+  hiddenInsights: "Ausgeblendete Hinweise",
   recurringTransactions: "Buchungsvorlagen",
 };
 

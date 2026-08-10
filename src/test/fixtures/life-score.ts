@@ -98,7 +98,7 @@ function dailyHabit(suffix: string, name: string): Habit {
 }
 
 /**
- * Zwei tägliche Gewohnheiten ergeben im Sieben-Tage-Fenster `target` 14.
+ * Zwei tägliche Routinen ergeben im Sieben-Tage-Fenster `target` 14.
  * Erledigt sind 7 + 4 = 11 Einheiten, eine Einheit ist übersprungen. Seit
  * [ADR 0012](../../../docs/decisions/0012-skip-keeps-the-streak.md) fällt sie
  * aus dem Nenner: `counted` ist 13.
@@ -107,7 +107,7 @@ export const lifeScoreHabits: Habit[] = [
   dailyHabit("000000008201", "Morgens dehnen"),
   dailyHabit("000000008202", "Abends lesen"),
   {
-    ...dailyHabit("000000008203", "Archivierte Gewohnheit"),
+    ...dailyHabit("000000008203", "Archivierte Routine"),
     archivedAt: "2026-07-01T09:00:00.000Z",
   },
   { ...dailyHabit("000000008204", "Startet später"), startDate: "2026-09-01" },

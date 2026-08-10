@@ -36,11 +36,24 @@ Die Komponenten orientieren sich an [WCAG 2.2](https://www.w3.org/TR/WCAG22/):
 
 ## Navigation
 
+Vier Hauptbereiche, mehr nicht:
+
+| Bereich | Pfad | Enthält |
+| --- | --- | --- |
+| Heute | `/` | Das Dashboard |
+| Planen | `/planen` | Aufgaben, Ziele |
+| Routinen | `/routinen` | Routinen, Journal |
+| Geld | `/geld` | Buchungen, Budgets, Sparziele |
+
+Zwei Nebenbereiche stehen in der Kopfzeile, nicht im Band: **Auswertung** (`/auswertung` mit Überblick und Wochenrückblick) und **Einstellungen**. Beide werden wöchentlich gebraucht, nicht stündlich.
+
 - **Ein Begriff je Bereich**, auf jeder Größe und in jeder Überschrift. Eine gekürzte Zweitbezeichnung für dieselbe Route gibt es nicht; passt ein Wort nicht in seine Spalte, trennt die Silbentrennung es (`hyphens: auto`, das Dokument trägt `lang="de"`).
 - Das mobile Band trägt **Icon und Beschriftung**. Das Icon ist Orientierungshilfe, `aria-hidden` und nie ein Ersatz für den Text. Die Beschriftung bleibt mindestens 0,7 rem groß.
 - Icons sind inline-SVG in `src/app/navigation/icons.tsx`. Eine Icon-Bibliothek wäre eine neue Laufzeitabhängigkeit und braucht eine Begründung im PR.
 - Alle Bedienelemente der Kopfzeile und des Bandes halten `--control-height` (44 px).
-- Das Überlaufmenü schließt bei `Escape` und bei einem Tap außerhalb. Beim Öffnen steht der Fokus auf dem ersten Eintrag; nach dem Schließen ohne Navigation kehrt er auf den Auslöser zurück.
+- **Kein Bereich liegt hinter einem Menü.** Das mobile Überlaufmenü ist entfallen: Es lag zwischen dem Daumen und der Hälfte der App, darunter die Finanzen mit einer der häufigsten Erfassungsaktionen.
+- Ein Hauptbereich mit mehreren Ansichten stellt sie als Reiter über den Inhalt (`AreaLayout`). Der Bereichspfad selbst leitet auf den ersten Reiter weiter.
+- **Ein einmal veröffentlichter Pfad bleibt erreichbar.** Ändert sich die Struktur, kommt der alte Pfad in `legacyRouteRedirects` in `src/app/router.tsx` und leitet dauerhaft weiter. Lesezeichen, Verlauf und PWA-Verknüpfungen tragen ihn; ein toter Link kostet Vertrauen in eine App, die sonst nie etwas verliert.
 
 ## Fehlermeldungsmuster
 
@@ -61,7 +74,7 @@ Für den Tagesablauf gilt eine einheitliche Regel. Sie richtet sich danach, was 
 | Wirkung | Beispiel | Vorgabe |
 |---|---|---|
 | Zustand wechseln, jederzeit umkehrbar | Aufgabe abschließen, Habit überspringen, Tag wieder öffnen | Keine Bestätigung. Nach der Aktion erscheint ein Hinweis mit „Rückgängig“. |
-| Aus der Ansicht entfernen, Datensatz bleibt | Aufgabe oder Gewohnheit archivieren | Keine Bestätigung, aber immer „Rückgängig“. |
+| Aus der Ansicht entfernen, Datensatz bleibt | Aufgabe oder Routine archivieren | Keine Bestätigung, aber immer „Rückgängig“. |
 | Datensatz unwiderruflich entfernen | Check-in entfernen, alle lokalen Daten löschen | Bestätigungsdialog **oder** ein „Rückgängig“, das den vorherigen Stand vollständig wiederherstellt. |
 
 Konkret bedeutet das: „Wieder öffnen“ löscht den Tageseintrag samt Notiz und stellt ihn über „Rückgängig“ mit demselben Status und derselben Notiz wieder her. „Alle lokalen Daten löschen“ ist nicht umkehrbar und verlangt deshalb Bestätigung und einen vorherigen Sicherungsexport.

@@ -156,7 +156,7 @@ describe("InsightsPage – vollständige Daten", () => {
     renderPage(createStubService());
 
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Insights" }),
+      await screen.findByRole("heading", { level: 1, name: "Auswertung" }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -218,7 +218,7 @@ describe("InsightsPage – Wochenrückblick-Verweis", () => {
       await screen.findByRole("heading", { level: 2, name: "Wochenrückblick" }),
     ).toBeInTheDocument();
     const link = screen.getByRole("link", { name: "Wochenrückblick öffnen" });
-    expect(link).toHaveAttribute("href", "/wochenrueckblick");
+    expect(link).toHaveAttribute("href", "/auswertung/wochenrueckblick");
   });
 
   it("no longer shows a week heading, week navigation or weekly figures here", async () => {

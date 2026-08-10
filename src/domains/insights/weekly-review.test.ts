@@ -101,7 +101,7 @@ describe("buildWeeklyReview", () => {
   it("reports habit units and names the skipped ones separately", () => {
     const review = buildWeeklyReview(input, week);
 
-    // Zwei tägliche Gewohnheiten ergeben 14 geplante Einheiten; 5 sind
+    // Zwei tägliche Routinen ergeben 14 geplante Einheiten; 5 sind
     // erledigt und eine ist übersprungen — sie fällt aus dem Nenner.
     expect(review.habits.valueText).toBe("5 von 13");
     expect(review.habits.basis).toContain("13 zählende Einheiten");
@@ -155,7 +155,7 @@ describe("buildWeeklyReview", () => {
       "Für diese Woche war keine Aufgabe geplant.",
     );
     expect(review.habits.basis).toBe(
-      "In dieser Woche war keine Gewohnheit fällig.",
+      "In dieser Woche war keine Routine fällig.",
     );
     expect(review.goals.basis).toBe("Es ist kein Ziel aktiv.");
     expect(review.finance.basis).toBe(
@@ -176,7 +176,7 @@ describe("buildWeeklyReview", () => {
  * `hasBasis` ist das strukturelle Signal, an dem jede Darstellung entscheidet
  * — nicht `ratio === null` (bei Finanzen und Zielen strukturell immer `null`)
  * und nicht `sourceCount === 0` (Journal hat mit null Einträgen trotzdem eine
- * Grundlage, übersprungene Gewohnheiten und Mehrwährungsbuchungen haben trotz
+ * Grundlage, übersprungene Routinen und Mehrwährungsbuchungen haben trotz
  * `sourceCount > 0` keine). Diese Tests decken genau die Fälle ab, in denen
  * `hasBasis` von beiden anderen Feldern abweicht.
  */
@@ -211,7 +211,7 @@ describe("WeeklyFigure.hasBasis", () => {
   it("is false for habits where every planned unit was skipped, even though habits existed", () => {
     const habit: Habit = {
       ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009001" }),
-      name: "Testgewohnheit",
+      name: "Testroutine",
       schedule: { kind: "daily" },
       startDate: "2026-07-01",
     };
@@ -237,7 +237,7 @@ describe("WeeklyFigure.hasBasis", () => {
       week,
     );
 
-    // Die Gewohnheit war fällig — `sourceCount` zählt sie —, aber ohne eine
+    // Die Routine war fällig — `sourceCount` zählt sie —, aber ohne eine
     // einzige zählende Einheit gibt es keine Quote.
     expect(review.habits.sourceCount).toBe(1);
     expect(review.habits.hasBasis).toBe(false);
@@ -299,7 +299,7 @@ describe("WeeklyFigure basis text — Singular bei genau einem Datensatz", () =>
   it("names a single habit and its single counted unit in the singular", () => {
     const habit: Habit = {
       ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009201" }),
-      name: "Einzige Gewohnheit",
+      name: "Einzige Routine",
       schedule: { count: 1, kind: "timesPerWeek" },
       startDate: "2026-07-01",
     };
@@ -316,7 +316,7 @@ describe("WeeklyFigure basis text — Singular bei genau einem Datensatz", () =>
     );
 
     expect(review.habits.basis).toBe(
-      "Grundlage: 1 Gewohnheit, 1 zählende Einheit.",
+      "Grundlage: 1 Routine, 1 zählende Einheit.",
     );
     expect(review.habits.valueText).toBe("1 von 1");
   });
@@ -324,7 +324,7 @@ describe("WeeklyFigure basis text — Singular bei genau einem Datensatz", () =>
   it("names a single skipped unit of a single habit in the singular", () => {
     const habit: Habit = {
       ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009203" }),
-      name: "Einzige übersprungene Gewohnheit",
+      name: "Einzige übersprungene Routine",
       schedule: { count: 1, kind: "timesPerWeek" },
       startDate: "2026-07-01",
     };
@@ -343,7 +343,7 @@ describe("WeeklyFigure basis text — Singular bei genau einem Datensatz", () =>
     // „alle 1 geplante Einheit“ wäre kein Satz; bei genau einer Einheit sagt
     // „die geplante Einheit“ dasselbe und bleibt lesbar.
     expect(review.habits.basis).toBe(
-      "Grundlage: 1 Gewohnheit, die geplante Einheit übersprungen.",
+      "Grundlage: 1 Routine, die geplante Einheit übersprungen.",
     );
     expect(review.habits.hasBasis).toBe(false);
   });
@@ -352,7 +352,7 @@ describe("WeeklyFigure basis text — Singular bei genau einem Datensatz", () =>
   it("keeps the plural form when more than one unit was skipped", () => {
     const habit: Habit = {
       ...buildEntityMeta({ id: "00000000-0000-4000-8000-000000009213" }),
-      name: "Zweimal übersprungene Gewohnheit",
+      name: "Zweimal übersprungene Routine",
       schedule: { count: 2, kind: "timesPerWeek" },
       startDate: "2026-07-01",
     };
@@ -373,7 +373,7 @@ describe("WeeklyFigure basis text — Singular bei genau einem Datensatz", () =>
     );
 
     expect(review.habits.basis).toBe(
-      "Grundlage: 1 Gewohnheit, alle 2 geplanten Einheiten übersprungen.",
+      "Grundlage: 1 Routine, alle 2 geplanten Einheiten übersprungen.",
     );
     expect(review.habits.hasBasis).toBe(false);
   });

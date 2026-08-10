@@ -78,11 +78,11 @@ import "./today-page.css";
  * Ohne ihn wäre die Zeile eine Sackgasse.
  */
 const signalLinks: Record<TodaySignalKind, ReactNode> = {
-  budget: <Link to="/finanzen">Zu den Finanzen</Link>,
-  capacity: <Link to="/aufgaben">Zu den Aufgaben</Link>,
-  overdue: <Link to="/aufgaben">Zu den Aufgaben</Link>,
-  reflection: <Link to="/journal">Journal öffnen</Link>,
-  savings: <Link to="/finanzen">Zu den Sparzielen</Link>,
+  budget: <Link to="/geld">Zum Bereich Geld</Link>,
+  capacity: <Link to="/planen/aufgaben">Zu den Aufgaben</Link>,
+  overdue: <Link to="/planen/aufgaben">Zu den Aufgaben</Link>,
+  reflection: <Link to="/routinen/journal">Journal öffnen</Link>,
+  savings: <Link to="/geld">Zu den Sparzielen</Link>,
 };
 
 const greetings: Record<TodayGreeting, string> = {
@@ -112,9 +112,9 @@ const emptyInput: TodayInput = {
 };
 
 /**
- * Die Finanzdaten, die Signale und Restbudget brauchen. Sie liegen getrennt
+ * Die Finanzdaten, die Signale und „Budget übrig“ brauchen. Sie liegen getrennt
  * von `TodayInput`, weil `buildTodayOverview` sie nicht liest — die Übersicht
- * bleibt eine reine Verdichtung aus Aufgaben, Gewohnheiten und Journal.
+ * bleibt eine reine Verdichtung aus Aufgaben, Routinen und Journal.
  */
 type TodayFinanceInput = {
   budgets: MonthlyBudget[];
@@ -198,7 +198,7 @@ export function TodayPage({
    * Finanzen und Life Score hängen an einem eigenen Ladeweg. Sie ergänzen die
    * Seite, sie tragen sie nicht: Fällt einer aus, schweigen die betroffenen
    * Signale und die Kennzahl meldet „Keine Angabe“ — der Tagesablauf aus
-   * Aufgaben, Gewohnheiten und Journal bleibt vollständig bedienbar.
+   * Aufgaben, Routinen und Journal bleibt vollständig bedienbar.
    */
   const loadContext = useCallback(async () => {
     const [financeInput, scoreOverview] = await Promise.all([
@@ -377,13 +377,13 @@ export function TodayPage({
           </p>
         </div>
         <div className="page-header-aside">
-          {/* Aufgaben und Gewohnheiten zusammen: Der Ring misst den Tag,
+          {/* Aufgaben und Routinen zusammen: Der Ring misst den Tag,
               nicht einen Ausschnitt davon. */}
           <ProgressRing
             caption={
               overview.progress.planned === 0
                 ? "Für heute ist nichts geplant."
-                : `${overview.progress.done} von ${overview.progress.planned} Einheiten erledigt (Aufgaben und Gewohnheiten)`
+                : `${overview.progress.done} von ${overview.progress.planned} Einheiten erledigt (Aufgaben und Routinen)`
             }
             glow
             label="Tagesfortschritt"
@@ -412,7 +412,7 @@ export function TodayPage({
         <div className="page-grid">
           {/*
             Genau vier Kennzahlen, mehr nicht. Die vierte erscheint nur mit
-            gesetztem Budget: Ein Restbudget ohne Budget wäre keine Zahl,
+            gesetztem Budget: Ein übriges Budget ohne Budget wäre keine Zahl,
             sondern eine Behauptung.
           */}
           <div className="today-metrics" data-span="full">
@@ -431,7 +431,7 @@ export function TodayPage({
                   ? "Heute ist nichts geplant"
                   : `${overview.habitSettledCount} von ${overview.habitDueCount} erfasst`
               }
-              label="Gewohnheiten heute"
+              label="Routinen heute"
               value={`${overview.dueHabits.length} offen`}
             />
             <MetricTile
@@ -446,7 +446,7 @@ export function TodayPage({
             {remainingBudget ? (
               <MetricTile
                 context={remainingBudget.context}
-                label="Restbudget des Monats"
+                label="Budget übrig"
                 value={remainingBudget.value}
               />
             ) : null}
@@ -455,7 +455,7 @@ export function TodayPage({
           {/* Der Wert steht oben, der Rechenweg eine Ebene tiefer. Eine Zahl
               ohne Weg zur Erklärung wäre eine Behauptung. */}
           <p className="today-score-link" data-span="full">
-            <Link to="/insights">Wie der Life Score entsteht</Link>
+            <Link to="/auswertung/ueberblick">Wie der Life Score entsteht</Link>
           </p>
 
           {/*
@@ -526,7 +526,7 @@ export function TodayPage({
             <h2>Aufgaben für heute</h2>
             {overview.openTasks.length === 0 ? (
               <EmptyState
-                action={<Link to="/aufgaben">Zu den Aufgaben</Link>}
+                action={<Link to="/planen/aufgaben">Zu den Aufgaben</Link>}
                 description="Für heute ist nichts geplant oder überfällig."
                 title="Keine offene Aufgabe"
               />
@@ -555,23 +555,23 @@ export function TodayPage({
             {overview.openTasks.length > visibleTaskCount ? (
               <p className="today-list-footer">
                 {visibleTaskCount} von {overview.openTasks.length} gezeigt.{" "}
-                <Link to="/aufgaben">Alle Aufgaben ansehen</Link>
+                <Link to="/planen/aufgaben">Alle Aufgaben ansehen</Link>
               </p>
             ) : null}
           </section>
 
           <section className="today-list-card">
-            <h2>Gewohnheiten für heute</h2>
+            <h2>Routinen für heute</h2>
             {overview.habitDueCount === 0 ? (
               <EmptyState
-                action={<Link to="/gewohnheiten">Zu den Gewohnheiten</Link>}
-                description="Heute ist laut deinen Rhythmen keine Gewohnheit fällig."
+                action={<Link to="/routinen/uebersicht">Zu den Routinen</Link>}
+                description="Heute ist laut deinen Rhythmen keine Routine fällig."
                 title="Nichts fällig"
               />
             ) : overview.dueHabits.length === 0 ? (
               <p className="today-status" role="status">
-                Alle {overview.habitDueCount} fälligen Gewohnheiten sind für
-                heute erfasst.
+                Alle {overview.habitDueCount} fälligen Routinen sind für heute
+                erfasst.
               </p>
             ) : (
               <ul className="today-list">
@@ -619,7 +619,7 @@ export function TodayPage({
             <p className="today-journal-mood">
               {describeMood(overview.journal)}
             </p>
-            <Link to="/journal">Journal öffnen</Link>
+            <Link to="/routinen/journal">Journal öffnen</Link>
           </div>
         </div>
       )}
@@ -677,7 +677,7 @@ async function readTodaySnapshot(
 }
 
 /**
- * Die Finanzdaten hinter Signalen und Restbudget. Bewusst getrennt vom
+ * Die Finanzdaten hinter Signalen und „Budget übrig“. Bewusst getrennt vom
  * Tagesabruf: Sie ergänzen die Seite, sie tragen sie nicht.
  */
 async function readFinanceSnapshot(

@@ -51,7 +51,7 @@ export function HabitWeekGrid({
         </caption>
         <thead>
           <tr>
-            <th scope="col">Gewohnheit</th>
+            <th scope="col">Routine</th>
             {/* Die heutige Spalte trägt zusätzlich zur Fläche ein Wort. */}
             {days.map((day) => (
               <th data-today={day === today} key={day} scope="col">

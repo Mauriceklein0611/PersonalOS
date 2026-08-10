@@ -99,10 +99,10 @@ export function HabitEditor({
           <Button
             form={formId}
             isLoading={isSaving}
-            loadingLabel="Gewohnheit wird gespeichert …"
+            loadingLabel="Routine wird gespeichert …"
             type="submit"
           >
-            {habit ? "Änderungen speichern" : "Gewohnheit anlegen"}
+            {habit ? "Änderungen speichern" : "Routine anlegen"}
           </Button>
         </>
       }
@@ -113,7 +113,7 @@ export function HabitEditor({
       }
       onClose={onClose}
       open
-      title={habit ? "Gewohnheit bearbeiten" : "Gewohnheit anlegen"}
+      title={habit ? "Routine bearbeiten" : "Routine anlegen"}
     >
       <form
         className="habit-editor-form"
@@ -139,7 +139,7 @@ export function HabitEditor({
         />
         {/* Verknüpfung ist opt-in und erhöht die Pflichtfelder nicht. */}
         <Select
-          hint="Optional. Eine Gewohnheit funktioniert auch ohne Ziel."
+          hint="Optional. Eine Routine funktioniert auch ohne Ziel."
           label="Ziel"
           onChange={(event) => update("goalId", event.currentTarget.value)}
           value={values.goalId}

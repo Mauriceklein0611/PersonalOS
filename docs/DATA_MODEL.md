@@ -118,7 +118,7 @@ Invarianten:
 - `skipped` wird nicht automatisch als erfüllt gewertet.
 - Streaks werden aus Schedule und Entries berechnet, nicht dauerhaft gespeichert.
 - `endDate` liegt nicht vor `startDate`; Wochentage sind eindeutige ISO-Wochentage von Montag (`1`) bis Sonntag (`7`).
-- Bei `timesPerWeek` ist jeder aktive Tag für einen Check-in geeignet. Die Gewohnheit bleibt innerhalb der ISO-Woche fällig, bis die Zahl der `done`-Entries erreicht ist.
+- Bei `timesPerWeek` ist jeder aktive Tag für einen Check-in geeignet. Die Routine bleibt innerhalb der ISO-Woche fällig, bis die Zahl der `done`-Entries erreicht ist.
 - „Wieder offen“ entfernt den vorhandenen Tages-Entry; ein dritter persistierter Status entsteht nicht.
 - Erfüllungsquoten zählen `done` gegen die zählenden Einheiten — geplante Einheiten ohne die übersprungenen — und weisen `skipped` und die geplanten Einheiten weiterhin separat aus. Tages-Streaks folgen den geplanten Tagen, `timesPerWeek` verwendet Wochen-Streaks.
 - Ein `skipped`-Eintrag ist neutral: Er bricht keine Serie und verlängert keine. Ein geplanter Tag ohne Eintrag bricht die Serie und bleibt im Nenner. Siehe [ADR 0012](decisions/0012-skip-keeps-the-streak.md).
@@ -184,7 +184,7 @@ Invarianten:
 - Endzustände werden nicht direkt getauscht: Von `completed` oder `cancelled` führt der Weg zuerst zurück nach `active`.
 - Archivieren verändert weder Titel, Status noch Meilensteine eines Ziels.
 - `goalId` in Task und Habit ist optional und opt-in. Beide funktionieren vollständig ohne Zielbezug; die schnelle Erfassung bekommt kein zusätzliches Pflichtfeld.
-- Ein archiviertes Ziel behält seine Verknüpfungen. Erst das endgültige Löschen löst sie auf: In einer Transaktion wird `goalId` bei Tasks und Habits entfernt, die Meilensteine werden gelöscht und danach das Ziel. Aufgaben und Gewohnheiten selbst bleiben erhalten.
+- Ein archiviertes Ziel behält seine Verknüpfungen. Erst das endgültige Löschen löst sie auf: In einer Transaktion wird `goalId` bei Tasks und Habits entfernt, die Meilensteine werden gelöscht und danach das Ziel. Aufgaben und Routinen selbst bleiben erhalten.
 - Beim Import wird jede `goalId` gegen die enthaltenen Ziele geprüft, bevor geschrieben wird. Eine unbekannte Referenz bricht die Wiederherstellung ab.
 
 ## Finance

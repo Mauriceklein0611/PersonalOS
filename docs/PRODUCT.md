@@ -178,7 +178,7 @@ Der Life Score ist eine optionale, persönliche Orientierung – keine objektive
 ### Startbereiche
 
 - Fokus: abgeschlossene priorisierte Aufgaben;
-- Gewohnheiten: Erfüllungsquote fälliger Habits;
+- Routinen: Erfüllungsquote fälliger Habits;
 - Wohlbefinden: freiwillige Journalwerte, geglättet über mehrere Tage;
 - Ziele: Fortschritt aktiver Meilensteine;
 - Finanzen: Budgettreue und Sparfortschritt, niemals Vermögenshöhe.

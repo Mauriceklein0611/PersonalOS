@@ -17,7 +17,7 @@ type HabitProgressCardProps = {
   entries: readonly HabitEntry[];
   /**
    * Der Titel des verknüpften Ziels, aufgelöst über den Link-Service der
-   * Zieldomain. Die Gewohnheitsdomain liest die Ziele nicht selbst
+   * Zieldomain. Die Routinendomain liest die Ziele nicht selbst
    * (`AGENTS.md` §3).
    */
   goalTitle?: string;

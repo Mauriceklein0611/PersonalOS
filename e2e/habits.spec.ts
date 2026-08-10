@@ -4,11 +4,11 @@ test("creates a habit, checks it in and reflects it in the week view", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/gewohnheiten");
+  await page.goto("/routinen");
 
-  await page.getByRole("button", { name: "Neue Gewohnheit" }).click();
+  await page.getByRole("button", { name: "Neue Routine" }).click();
   await page.getByRole("textbox", { name: /Name/ }).fill("Abendspaziergang");
-  // Genau der heutige Wochentag: Damit ist die Gewohnheit heute fällig, und
+  // Genau der heutige Wochentag: Damit ist die Routine heute fällig, und
   // die übrigen sechs Tage der Woche sind es nicht — an jedem Wochentag.
   // Mit dem täglichen Vorgaberhythmus wären die nicht fälligen Tage nur die
   // vor dem Startdatum, an einem Montag also keiner (Issue #102).
@@ -16,7 +16,7 @@ test("creates a habit, checks it in and reflects it in the week view", async ({
     .getByRole("combobox", { name: /Rhythmus/ })
     .selectOption("weekdays");
   await page.getByRole("checkbox", { name: weekdayName(new Date()) }).check();
-  await page.getByRole("button", { name: "Gewohnheit anlegen" }).click();
+  await page.getByRole("button", { name: "Routine anlegen" }).click();
 
   const card = page.getByRole("article", { name: "Abendspaziergang" });
   await expect(card).toBeVisible();
@@ -71,7 +71,7 @@ test("creates a habit, checks it in and reflects it in the week view", async ({
   ).toBe(false);
 });
 
-/** Der deutsche Wochentagsname, wie ihn der Gewohnheits-Editor beschriftet. */
+/** Der deutsche Wochentagsname, wie ihn der Routinen-Editor beschriftet. */
 function weekdayName(date: Date): string {
   return new Intl.DateTimeFormat("de-DE", { weekday: "long" }).format(date);
 }

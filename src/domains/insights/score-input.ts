@@ -44,7 +44,7 @@ export const personalOsScoreSources: ScoreSources = {
 };
 
 export type ScoreInputRanges = {
-  /** Sieben-Tage-Fenster für Fokus, Gewohnheiten, Wohlbefinden und Ziele. */
+  /** Sieben-Tage-Fenster für Fokus, Routinen, Wohlbefinden und Ziele. */
   period: ScorePeriod;
   /** Kalendermonat der Finanzkomponente, als `YYYY-MM`. */
   month: string;
@@ -102,7 +102,7 @@ async function collect<TValue>(
 
 /**
  * Die Regeln brauchen ein längeres Fenster als der Score: sechs Wochen für
- * Gewohnheiten, 28 Tage für Aufgaben, den laufenden Monat für Budgets.
+ * Routinen, 28 Tage für Aufgaben, den laufenden Monat für Budgets.
  * Journaleinträge werden bewusst nicht gelesen — keine Regel wertet sie aus.
  */
 export async function readInsightInput(

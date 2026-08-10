@@ -1,8 +1,10 @@
-import { Link, Outlet, useNavigation } from "react-router";
+import { Link, NavLink, Outlet, useNavigation } from "react-router";
 
 import { OfflineIndicator } from "../../components/feedback/OfflineIndicator";
+import { NavigationIcon } from "../navigation/icons";
 import { DesktopNavigation } from "../navigation/DesktopNavigation";
 import { MobileNavigation } from "../navigation/MobileNavigation";
+import { secondaryNavigationItems } from "../navigation/navigation-items";
 import { ThemeSwitcher } from "../theme/ThemeSwitcher";
 
 export function AppLayout() {
@@ -27,6 +29,27 @@ export function AppLayout() {
           </Link>
           <div className="top-bar-actions">
             <OfflineIndicator />
+            {/*
+              Auswertung und Einstellungen: zwei Nebenbereiche, die wöchentlich
+              gebraucht werden. Sie stehen hier statt im Band, damit dort die
+              vier täglichen Bereiche allein bleiben. Auf Desktop trägt sie
+              zusätzlich die Seitenleiste.
+            */}
+            <nav aria-label="Nebenbereiche" className="top-bar-nav">
+              {secondaryNavigationItems.map((item) => (
+                <NavLink
+                  className={({ isActive }) =>
+                    `top-bar-nav-link${isActive ? " navigation-link-active" : ""}`
+                  }
+                  key={item.to}
+                  title={item.label}
+                  to={item.to}
+                >
+                  <NavigationIcon name={item.icon} />
+                  <span className="visually-hidden">{item.label}</span>
+                </NavLink>
+              ))}
+            </nav>
             <ThemeSwitcher />
           </div>
         </header>

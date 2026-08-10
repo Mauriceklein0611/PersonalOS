@@ -40,19 +40,30 @@ test("keeps every shell route reachable at 320 pixels", async ({ page }) => {
     name: "Hauptnavigation mobil",
   });
 
-  await mobileNavigation.getByRole("link", { name: "Gewohnheiten" }).click();
+  await mobileNavigation.getByRole("link", { name: "Routinen" }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: "Gewohnheiten" }),
+    page.getByRole("heading", { level: 1, name: "Routinen" }),
   ).toBeVisible();
 
-  await mobileNavigation.getByRole("button", { name: "Mehr" }).click();
-  await mobileNavigation.getByRole("link", { name: "Ziele" }).click();
+  // Ziele liegen als Reiter im Bereich Planen, nicht mehr hinter einem Menü.
+  await mobileNavigation.getByRole("link", { name: "Planen" }).click();
+  await page
+    .getByRole("navigation", { name: "Planen: Unterbereiche" })
+    .getByRole("link", { name: "Ziele" })
+    .click();
   await expect(
     page.getByRole("heading", { level: 1, name: "Ziele" }),
   ).toBeVisible();
 
-  await mobileNavigation.getByRole("button", { name: "Mehr" }).click();
-  await mobileNavigation.getByRole("link", { name: "Wochenrückblick" }).click();
+  // Der Wochenrückblick gehört zur Auswertung und hängt in der Kopfzeile.
+  await page
+    .getByRole("navigation", { name: "Nebenbereiche" })
+    .getByRole("link", { name: "Auswertung" })
+    .click();
+  await page
+    .getByRole("navigation", { name: "Auswertung: Unterbereiche" })
+    .getByRole("link", { name: "Wochenrückblick" })
+    .click();
   await expect(
     page.getByRole("heading", { level: 1, name: "Wochenrückblick" }),
   ).toBeVisible();
@@ -65,7 +76,7 @@ test("keeps every shell route reachable at 320 pixels", async ({ page }) => {
   expect(hasHorizontalOverflow).toBe(false);
 });
 
-test("closes the overflow menu on a tap outside and keeps 44 pixel targets", async ({
+test("keeps 44 pixel targets across the band and the header", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
@@ -74,36 +85,19 @@ test("closes the overflow menu on a tap outside and keeps 44 pixel targets", asy
   const mobileNavigation = page.getByRole("navigation", {
     name: "Hauptnavigation mobil",
   });
-  const moreButton = mobileNavigation.getByRole("button", { name: "Mehr" });
-
-  await moreButton.click();
-  await expect(
-    mobileNavigation.getByRole("link", { name: "Ziele" }),
-  ).toBeVisible();
-  // Beim Öffnen steht der Fokus auf dem ersten Eintrag des Menüs.
-  await expect(
-    mobileNavigation.getByRole("link", { name: "Ziele" }),
-  ).toBeFocused();
-
-  // Ein Tap auf den Inhalt schließt das Menü, ohne den Bereich zu wechseln.
-  await page.getByRole("heading", { level: 1, name: "Heute" }).click();
-  await expect(
-    mobileNavigation.getByRole("link", { name: "Ziele" }),
-  ).toBeHidden();
-  await expect(page).toHaveURL(/\/$/);
-
-  // Escape gibt den Fokus an den Auslöser zurück.
-  await moreButton.click();
-  await page.keyboard.press("Escape");
-  await expect(moreButton).toBeFocused();
+  const secondaryNavigation = page.getByRole("navigation", {
+    name: "Nebenbereiche",
+  });
 
   // Jedes Bedienelement der Kopfzeile und des Bandes hält die eigene
   // Mindestgröße von 44 CSS-Pixeln.
   const controls = [
     page.getByRole("link", { name: "PersonalOS – Heute" }),
     page.getByLabel("Farbschema"),
-    mobileNavigation.getByRole("link", { name: "Gewohnheiten" }),
-    moreButton,
+    mobileNavigation.getByRole("link", { name: "Routinen" }),
+    mobileNavigation.getByRole("link", { name: "Geld" }),
+    secondaryNavigation.getByRole("link", { name: "Auswertung" }),
+    secondaryNavigation.getByRole("link", { name: "Einstellungen" }),
   ];
   for (const control of controls) {
     const box = await control.boundingBox();

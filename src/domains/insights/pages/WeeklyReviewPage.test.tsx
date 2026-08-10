@@ -197,7 +197,7 @@ describe("WeeklyReviewPage – Datengrundlage der Woche", () => {
 
     expect(
       screen.getByText(
-        "Zeitraum: 03.08.2026 bis 09.08.2026 · Grundlage: 2 Gewohnheiten, 13 zählende Einheiten. 1 von 14 geplanten Einheiten übersprungen; sie zählen nicht mit.",
+        "Zeitraum: 03.08.2026 bis 09.08.2026 · Grundlage: 2 Routinen, 13 zählende Einheiten. 1 von 14 geplanten Einheiten übersprungen; sie zählen nicht mit.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("5 von 13")).toBeInTheDocument();

@@ -34,7 +34,7 @@ export function FinancePage(props: FinancePageProps) {
       <header className="page-header">
         <div className="page-header-copy">
           <p className="page-eyebrow">Überblick</p>
-          <h1 id="page-title">Finanzen</h1>
+          <h1 id="page-title">Geld</h1>
           <p className="page-description">
             Erfasse Einnahmen und Ausgaben manuell und vollständig lokal. Diese
             Ansicht ist keine Buchhaltung und keine Finanzberatung.

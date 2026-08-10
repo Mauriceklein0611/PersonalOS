@@ -269,7 +269,7 @@ export function formatMinutes(minutes: number): string {
   return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
 }
 
-/** Restbudget des Monats über alle gesetzten Budgets, als fertiger Text. */
+/** Budget übrig über alle gesetzten Budgets, als fertiger Text. */
 export function describeRemainingBudget(
   input: Pick<TodaySignalInput, "budgets" | "transactions">,
   context: TodayContext,
@@ -294,7 +294,7 @@ export function describeRemainingBudget(
   );
 
   return {
-    context: `Grundlage: ${relevant.length} ${relevant.length === 1 ? "gesetztes Budget" : "gesetzte Budgets"} über ${formatMoney(createMoney(limitMinor, currency))}`,
+    context: `Grundlage: ${relevant.length} ${relevant.length === 1 ? "gesetztes Budget" : "gesetzte Budgets"} über ${formatMoney(createMoney(limitMinor, currency))} in diesem Monat`,
     // Eine Überschreitung ist ein gültiger Zustand und wird als negativer
     // Betrag benannt, nicht auf null gekappt.
     value: formatSignedMinorUnits(remainingMinor, currency),

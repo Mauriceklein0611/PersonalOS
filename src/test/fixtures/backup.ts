@@ -37,7 +37,7 @@ export const backupDataFixture: BackupData = {
   habits: [
     {
       ...meta("000000000102"),
-      name: "Synthetische Gewohnheit",
+      name: "Synthetische Routine",
       schedule: { kind: "daily" },
       startDate: "2026-01-01",
       goalId,

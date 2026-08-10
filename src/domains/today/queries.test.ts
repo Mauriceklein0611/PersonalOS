@@ -281,7 +281,7 @@ function createHabit(id: string, overrides: Partial<Habit> = {}): Habit {
     id,
     createdAt: baseInstant,
     updatedAt: baseInstant,
-    name: `Gewohnheit ${id}`,
+    name: `Routine ${id}`,
     schedule: { kind: "daily" },
     startDate: "2026-08-01",
     ...overrides,

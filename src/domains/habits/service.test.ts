@@ -67,7 +67,7 @@ describe("habit service", () => {
   it("archives only the habit and preserves historical entries", async () => {
     const service = createService();
     const habit = await service.create({
-      name: "Synthetische Gewohnheit",
+      name: "Synthetische Routine",
       schedule: { kind: "daily" },
       startDate: "2026-08-03",
     });

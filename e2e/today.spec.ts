@@ -22,10 +22,10 @@ test("walks through a complete synthetic day on the dashboard", async ({
     page.getByText("Wichtigstes für heute: Rechnung prüfen"),
   ).toBeVisible();
 
-  await page.goto("/gewohnheiten");
-  await page.getByRole("button", { name: "Neue Gewohnheit" }).click();
+  await page.goto("/routinen");
+  await page.getByRole("button", { name: "Neue Routine" }).click();
   await page.getByRole("textbox", { name: /Name/ }).fill("Abendspaziergang");
-  await page.getByRole("button", { name: "Gewohnheit anlegen" }).click();
+  await page.getByRole("button", { name: "Routine anlegen" }).click();
   await expect(
     page.getByRole("article", { name: "Abendspaziergang" }),
   ).toBeVisible();
@@ -38,7 +38,7 @@ test("walks through a complete synthetic day on the dashboard", async ({
     .getByRole("button", { name: "„Abendspaziergang“ heute erledigen" })
     .click();
   await expect(
-    page.getByText("Alle 1 fälligen Gewohnheiten sind für heute erfasst."),
+    page.getByText("Alle 1 fälligen Routinen sind für heute erfasst."),
   ).toBeVisible();
 
   await page
@@ -46,7 +46,7 @@ test("walks through a complete synthetic day on the dashboard", async ({
     .click();
   await expect(page.getByText("Keine offene Aufgabe")).toBeVisible();
 
-  await page.goto("/journal");
+  await page.goto("/routinen/journal");
   await page
     .getByRole("group", { name: "Stimmung" })
     .getByRole("radio", { name: "4 von 5" })
@@ -112,7 +112,7 @@ test("books an expense from the dashboard in a few steps", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
 
   // Die Startkategorien entstehen beim ersten Besuch des Finanzbereichs.
-  await page.goto("/finanzen");
+  await page.goto("/geld");
   await expect(
     page.getByRole("heading", { level: 2, name: "Buchung erfassen" }),
   ).toBeVisible();
@@ -128,7 +128,7 @@ test("books an expense from the dashboard in a few steps", async ({ page }) => {
   ).toBeVisible();
 
   // Dieselbe Buchung steht im Finanzbereich, mit heutigem Datum.
-  await page.goto("/finanzen");
+  await page.goto("/geld");
   const expenseTile = page
     .locator(".ui-metric-tile")
     .filter({ has: page.getByText("Ausgaben", { exact: true }) });
@@ -145,7 +145,7 @@ test("books an expense from the dashboard in a few steps", async ({ page }) => {
 
 test("puts capture before evaluation on the finance page", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/finanzen");
+  await page.goto("/geld");
 
   const captureBox = await page
     .getByRole("heading", { level: 2, name: "Buchung erfassen" })
@@ -186,7 +186,7 @@ test("loads the dashboard without the chart library", async ({ page }) => {
    * Leere und wäre immer grün. Die Buchung ist nötig, weil ein Diagramm ohne
    * Datengrundlage im Leerzustand bleibt und gar nicht erst lädt.
    */
-  await page.goto("/finanzen");
+  await page.goto("/geld");
   await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("42,00");
   await page
     .getByRole("combobox", { name: /Kategorie der Buchung/ })

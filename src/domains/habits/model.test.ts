@@ -11,7 +11,7 @@ describe("habit schemas", () => {
     ]) {
       expect(
         habitDetailsSchema.safeParse({
-          name: "Synthetische Gewohnheit",
+          name: "Synthetische Routine",
           schedule,
           startDate: "2026-08-03",
         }).success,
@@ -22,7 +22,7 @@ describe("habit schemas", () => {
   it("rejects duplicate weekdays and reversed date ranges", () => {
     expect(
       habitDetailsSchema.safeParse({
-        name: "Synthetische Gewohnheit",
+        name: "Synthetische Routine",
         schedule: { kind: "weekdays", days: [1, 1] },
         startDate: "2026-08-03",
       }).success,
@@ -30,7 +30,7 @@ describe("habit schemas", () => {
     expect(
       habitDetailsSchema.safeParse({
         endDate: "2026-08-02",
-        name: "Synthetische Gewohnheit",
+        name: "Synthetische Routine",
         schedule: { kind: "daily" },
         startDate: "2026-08-03",
       }).success,

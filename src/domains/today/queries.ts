@@ -53,14 +53,14 @@ export type TodayCapacity = {
 };
 
 /**
- * Der Tagesfortschritt über Aufgaben **und** Gewohnheiten.
+ * Der Tagesfortschritt über Aufgaben **und** Routinen.
  *
  * Der Ring ist das prominenteste Element der Seite. Solange er allein die
- * Gewohnheiten maß, zeigte er einen Bruchteil des Tages und blieb an einem
- * Tag ohne fällige Gewohnheit selbst dann leer, wenn alle Aufgaben erledigt
+ * Routinen maß, zeigte er einen Bruchteil des Tages und blieb an einem
+ * Tag ohne fällige Routine selbst dann leer, wenn alle Aufgaben erledigt
  * waren.
  *
- * `planned` ist null, wenn für heute weder eine Aufgabe noch eine Gewohnheit
+ * `planned` ist null, wenn für heute weder eine Aufgabe noch eine Routine
  * ansteht. Dann gibt es keinen Anteil — und nicht etwa null Prozent.
  */
 export type TodayProgress = {
@@ -168,7 +168,7 @@ export function buildTodayOverview(
 
 /**
  * Erledigte von geplanten Einheiten. Eine Einheit ist eine für heute geplante
- * Aufgabe oder eine heute fällige Gewohnheit; beide zählen gleich, weil beide
+ * Aufgabe oder eine heute fällige Routine; beide zählen gleich, weil beide
  * eine Handlung des Tages sind.
  *
  * Eine heute abgeschlossene Aufgabe steht nicht mehr in `openTasks`. Sie

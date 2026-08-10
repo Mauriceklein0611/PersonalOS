@@ -185,7 +185,7 @@ export function InsightsPage({
       <header className="page-header">
         <div className="page-header-copy">
           <p className="page-eyebrow">Nachvollziehbar</p>
-          <h1 id="page-title">Insights</h1>
+          <h1 id="page-title">Auswertung</h1>
           <p className="page-description">
             Deine Woche aus deinen eigenen Einträgen – keine Bewertung deines
             Lebens und kein Vergleich mit anderen. Der Life Score ist eine
@@ -215,14 +215,14 @@ export function InsightsPage({
           >
             <h2 id="insights-weekly-review-title">Wochenrückblick</h2>
             <p className="insights-note">
-              Aufgaben-, Gewohnheits-, Journal-, Ziel- und Ausgabenzahlen dieser
+              Aufgaben-, Routinen-, Journal-, Ziel- und Ausgabenzahlen dieser
               Woche mit Vorwochenvergleich stehen im eigenen Wochenrückblick,
               nicht auf dieser Seite.
             </p>
             <div className="insights-weekly-review-actions">
               <Link
                 className="ui-button ui-button-secondary"
-                to="/wochenrueckblick"
+                to="/auswertung/wochenrueckblick"
               >
                 Wochenrückblick öffnen
               </Link>

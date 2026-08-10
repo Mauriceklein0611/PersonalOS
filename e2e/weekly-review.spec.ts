@@ -4,7 +4,7 @@ test("shows the week with its basis and an explicit previous-week comparison", a
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
-  await page.goto("/wochenrueckblick");
+  await page.goto("/auswertung/wochenrueckblick");
 
   await expect(
     page.getByRole("heading", { level: 1, name: "Wochenrückblick" }),
@@ -29,7 +29,7 @@ test("shows the week with its basis and an explicit previous-week comparison", a
 
   // Ohne einen einzigen Eintrag fehlt beiden Wochen die Grundlage — der
   // Vergleich sagt das ausdrücklich, statt eine Lücke zu zeigen. Der Text
-  // steht mehrfach (Aufgaben, Gewohnheiten, Ziele, Ausgaben); Journal hat
+  // steht mehrfach (Aufgaben, Routinen, Ziele, Ausgaben); Journal hat
   // dank der sieben Kalendertage immer eine Grundlage.
   await expect(
     page
@@ -57,7 +57,7 @@ test("shows the week with its basis and an explicit previous-week comparison", a
     page.getByRole("button", { name: "„Wochenrückblick E2E“ abschließen" }),
   ).toHaveCount(0);
 
-  await page.goto("/wochenrueckblick");
+  await page.goto("/auswertung/wochenrueckblick");
   await expect(
     page.getByRole("heading", { level: 3, name: "Aufgaben" }),
   ).toBeVisible();
