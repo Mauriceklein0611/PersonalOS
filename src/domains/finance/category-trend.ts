@@ -106,8 +106,14 @@ export function describeCategoryTrend(
   const first = withBasis[0]!;
   const last = withBasis[withBasis.length - 1]!;
   const difference = last.amountMinor - first.amountMinor;
+  // Der Vergleichspartikel gehört zur Richtung: „höher als“, aber „gleich
+  // hoch wie“.
   const direction =
-    difference === 0 ? "gleich hoch" : difference > 0 ? "höher" : "niedriger";
+    difference === 0
+      ? "gleich hoch wie"
+      : difference > 0
+        ? "höher als"
+        : "niedriger als";
 
   const gaps = trend.points.length - withBasis.length;
   const gapNote =
@@ -115,5 +121,5 @@ export function describeCategoryTrend(
       ? ""
       : ` ${gaps} ${gaps === 1 ? "Monat hat" : "Monate haben"} keine Grundlage und ${gaps === 1 ? "fehlt" : "fehlen"} in der Linie.`;
 
-  return `${formatMonth(last.month)}: ${formatMoney(last.amountMinor)} — ${direction} als ${formatMonth(first.month)} mit ${formatMoney(first.amountMinor)}. Grundlage: ${withBasis.length} Monate mit Buchungen.${gapNote}`;
+  return `${formatMonth(last.month)}: ${formatMoney(last.amountMinor)} — ${direction} ${formatMonth(first.month)} mit ${formatMoney(first.amountMinor)}. Grundlage: ${withBasis.length} Monate mit Buchungen.${gapNote}`;
 }

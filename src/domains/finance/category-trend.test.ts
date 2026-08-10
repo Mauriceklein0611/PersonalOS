@@ -161,6 +161,7 @@ describe("describeCategoryTrend", () => {
       month,
     );
 
-    expect(text).toContain("gleich hoch");
+    // „gleich hoch als“ wäre falsches Deutsch.
+    expect(text).toContain("gleich hoch wie 2026-07");
   });
 });
