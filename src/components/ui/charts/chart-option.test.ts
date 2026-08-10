@@ -7,6 +7,8 @@ import type { ChartTheme } from "./chart-theme";
 type Gradient = { colorStops: Array<{ color: string; offset: number }> };
 
 type SeriesOption = {
+  data:
+    Array<{ symbolSize: number; value: number | null }> | Array<number | null>;
   itemStyle: { color: Gradient | string };
   lineStyle: {
     color: Gradient | string;
@@ -128,6 +130,47 @@ describe("buildChartOption", () => {
   // Minor Units statt Beträgen.
   it("formats the value axis with the same formatter", () => {
     expect(build().yAxis.axisLabel?.formatter?.(42)).toBe("42 %");
+  });
+
+  /*
+   * Ein Wert zwischen zwei Lücken hat keinen Nachbarn, zu dem eine Strecke
+   * führen könnte. Ohne eigenen Punkt fehlte er in der Linie vollständig.
+   */
+  it("draws a point for a value between two gaps", () => {
+    const option = build({
+      categories: ["Mo", "Di", "Mi", "Do"],
+      series: [{ id: "a", label: "A", tone: 1, values: [1, null, 3, null] }],
+    });
+
+    // Auch der erste Wert steht allein: Der Rand zählt wie eine Lücke.
+    expect(option.series[0]!.data).toEqual([
+      { symbolSize: 8, value: 1 },
+      { symbolSize: 0, value: null },
+      { symbolSize: 8, value: 3 },
+      { symbolSize: 0, value: null },
+    ]);
+  });
+
+  it("leaves a value that still has a neighbour without a point", () => {
+    const option = build({
+      categories: ["Mo", "Di", "Mi", "Do"],
+      series: [{ id: "a", label: "A", tone: 1, values: [1, 2, null, 4] }],
+    });
+
+    expect(option.series[0]!.data).toEqual([
+      { symbolSize: 0, value: 1 },
+      { symbolSize: 0, value: 2 },
+      { symbolSize: 0, value: null },
+      { symbolSize: 8, value: 4 },
+    ]);
+  });
+
+  it("leaves a gapless line without any points", () => {
+    const sizes = (
+      build().series[0]!.data as Array<{ symbolSize: number }>
+    ).map((point) => point.symbolSize);
+
+    expect(sizes).toEqual([0, 0, 0]);
   });
 
   it("switches the animation off for reduced motion", () => {

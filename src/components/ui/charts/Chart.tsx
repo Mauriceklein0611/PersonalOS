@@ -26,6 +26,11 @@ export type ChartProps = {
   className?: string;
   emptyMessage?: string;
   error?: string;
+  /**
+   * Muss jede reelle Zahl vertragen: Die Achsenbeschriftung bekommt berechnete
+   * Teilstriche, die zwischen zwei Datenwerten liegen oder unter null fallen
+   * können. Ein Formatter, der seine Eingabe prüft, wirft hier sonst.
+   */
   formatValue?: (value: number) => string;
   /** Balken liegend, für Ranglisten mit langen Beschriftungen. */
   horizontal?: boolean;
