@@ -26,6 +26,7 @@ test("links a task to a goal and keeps it when the goal is deleted", async ({
     page.getByRole("heading", { level: 2, name: "Synthetische Aufgabe" }),
   ).toBeVisible();
 
+  await page.getByLabel(/^Weitere Aktionen für/).click();
   await page.getByRole("button", { name: /bearbeiten$/ }).click();
   const goalSelect = page.getByRole("combobox", { exact: true, name: "Ziel" });
   await expect(goalSelect).toBeVisible();

@@ -169,7 +169,10 @@ Der Grundgedanke in einem Satz: **Glas ist der Rahmen, das dichte Panel ist der 
 
 - `.ui-dense-row` ist eine Zeile ohne eigene Fläche. Getrennt wird über eine Haarlinie zwischen den Einträgen, nicht über Abstand, Rahmen und Radius je Zeile.
 - Eine Zeile ist mindestens `--dense-row-height` (44 px) hoch. Dichte spart Fläche, nicht Trefferfläche.
-- Genau eine primäre Aktion je Zeile ist sichtbar hervorgehoben. Weitere Aktionen bleiben erreichbar, aber ruhig; vier gleich schwere Aktionen sind keine Auswahl, sondern eine Suchaufgabe.
+- Genau eine primäre Aktion je Zeile ist **sichtbar**. Weitere Aktionen liegen hinter einer Ausklappfläche; vier gleich schwere Aktionen sind keine Auswahl, sondern eine Suchaufgabe.
+- Eine solche Ausklappfläche baut auf `<details>`/`<summary>`: Rolle, Tastaturbedienung und Umschalten bringt der Browser mit. Escape schließt sie zusätzlich, und nach einer Aktion kehrt der Fokus auf die Schaltfläche zurück — die Zeile darunter verschwindet mit der Aktion oft aus der Liste.
+- Der Inhalt einer geschlossenen Ausklappfläche wird **nicht gerendert**. Auf das Verbergen durch `<details>` allein ist kein Verlass, sobald der Inhalt absolut positioniert ist.
+- Jede Aktion nennt ihren Datensatz im eigenen zugänglichen Namen. Der Name der Ausklappfläche allein reicht nicht: Wer die Liste per Schaltfläche durchgeht, hört sonst dreimal „Bearbeiten“ ohne Bezug.
 - Die aktuelle Auswahl trägt `--dense-row-active`, einen Akzentbalken links **und** `aria-current`. Die Fläche allein trägt den Zustand nie.
 - Leere Platzhalterzeilen gibt es nicht. Eine Liste ohne Einträge zeigt ihren Leerzustand.
 
