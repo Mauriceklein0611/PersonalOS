@@ -7,6 +7,7 @@
    Raster über das Dokument statt in seinem eigenen Container zu scrollen. */
 .component-preview > *,
 .preview-grid > *,
+.preview-compare > *,
 .preview-stack > * {
   min-width: 0;
 }
@@ -139,6 +140,39 @@
   .preview-section {
     background: var(--glass-opaque);
     backdrop-filter: none;
+  }
+}
+
+/* Vorher/Nachher des Dichtevergleichs. Unter 52 rem stehen beide Spalten
+   untereinander, damit keine der beiden gestaucht wird. */
+.preview-compare {
+  display: grid;
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.preview-compare-column {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* Ein Hinweis nach einem Block braucht Abstand; `.preview-note` hat keinen. */
+.preview-compare + .preview-note,
+.preview-stack + .preview-note {
+  margin-top: var(--space-6);
+}
+
+.preview-compare-label {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+@media (min-width: 52rem) {
+  .preview-compare {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

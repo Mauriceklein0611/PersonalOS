@@ -37,6 +37,28 @@ const trackerDays = [
 
 const chartDays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
+/** Dieselben drei Datensätze in beiden Darstellungen des Vergleichs. */
+const denseRecords = [
+  {
+    id: "a",
+    meta: "Heute · Beispielprojekt",
+    steps: "2 von 3",
+    title: "Beispielaufgabe Wochenplanung",
+  },
+  {
+    id: "b",
+    meta: "Morgen · Beispielprojekt",
+    steps: "0 von 4",
+    title: "Beispielaufgabe Ablage sichten",
+  },
+  {
+    id: "c",
+    meta: "Freitag · Beispielprojekt",
+    steps: "1 von 2",
+    title: "Beispielaufgabe Rückmeldung schreiben",
+  },
+];
+
 const trackerRows: Array<{
   label: string;
   states: TrackerCellState[];
@@ -54,6 +76,7 @@ const trackerRows: Array<{
 export function Component() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewSearch, setPreviewSearch] = useState("");
+  const [selectedDenseId, setSelectedDenseId] = useState("b");
   const [showToast, setShowToast] = useState(true);
 
   return (
@@ -172,6 +195,69 @@ export function Component() {
           visual="＋"
         />
       </PreviewSection>
+
+      {/*
+        Quiet Density, Issue #117. Beide Spalten zeigen dieselben drei
+        erfundenen Datensätze; nur die Darstellung unterscheidet sich.
+      */}
+      <section className="preview-section">
+        <h2>Quiet Density</h2>
+        <p className="preview-note">
+          Links eine Glaskarte je Datensatz, rechts dieselben Angaben als Zeilen
+          in einem dichten Panel. Das Panel ist deckend und trägt keinen eigenen
+          Blur.
+        </p>
+        <div className="preview-compare">
+          <div className="preview-compare-column">
+            <span className="preview-compare-label">Vorher</span>
+            <div className="preview-stack">
+              {denseRecords.map((record) => (
+                <Card
+                  description={record.meta}
+                  key={record.id}
+                  title={record.title}
+                >
+                  <p>{record.steps} Schritten erledigt</p>
+                </Card>
+              ))}
+            </div>
+          </div>
+          <div className="preview-compare-column">
+            <span className="preview-compare-label">Nachher</span>
+            <div className="preview-stack">
+              <DenseRecordPanel
+                label="Dichte Aufgabenliste"
+                onSelect={setSelectedDenseId}
+                selectedId={selectedDenseId}
+              />
+            </div>
+          </div>
+        </div>
+
+        <p className="preview-note">
+          Fokus (simuliert): Der Ring liegt innerhalb der Zeile, damit ihn die
+          beschnittene Panelkante nicht abschneidet.
+        </p>
+        <div className="preview-stack preview-force-focus">
+          <DenseRecordPanel
+            label="Dichte Aufgabenliste, simulierter Fokus"
+            onSelect={setSelectedDenseId}
+            selectedId={selectedDenseId}
+          />
+        </div>
+
+        <p className="preview-note">
+          Ohne Blur und bei reduzierter Transparenz sieht dieselbe Fläche
+          unverändert aus — sie war nie durchscheinend.
+        </p>
+        <div className="preview-stack preview-force-opaque">
+          <DenseRecordPanel
+            label="Dichte Aufgabenliste ohne Blur"
+            onSelect={setSelectedDenseId}
+            selectedId={selectedDenseId}
+          />
+        </div>
+      </section>
 
       <section className="preview-section">
         <h2>Kennzahl-Tiles</h2>
@@ -463,6 +549,48 @@ export function Component() {
         </Dialog>
       </PreviewSection>
     </section>
+  );
+}
+
+/**
+ * Zeilen in einem Panel statt einer Karte je Datensatz. Die Auswahl trägt
+ * `aria-current`, einen Akzentbalken und bleibt damit nicht allein an der
+ * Fläche erkennbar.
+ */
+function DenseRecordPanel({
+  label,
+  onSelect,
+  selectedId,
+}: {
+  label: string;
+  onSelect: (id: string) => void;
+  selectedId: string;
+}) {
+  return (
+    <div className="ui-dense-panel">
+      <div className="ui-dense-row ui-dense-row-head">
+        <span className="ui-dense-row-main">Aufgabe</span>
+        <span className="ui-dense-numeric">Schritte</span>
+      </div>
+      <ul aria-label={label} className="ui-dense-list">
+        {denseRecords.map((record) => (
+          <li key={record.id}>
+            <button
+              aria-current={selectedId === record.id ? "true" : undefined}
+              className="ui-dense-row"
+              onClick={() => onSelect(record.id)}
+              type="button"
+            >
+              <span className="ui-dense-row-main">
+                <span className="ui-dense-row-title">{record.title}</span>
+                <span className="ui-dense-row-meta">{record.meta}</span>
+              </span>
+              <span className="ui-dense-numeric">{record.steps}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
