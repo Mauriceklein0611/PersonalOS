@@ -497,3 +497,49 @@ describe("FinancePage – Monatsschätzung", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("FinancePage – Ausgabenentwicklung", () => {
+  it("summarises the trend in words and shows the line on request", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    const category = await service.createCategory({
+      kind: "expense",
+      name: "Lebensmittel",
+    });
+    for (const [bookedOn, amountMinor] of [
+      ["2026-06-05", 10_000],
+      ["2026-08-05", 12_000],
+    ] as const) {
+      await service.createTransaction({
+        bookedOn,
+        categoryId: category.id,
+        kind: "expense",
+        money: { amountMinor, currency: "EUR" },
+      });
+    }
+    renderPage(service);
+
+    const section = (
+      await screen.findByRole("heading", {
+        level: 2,
+        name: "Ausgabenentwicklung",
+      })
+    ).closest("section") as HTMLElement;
+
+    // Die Zusammenfassung steht immer, auch ohne die Grafik.
+    expect(
+      within(section).getByText(/höher als Juni 2026/),
+    ).toBeInTheDocument();
+    // Zehn der zwölf Monate haben keine Buchung und sind Lücken, keine Nullen.
+    expect(
+      within(section).getByText(/10 Monate haben keine Grundlage/),
+    ).toBeInTheDocument();
+
+    await user.click(
+      within(section).getByRole("button", { name: "Linie anzeigen" }),
+    );
+    expect(
+      within(section).getByRole("button", { name: "Linie ausblenden" }),
+    ).toBeInTheDocument();
+  });
+});

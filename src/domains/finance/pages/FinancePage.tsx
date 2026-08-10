@@ -5,6 +5,7 @@ import type { FinanceService } from "../service";
 import "./finance-page.css";
 import { BudgetSection } from "./BudgetSection";
 import { CategorySection } from "./CategorySection";
+import { CategoryTrendSection } from "./CategoryTrendSection";
 import { ForecastSection } from "./ForecastSection";
 import { formatMonth } from "./format";
 import { MonthOverview } from "./MonthOverview";
@@ -87,6 +88,13 @@ export function FinancePage(props: FinancePageProps) {
             onNextMonth={() => page.shiftBudgetMonth(1)}
             onPreviousMonth={() => page.shiftBudgetMonth(-1)}
             overview={page.monthOverview.overview}
+          />
+
+          <CategoryTrendSection
+            categories={page.categories}
+            currency={page.currency}
+            month={page.budgetMonth}
+            transactions={page.transactions}
           />
 
           <TransactionList
