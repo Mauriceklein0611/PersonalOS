@@ -1,5 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Chart } from "./Chart";
 import { readChartTheme, withAlpha } from "./chart-theme";
@@ -114,6 +114,53 @@ describe("Chart", () => {
       screen.getByText("Der Verlauf konnte nicht gezeichnet werden."),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("chart-plot")).not.toBeInTheDocument();
+  });
+
+  /*
+   * Der Fall aus #107: Ein `formatValue`, das an einem berechneten
+   * Achsen-Teilstrich wirft, stieg bis zur Routengrenze auf und ersetzte die
+   * ganze Seite. Das Diagramm ist eine Darstellung — sein Ausfall darf die
+   * Ansicht nicht mitnehmen.
+   */
+  it("keeps the figure standing when the plot itself fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    render(
+      <Chart
+        categories={days}
+        formatValue={(value) => {
+          // Wie der Formatter vor #108: die erfassten Werte kann er, den
+          // berechneten Teilstrich dazwischen nicht.
+          if (!Number.isInteger(value)) {
+            throw new RangeError("Diesen Wert kann ich nicht beschriften.");
+          }
+          return String(value);
+        }}
+        period="1. bis 3. August"
+        series={[{ id: "a", label: "A", tone: 1, values: [1, 2, 3] }]}
+        source="Grundlage: erfundene Beispieldaten"
+        title="Wochenverlauf"
+      />,
+    );
+
+    expect(
+      await screen.findByText(/Das Diagramm konnte nicht gezeichnet werden/),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("chart-plot")).not.toBeInTheDocument();
+
+    // Alles außer der Grafik bleibt stehen.
+    expect(screen.getByText("Wochenverlauf")).toBeInTheDocument();
+    expect(screen.getByText("1. bis 3. August")).toBeInTheDocument();
+    expect(
+      screen.getByText("Grundlage: erfundene Beispieldaten"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("table", { name: "Wochenverlauf: Werte als Tabelle" }),
+    ).toBeInTheDocument();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 });
 

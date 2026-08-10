@@ -264,3 +264,66 @@ test("tracks a savings goal only through its contributions", async ({
   );
   expect(hasHorizontalOverflow).toBe(false);
 });
+
+/*
+ * #107: Zwei gleichzeitig gezeichnete Diagramme galten als Ursache dafür, dass
+ * die Finanzseite unbedienbar wurde. Sie waren es nicht — ein `formatValue`,
+ * das an einem berechneten Achsen-Teilstrich warf, riss die ganze Route in die
+ * Fehlergrenze, und der Test klickte auf eine Seite, die gerade verschwand.
+ *
+ * Der Test hält beides fest: Zwei Zeichenflächen kommen nebeneinander an, und
+ * die Seite bleibt danach bedienbar.
+ */
+test("stays operable while two charts are drawn at once", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/finanzen");
+
+  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("250,00");
+  await page
+    .getByRole("combobox", { name: /Kategorie der Buchung/ })
+    .selectOption({ label: "Lebensmittel" });
+  await page.getByRole("button", { name: "Buchung speichern" }).click();
+  await expect(page.getByText("Die Buchung wurde gespeichert.")).toBeVisible();
+
+  // Erst die Monatsübersicht allein, dann die Ausgabenlinie dazu.
+  const plots = page.locator(".ui-chart-plot svg");
+  await expect(plots).toHaveCount(1);
+  await page.getByRole("button", { name: "Linie anzeigen" }).click();
+  await expect(plots).toHaveCount(2);
+
+  // Keine Fehlergrenze: Die Ansicht steht noch, samt beider Wertetabellen.
+  await expect(page.getByText("Unerwarteter Darstellungsfehler")).toHaveCount(
+    0,
+  );
+  await expect(page.getByText(/konnte nicht gezeichnet werden/)).toHaveCount(0);
+  await expect(
+    page.getByRole("table", { name: /Werte als Tabelle/ }),
+  ).toHaveCount(2);
+
+  // Bedienbar heißt: Ein Klick kommt an, während beide Diagramme stehen.
+  await page
+    .getByRole("textbox", { name: /Name des Sparziels/ })
+    .fill("Synthetische Rücklage");
+  await page
+    .getByRole("textbox", { name: /Zielbetrag in Euro/ })
+    .fill("500,00");
+  await page.getByRole("button", { name: "Sparziel anlegen" }).click();
+  await expect(page.getByText("Das Sparziel wurde angelegt.")).toBeVisible();
+  await page
+    .getByRole("button", {
+      name: "Verlauf von „Synthetische Rücklage“ anzeigen",
+    })
+    .click();
+  await page.getByRole("textbox", { name: /Beitrag in Euro/ }).fill("100,00");
+  await page.getByRole("button", { name: "Beitrag hinzufügen" }).click();
+  await expect(page.getByText("Der Beitrag wurde gespeichert.")).toBeVisible();
+
+  await expect(plots).toHaveCount(2);
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+});

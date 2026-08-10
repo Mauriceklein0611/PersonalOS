@@ -67,3 +67,23 @@ Reißt auch das neue Budget, gibt es keinen Trick mehr, sondern nur noch echte E
 1. Registrierte Bausteine reduzieren, falls eine Ansicht ihren Diagrammtyp nicht mehr braucht.
 2. Den Diagramm-Chunk je Diagrammtyp aufteilen, damit eine Route nur lädt, was sie zeigt.
 3. Die Bibliotheksentscheidung neu bewerten. Erst an dieser Stelle steht eigenes SVG wieder zur Debatte, und dann mit eigenem ADR.
+
+## Nachtrag 2026-08-10 (Issue #107)
+
+### Zwei Diagramme auf einer Seite waren nie das Problem
+
+Bei der Umsetzung von #82 wurde die Finanzseite unbedienbar, sobald ein zweites Diagramm erschien: Ein Knopf blieb dreißig Sekunden lang „nicht stabil", Klicks gingen ins Leere. Die naheliegende Erklärung — zwei Zeichenflächen, die sich über konkurrierende `ResizeObserver` gegenseitig neu vermessen — war falsch. Sie ist gemessen widerlegt: Zwei Zeichenflächen kommen bei 320 px auf 220 × 144 Pixel und ändern sich danach kein einziges Mal mehr.
+
+Die Ursache lag woanders. `formatValue` beschriftet nicht nur die erfassten Werte, sondern auch die von der Bibliothek **berechneten Achsen-Teilstriche**. Die liegen zwischen zwei Cent oder unter null. Der damalige Formatter lehnte beides ab und warf. Der Wurf fiel in `setOption` innerhalb eines Effekts an, stieg bis zur Routengrenze auf und ersetzte die **ganze Finanzseite** durch den Fehlerzustand. Playwright sah einen Knopf, der im selben Moment aus dem Dokument verschwand — das las sich wie ein wanderndes Layout, war aber ein Totalausfall der Ansicht.
+
+Der Formatter selbst ist mit #108 behoben (`formatMoneyScale`). Offen blieb die eigentliche Schwäche: **Der Ausfall einer Darstellung riss die Datenansicht mit.**
+
+### Entscheidung
+
+Ein Diagramm ist eine Darstellung, keine Datenquelle. Sein Ausfall bleibt deshalb lokal:
+
+- `Chart` umgibt die Zeichenfläche mit `ChartErrorBoundary`. Scheitert die Bibliothek beim Zeichnen oder lässt sich ihr Chunk offline nicht nachladen, tritt an die Stelle der Grafik ein Satz. Überschrift, Zeitraum, Datenbasis, Legende und die Wertetabelle bleiben stehen, die übrige Seite bleibt bedienbar.
+- `ChartCanvas` leitet auch Fehler von außerhalb des React-Ablaufs dorthin — vor allem aus dem `ResizeObserver`, denn ein Neuzeichnen ruft `formatValue` erneut. Ohne diese Weiche bliebe ein solcher Fehler unbehandelt.
+- Die Zusicherung aus dem Hauptteil, dass Rahmen, Wertetabelle und Leerzustand ohne die Bibliothek funktionieren, gilt damit auch dann, wenn die Bibliothek zwar geladen ist, aber scheitert.
+
+Diese Entscheidung ändert nichts an der Wahl der Bibliothek, an den registrierten Bausteinen oder an den Budgets.
