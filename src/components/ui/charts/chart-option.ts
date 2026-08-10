@@ -112,7 +112,7 @@ function toSeriesOption(
     areaStyle: {
       color: verticalFade(lead ? theme.accent1 : color, theme.areaOpacity),
     },
-    data: entry.values,
+    data: withIsolatedPointsVisible(entry.values),
     itemStyle: { color: lead ? theme.accent1 : color },
     lineStyle: {
       color: stroke,
@@ -122,12 +122,30 @@ function toSeriesOption(
       width: lead ? 3 : 2,
     },
     name: entry.label,
-    showSymbol: false,
+    // Punkte werden einzeln bemaßt, siehe `withIsolatedPointsVisible`.
+    showSymbol: true,
     smooth: true,
     symbol: "circle",
-    symbolSize: 8,
     type: "line" as const,
   };
+}
+
+/**
+ * Ein Wert zwischen zwei Lücken hat keinen Nachbarn, zu dem eine Strecke
+ * führen könnte — ohne eigenen Punkt bliebe er unsichtbar. Genau dieser Fall
+ * trifft den jüngsten Monat einer Reihe, also den, auf den es ankommt.
+ *
+ * Nur solche Werte bekommen einen Punkt; in einer lückenlosen Reihe bleibt
+ * die Linie damit unverändert glatt.
+ */
+function withIsolatedPointsVisible(values: Array<number | null>) {
+  return values.map((value, index) => {
+    const isolated =
+      value !== null &&
+      (values[index - 1] ?? null) === null &&
+      (values[index + 1] ?? null) === null;
+    return { symbolSize: isolated ? 8 : 0, value };
+  });
 }
 
 function toDashArray(tone: DataSeriesTone): number[] | "solid" {
