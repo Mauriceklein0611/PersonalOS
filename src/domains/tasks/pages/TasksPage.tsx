@@ -7,7 +7,14 @@ import {
 } from "react";
 
 import { useTimeZone } from "../../../app/settings/settings-context";
-import { Button, Input, SearchField, Toast } from "../../../components/ui";
+import {
+  Button,
+  Input,
+  SearchField,
+  Toast,
+  ViewTabs,
+  viewTabId,
+} from "../../../components/ui";
 import { createSearchMatcher } from "../../../lib/text/search-terms";
 import {
   personalOsGoalLinkService,
@@ -269,31 +276,24 @@ export function TasksPage({
         value={searchTerm}
       />
 
-      <div
-        className="task-view-tabs"
-        role="tablist"
-        aria-label="Aufgabenansicht"
-      >
-        {taskViews.map((view) => {
+      <ViewTabs
+        activeId={activeView}
+        idPrefix="task-view"
+        label="Aufgabenansicht"
+        onChange={setActiveView}
+        panelId="task-view-panel"
+        tabs={taskViews.map((view) => {
           const count = queryTasks(matchingTasks, view.id, context).length;
-          return (
-            <button
-              aria-controls="task-view-panel"
-              aria-selected={activeView === view.id}
-              className="task-view-tab"
-              key={view.id}
-              onClick={() => setActiveView(view.id)}
-              role="tab"
-              type="button"
-            >
-              <span>{view.label}</span>
-              <span aria-label={`${count} Aufgaben`}>{count}</span>
-            </button>
-          );
+          return {
+            count: { label: `${count} Aufgaben`, value: count },
+            id: view.id,
+            label: view.label,
+          };
         })}
-      </div>
+      />
 
       <div
+        aria-labelledby={viewTabId("task-view", activeView)}
         aria-live="polite"
         className="task-view-panel"
         id="task-view-panel"

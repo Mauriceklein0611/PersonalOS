@@ -8,6 +8,8 @@ import {
   RankedBarList,
   Select,
   Toast,
+  ViewTabs,
+  viewTabId,
 } from "../../../components/ui";
 import {
   addCalendarDays,
@@ -378,30 +380,25 @@ export function HabitsPage({
         </p>
       ) : null}
 
-      <div
-        aria-label="Routinenansicht"
+      <ViewTabs
+        activeId={activeView}
         className="habit-view-tabs"
-        role="tablist"
-      >
-        {habitViews.map((view) => (
-          <button
-            aria-controls="habit-view-panel"
-            aria-selected={activeView === view.id}
-            className="habit-view-tab"
-            key={view.id}
-            onClick={() => setActiveView(view.id)}
-            role="tab"
-            type="button"
-          >
-            <span>{view.label}</span>
-            <span aria-label={`${viewCounts[view.id]} Routinen`}>
-              {viewCounts[view.id]}
-            </span>
-          </button>
-        ))}
-      </div>
+        idPrefix="habit-view"
+        label="Routinenansicht"
+        onChange={setActiveView}
+        panelId="habit-view-panel"
+        tabs={habitViews.map((view) => ({
+          count: {
+            label: `${viewCounts[view.id]} Routinen`,
+            value: viewCounts[view.id],
+          },
+          id: view.id,
+          label: view.label,
+        }))}
+      />
 
       <div
+        aria-labelledby={viewTabId("habit-view", activeView)}
         aria-live="polite"
         className="habit-view-panel"
         id="habit-view-panel"
