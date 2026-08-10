@@ -158,14 +158,27 @@ a {
   font-weight: var(--font-weight-kpi);
 }
 
+/*
+ * Auf Mobil steht der Hinweis im Fluss über der Kopfzeile, statt sie zu
+ * überdecken. Fixiert nahm er dort die volle Breite ein, und die Kopfzeile
+ * klebt selbst am oberen Rand — der Hinweis lag also dauerhaft über Marke,
+ * Nebenbereichen und Farbschema. Ab 52 rem ist daneben Platz.
+ */
 .pwa-toast-region {
-  position: fixed;
-  z-index: 90;
-  top: max(1rem, env(safe-area-inset-top));
-  right: 1rem;
   display: grid;
-  width: min(38rem, calc(100vw - 2rem));
   gap: var(--space-3);
+  padding: max(1rem, env(safe-area-inset-top)) 1rem 0;
+}
+
+@media (min-width: 52rem) {
+  .pwa-toast-region {
+    position: fixed;
+    z-index: 90;
+    top: max(1rem, env(safe-area-inset-top));
+    right: 1rem;
+    width: min(38rem, calc(100vw - 2rem));
+    padding: 0;
+  }
 }
 
 .navigation-progress {

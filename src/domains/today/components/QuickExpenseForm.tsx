@@ -94,23 +94,29 @@ export function QuickExpenseForm({
     }
   }
 
+  /*
+   * Der Baustein liegt im Erfassungsbereich der Tagesübersicht und bringt
+   * deshalb keine eigene Glasfläche mehr mit: Eine Karte in einer Karte
+   * bekäme eine zweite Blur-Ebene und kostete senkrechten Raum, den die
+   * erste Bildschirmhöhe nicht hat.
+   */
   if (categories !== undefined && categories.length === 0) {
     return (
-      <section className="today-quick-expense" data-span="full">
-        <h2>Ausgabe erfassen</h2>
+      <div className="today-quick-expense">
+        <h3>Ausgabe erfassen</h3>
         <p className="today-status">
           Dafür fehlt noch eine Ausgabenkategorie. PersonalOS legt keine für
           dich an, weil eine erfundene Kategorie deine Auswertung verfälschen
           würde.
         </p>
         <Link to="/geld">Kategorie im Bereich Geld anlegen</Link>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="today-quick-expense" data-span="full">
-      <h2>Ausgabe erfassen</h2>
+    <div className="today-quick-expense">
+      <h3>Ausgabe erfassen</h3>
       <form
         className="today-quick-expense-form"
         noValidate
@@ -153,6 +159,6 @@ export function QuickExpenseForm({
           Ausgabe buchen
         </Button>
       </form>
-    </section>
+    </div>
   );
 }

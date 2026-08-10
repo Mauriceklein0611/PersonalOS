@@ -230,3 +230,110 @@ test("keeps the signal area silent on a calm day and speaks when something cross
   );
   expect(hasHorizontalOverflow).toBe(false);
 });
+
+/*
+ * #118: Der Morgen-Check-in begann bei etwa y=854 in einem 844 px hohen
+ * Viewport — der erste Bildschirm zeigte Begrüßung, Ring und Kennzahlen,
+ * aber kein Eingabefeld. Erfassen steht seitdem vor Auswerten.
+ */
+async function seedExpenseCategories(page: import("@playwright/test").Page) {
+  // Die Startkategorien entstehen beim ersten Besuch des Finanzbereichs.
+  await page.goto("/geld");
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Buchung erfassen" }),
+  ).toBeVisible();
+}
+
+/** Der Hinweis steht im Fluss; geschlossen gibt er seine Höhe wieder frei. */
+async function dismissInstallHint(page: import("@playwright/test").Page) {
+  const hint = page.getByText(
+    "PersonalOS kann jetzt ohne Netzwerk gestartet werden.",
+  );
+  await expect(hint).toBeVisible({ timeout: 20_000 });
+  await page.getByRole("button", { name: "Hinweis schließen" }).click();
+  await expect(hint).toBeHidden();
+}
+
+test("keeps both capture actions in the first mobile viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await seedExpenseCategories(page);
+  await page.goto("/");
+  await dismissInstallHint(page);
+
+  for (const target of [
+    page.getByRole("textbox", { name: "Aufgabe für heute" }),
+    page.getByRole("button", { name: "Aufgabe hinzufügen" }),
+    page.getByRole("heading", { level: 3, name: "Ausgabe erfassen" }),
+    page.getByRole("textbox", { name: /Betrag der Ausgabe/ }),
+  ]) {
+    const box = await target.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+  }
+
+  // Erreicht ohne einen einzigen Scrollschritt.
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+});
+
+test("keeps the first capture action visible on a short viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await seedExpenseCategories(page);
+  await page.goto("/");
+  await dismissInstallHint(page);
+
+  const addTask = page.getByRole("button", { name: "Aufgabe hinzufügen" });
+  const addTaskBox = await addTask.boundingBox();
+  expect(addTaskBox!.y + addTaskBox!.height).toBeLessThanOrEqual(667);
+
+  // Der zweite Einstieg liegt einen kurzen Schritt darunter, nicht zwei.
+  const amount = page.getByRole("textbox", { name: /Betrag der Ausgabe/ });
+  const amountBox = await amount.boundingBox();
+  expect(amountBox!.y + amountBox!.height).toBeLessThanOrEqual(2 * 667);
+  await amount.scrollIntoViewIfNeeded();
+  await expect(amount).toBeInViewport();
+});
+
+test("puts capture before evaluation on the dashboard", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  // Das Raster erscheint erst nach dem Laden; vorher gibt es nichts zu messen.
+  await expect(
+    page.getByRole("textbox", { name: "Aufgabe für heute" }),
+  ).toBeVisible();
+
+  const boxes = await page.evaluate(() =>
+    [".today-hero", ".today-capture", ".today-metrics", ".today-score-link"]
+      .map((selector) => document.querySelector(selector))
+      .map((element) => (element ? element.getBoundingClientRect().top : null)),
+  );
+
+  expect(boxes.every((value) => value !== null)).toBe(true);
+  for (let index = 1; index < boxes.length; index += 1) {
+    expect(boxes[index]!).toBeGreaterThan(boxes[index - 1]!);
+  }
+});
+
+for (const width of [320, 375, 390]) {
+  test(`keeps the dashboard free of sideways scrolling at ${width} px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ height: 720, width });
+    await seedExpenseCategories(page);
+    await page.goto("/");
+    await expect(
+      page.getByRole("textbox", { name: /Betrag der Ausgabe/ }),
+    ).toBeVisible();
+
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(false);
+  });
+}
