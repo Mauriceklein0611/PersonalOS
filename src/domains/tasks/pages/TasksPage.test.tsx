@@ -142,7 +142,7 @@ describe("TasksPage", () => {
     ).not.toBeInTheDocument();
     // Der Zähler des Reiters zeigt dieselbe Auswahl wie die Liste darunter.
     expect(
-      screen.getByRole("tab", { name: /^Inbox1 Aufgaben$/ }),
+      screen.getByRole("tab", { name: "Inbox: 1 Aufgaben" }),
     ).toBeInTheDocument();
   });
 

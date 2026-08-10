@@ -101,3 +101,91 @@ test("reaches every sub-area from the band at 320 px", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: "Geld" }),
   ).toBeVisible();
 });
+
+/*
+ * Ansichts-Reiter, Issue #119. Vor dem gemeinsamen Baustein scrollte die
+ * Reihe waagerecht: 500 px Inhalt auf 343 px sichtbarer Breite bei den
+ * Aufgaben, 480 auf 343 bei den Routinen. „Diese Woche“, „Fortschritt“ und
+ * „Archiv“ lagen damit außerhalb des Sichtfelds.
+ */
+for (const width of [320, 375, 390]) {
+  test(`shows every view tab without sideways scrolling at ${width} px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ height: 720, width });
+
+    for (const [path, listName, tabCount] of [
+      ["/planen/aufgaben", "Aufgabenansicht", 4],
+      ["/routinen/uebersicht", "Routinenansicht", 4],
+    ] as const) {
+      await page.goto(path);
+
+      const tabs = page.getByRole("tablist", { name: listName });
+      await expect(tabs).toBeVisible();
+      await expect(tabs.getByRole("tab")).toHaveCount(tabCount);
+
+      const scrolls = await tabs.evaluate(
+        (element) => element.scrollWidth > element.clientWidth,
+      );
+      expect(scrolls).toBe(false);
+
+      /*
+       * Jeder Reiter liegt vollständig innerhalb der Reihe und bleibt ein
+       * 44-px-Ziel. Waagerecht ist damit nichts abgeschnitten; senkrecht
+       * darf die zweite Zeile unter der Falz liegen, das ist normales
+       * Scrollen und kein verstecktes Bedienelement.
+       */
+      const list = await tabs.boundingBox();
+      for (const tab of await tabs.getByRole("tab").all()) {
+        await expect(tab).toBeVisible();
+        const box = await tab.boundingBox();
+        expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+        expect(box!.x).toBeGreaterThanOrEqual(list!.x - 1);
+        expect(box!.x + box!.width).toBeLessThanOrEqual(
+          list!.x + list!.width + 1,
+        );
+      }
+
+      const hasHorizontalOverflow = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth,
+      );
+      expect(hasHorizontalOverflow).toBe(false);
+    }
+  });
+}
+
+test("walks the view tabs with the keyboard following the ARIA pattern", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 720 });
+  await page.goto("/planen/aufgaben");
+
+  const tabs = page.getByRole("tablist", { name: "Aufgabenansicht" });
+  const inbox = tabs.getByRole("tab", { name: /^Inbox/ });
+
+  await inbox.focus();
+  await expect(inbox).toBeFocused();
+
+  await page.keyboard.press("ArrowRight");
+  await expect(tabs.getByRole("tab", { name: /^Heute/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+
+  await page.keyboard.press("End");
+  await expect(tabs.getByRole("tab", { name: /^Erledigt/ })).toBeFocused();
+
+  await page.keyboard.press("Home");
+  await expect(inbox).toBeFocused();
+  await expect(inbox).toHaveAttribute("aria-selected", "true");
+
+  // Genau ein Reiter liegt im Tabulatorpfad.
+  const inTabOrder = await tabs
+    .getByRole("tab")
+    .evaluateAll((elements) =>
+      elements.filter((element) => element.getAttribute("tabindex") === "0"),
+    );
+  expect(inTabOrder).toHaveLength(1);
+});

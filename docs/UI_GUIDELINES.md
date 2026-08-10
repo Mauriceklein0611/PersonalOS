@@ -84,7 +84,7 @@ Ein Hinweis mit „Rückgängig“ verschwindet erst, wenn er geschlossen wird o
 
 ## Gemeinsame Bausteine sind verbindlich
 
-Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker-, Such-, Signal- oder Diagramm-Bausteine. Sie verwenden `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell`, `SearchField`, `SignalRow` und `Chart` aus `src/components/ui`.
+Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker-, Such-, Signal-, Reiter- oder Diagramm-Bausteine. Sie verwenden `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell`, `SearchField`, `SignalRow`, `ViewTabs` und `Chart` aus `src/components/ui`.
 
 Fehlt eine Variante, wird der gemeinsame Baustein erweitert. Ein lokaler Nachbau wirkt zunächst kleiner, entkoppelt die Seite aber von Tokens, Kontrasttests und Leerzuständen und muss später erneut angefasst werden.
 
@@ -174,8 +174,14 @@ Der Grundgedanke in einem Satz: **Glas ist der Rahmen, das dichte Panel ist der 
 
 ### Tabs
 
-- Reiter eines Bereichs laufen nicht waagerecht aus dem Viewport. Passt die Reihe nicht, bricht sie um oder wechselt die Form — sie scrollt nicht seitlich weg.
-- Der aktive Reiter ist an Text, Position und Akzent erkennbar, nicht allein am Farbton.
+Die Ansichten einer Domainseite stehen in `ViewTabs`. Die Bereichsreiter der Kopfzeile bleiben davon unberührt; sie sind Navigation (`AreaLayout`), keine Reiter im ARIA-Sinn.
+
+- Reiter laufen nicht waagerecht aus dem Viewport. Die Reihe bricht um: bis 34 rem höchstens zwei nebeneinander, darüber alle in einer Zeile. Eine seitlich scrollende Reihe versteckt genau die Ansichten, die hinten stehen.
+- Ein Reiter darf schmaler werden als seine Beschriftung; `hyphens: auto` trennt sie. Ein langes Wort schiebt die Reihe sonst wieder über den Rand.
+- Der aktive Reiter ist an Text, Position, `aria-selected` und Akzent erkennbar, nicht allein am Farbton.
+- Tastatur nach ARIA-Tab-Pattern: ein Tabulatorschritt in die Reihe, Links und Rechts wechseln darin, Pos1 und Ende springen an die Ränder. Die Auswahl folgt dem Fokus, weil die Panels bereits geladene lokale Daten zeigen.
+- Der Zähler eines Reiters steht ausdrücklich im zugänglichen Namen („Inbox: 3 Aufgaben“). Aus benachbarten Elementen zusammengesetzt wird daraus je nach Umsetzung „Inbox3 Aufgaben“ — der Zähler ist eine Aussage und darf nicht am Zusammenfügen hängen.
+- Das Panel verweist mit `aria-labelledby` über `viewTabId` auf den ausgewählten Reiter zurück.
 
 ### Diagramme
 
