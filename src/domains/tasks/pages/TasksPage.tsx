@@ -21,7 +21,7 @@ import {
   type GoalLinkService,
   type GoalOption,
 } from "../../goals/link-service";
-import { TaskCard } from "../components/TaskCard";
+import { TaskRow } from "../components/TaskRow";
 import { TaskEditor } from "../components/TaskEditor";
 import type { Task, TaskDetails } from "../model";
 import { createTaskQueryContext, queryTasks, type TaskView } from "../queries";
@@ -315,9 +315,12 @@ export function TasksPage({
             </span>
           </div>
         ) : (
-          <div className="task-list">
+          <ul
+            aria-label="Aufgaben dieser Ansicht"
+            className="ui-dense-panel ui-dense-list task-list"
+          >
             {visibleTasks.map((task) => (
-              <TaskCard
+              <TaskRow
                 busy={busyTaskId === task.id}
                 context={context}
                 goalTitle={
@@ -352,7 +355,7 @@ export function TasksPage({
                 task={task}
               />
             ))}
-          </div>
+          </ul>
         )}
       </div>
 

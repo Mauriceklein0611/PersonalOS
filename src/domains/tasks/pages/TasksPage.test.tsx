@@ -59,6 +59,10 @@ describe("TasksPage", () => {
       level: 2,
       name: "Wochenplan erstellen",
     });
+    // Sekundäre Aktionen liegen hinter der Ausklappfläche der Zeile.
+    await user.click(
+      screen.getByLabelText("Weitere Aktionen für „Wochenplan erstellen“"),
+    );
     await user.click(
       screen.getByRole("button", { name: "„Wochenplan erstellen“ bearbeiten" }),
     );
@@ -196,6 +200,10 @@ describe("TasksPage", () => {
       level: 2,
       name: "Wochenplan erstellen",
     });
+    // Sekundäre Aktionen liegen hinter der Ausklappfläche der Zeile.
+    await user.click(
+      screen.getByLabelText("Weitere Aktionen für „Wochenplan erstellen“"),
+    );
     await user.click(
       screen.getByRole("button", {
         name: "„Wochenplan erstellen“ archivieren",
@@ -247,9 +255,8 @@ describe("TasksPage – Zielbezug", () => {
       await screen.findByRole("heading", { level: 2, name: "Mit Ziel" }),
     ).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByText("Ziel")).toBeInTheDocument();
+      expect(screen.getByText("Ziel: Synthetisches Ziel")).toBeInTheDocument();
     });
-    expect(screen.getByText("Synthetisches Ziel")).toBeInTheDocument();
   });
 
   // Ohne Verknüpfung bleibt die Karte, wie sie war.
@@ -268,7 +275,7 @@ describe("TasksPage – Zielbezug", () => {
     );
 
     await screen.findByRole("heading", { level: 2, name: "Ohne Ziel" });
-    expect(screen.queryByText("Ziel")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Ziel:/)).not.toBeInTheDocument();
   });
 
   // Eine nackte Kennung wäre für den Nutzer keine Auskunft.

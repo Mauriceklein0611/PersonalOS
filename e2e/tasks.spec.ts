@@ -19,6 +19,7 @@ test("persists a task through editing, completion, reopening and archive undo", 
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
   ).toBeVisible();
 
+  await page.getByLabel(/^Weitere Aktionen für/).click();
   await page.getByRole("button", { name: /bearbeiten$/ }).click();
   await page
     .getByRole("textbox", { name: "Notiz" })
@@ -65,7 +66,8 @@ test("persists a task through editing, completion, reopening and archive undo", 
   ).toBeVisible();
   await expect(
     page
-      .getByRole("article", { name: "Rechnung prüfen" })
+      .getByRole("listitem")
+      .filter({ has: page.getByRole("heading", { name: "Rechnung prüfen" }) })
       .getByText("Erledigt", { exact: true }),
   ).toBeVisible();
 
@@ -78,10 +80,12 @@ test("persists a task through editing, completion, reopening and archive undo", 
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
   ).toBeVisible();
 
+  await page.getByLabel(/^Weitere Aktionen für/).click();
   await page.getByRole("button", { name: /abbrechen$/ }).click();
   await page.getByRole("tab", { name: /^Erledigt/ }).click();
   await expect(page.getByText("Abgebrochen", { exact: true })).toBeVisible();
 
+  await page.getByLabel(/^Weitere Aktionen für/).click();
   await page.getByRole("button", { name: /archivieren$/ }).click();
   await expect(
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
@@ -90,6 +94,76 @@ test("persists a task through editing, completion, reopening and archive undo", 
   await expect(
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
   ).toBeVisible();
+
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+});
+
+/*
+ * #120: Aus vier gleich schweren Schaltflächen je Aufgabe wurde eine
+ * sichtbare primäre Aktion; der Rest liegt hinter einer Ausklappfläche.
+ * Geprüft wird hier, was jsdom nicht auslöst: die native Tastaturbedienung
+ * von `<summary>` und die Fokusrückgabe danach.
+ */
+test("opens the secondary task actions from the keyboard", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/planen/aufgaben");
+
+  await page
+    .getByRole("textbox", { name: "Neue Aufgabe" })
+    .fill("Unterlagen sortieren");
+  await page.getByRole("button", { name: "Aufgabe hinzufügen" }).click();
+
+  const toggle = page.getByLabel("Weitere Aktionen für „Unterlagen sortieren“");
+  const edit = page.getByRole("button", {
+    name: "„Unterlagen sortieren“ bearbeiten",
+  });
+  await expect(edit).toBeHidden();
+
+  await toggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(edit).toBeVisible();
+
+  // Escape schließt die Fläche und der Fokus bleibt auf der Schaltfläche.
+  await page.keyboard.press("Escape");
+  await expect(edit).toBeHidden();
+  await expect(toggle).toBeFocused();
+});
+
+test("keeps three task rows recognisable at 390 pixels", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/planen/aufgaben");
+
+  const field = page.getByRole("textbox", { name: "Neue Aufgabe" });
+  const submit = page.getByRole("button", { name: "Aufgabe hinzufügen" });
+  for (const title of [
+    "Synthetische Aufgabe mit einem sehr langen Titel zum Umbrechen",
+    "Zweite synthetische Aufgabe",
+    "Dritte synthetische Aufgabe",
+  ]) {
+    await field.fill(title);
+    await submit.click();
+    await expect(
+      page.getByRole("heading", { level: 2, name: title }),
+    ).toBeVisible();
+  }
+
+  const rows = page
+    .getByRole("list", { name: "Aufgaben dieser Ansicht" })
+    .getByRole("listitem");
+  await expect(rows).toHaveCount(3);
+
+  // Die drei Zeilen stehen gemeinsam in einem Bildschirm, ohne Karten dazwischen.
+  const boxes = await rows.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().height),
+  );
+  expect(boxes.every((height) => height >= 44)).toBe(true);
+  expect(boxes.reduce((sum, height) => sum + height, 0)).toBeLessThan(400);
 
   expect(
     await page.evaluate(

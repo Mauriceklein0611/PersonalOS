@@ -9,8 +9,7 @@
  * direkt auf dem Nebel und ist deshalb selbst eine Karte.
  */
 .task-quick-capture,
-.task-view-state,
-.task-card {
+.task-view-state {
   min-width: 0;
   border: 1px solid var(--edge);
   border-radius: var(--radius-xl);
@@ -46,96 +45,117 @@
   color: var(--text-muted);
 }
 
+/*
+ * Quiet Density, Issue #120. Die Liste ist eine dichte Fläche, nicht eine
+ * Karte je Aufgabe. Karten kosteten Rahmen, Radius und Innenabstand je
+ * Datensatz; bei 390 px blieb neben Kopf, Suche und Reitern kaum eine
+ * Aufgabe übrig.
+ */
 .task-list {
-  display: grid;
-  gap: var(--space-3);
+  min-width: 0;
 }
 
-.task-card {
-  padding: var(--space-4);
+.task-row {
+  align-items: start;
+  padding: var(--space-3);
 }
 
-.task-card-heading h2,
-.task-card-meta,
-.task-notes {
-  margin-top: 0;
+.task-row-primary {
+  margin-top: 2px;
 }
 
-.task-card-heading h2 {
-  margin-bottom: 0;
-  overflow-wrap: anywhere;
-  font-size: var(--font-size-lg);
+.task-row-title {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
 }
 
-/* Erledigte Zeilen sind gedämpft und durchgestrichen, niemals rot. */
-.task-card[data-completed="true"] .task-card-heading h2 {
+/* Erledigt ist gedämpft und durchgestrichen, niemals rot. */
+.task-row[data-completed="true"] .task-row-title {
   color: var(--text-muted);
   text-decoration: line-through;
 }
 
-.task-card-meta {
+.task-row-facts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
-  color: var(--text-muted);
-  font-size: var(--font-size-xs);
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
 }
 
-/* Prioritäts- und Fälligkeits-Chips: Text zuerst, Farbe als Zusatz. */
-.task-card-meta > * {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-round);
-  background: var(--glass-strong);
+/* Text zuerst, Farbe als Zusatz: Der verstrichene Zeitpunkt steht da. */
+.task-row-facts > strong {
+  color: var(--danger);
   font-weight: var(--font-weight-bold);
 }
 
-.task-card-meta strong {
-  border-color: var(--danger);
-  color: var(--danger);
-  background: var(--danger-soft);
+.task-row-facts > * + *::before {
+  margin-right: var(--space-2);
+  content: "·";
 }
 
-.task-notes {
-  margin-bottom: var(--space-3);
-  overflow-wrap: anywhere;
-  color: var(--text-muted);
-  line-height: var(--line-height-normal);
-  white-space: pre-wrap;
-}
-
-.task-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  margin: var(--space-3) 0;
-}
-
-.task-details > div {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.task-details dt {
-  color: var(--text-muted);
-}
-
-.task-details dd {
+/*
+ * Die Notiz bleibt eine Zeile. Vollständig steht sie in der Bearbeitung;
+ * mehrzeilig je Aufgabe wäre die Liste wieder eine Kartenwand.
+ */
+.task-row-note {
+  display: -webkit-box;
+  overflow: hidden;
   margin: 0;
-  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
 }
 
-.task-actions {
+.task-row-actions {
+  position: relative;
+  flex: none;
+}
+
+.task-row-actions-summary {
+  display: grid;
+  width: var(--control-height);
+  height: var(--control-height);
+  place-items: center;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-round);
+  color: var(--text);
+  background: var(--dense-row);
+  font-size: var(--font-size-lg);
+  list-style: none;
+  cursor: pointer;
+}
+
+.task-row-actions-summary::-webkit-details-marker {
+  display: none;
+}
+
+.task-row-actions[open] .task-row-actions-summary {
+  border-color: var(--accent-1);
+  color: var(--accent-1);
+}
+
+/*
+ * Die Aktionen klappen unter der Zeile auf, statt über ihr zu schweben. Ein
+ * schwebendes Menü müsste Position, Fokusfalle und Escape selbst lösen und
+ * bei 320 px trotzdem in den Viewport passen.
+ */
+.task-row-actions-panel {
+  position: absolute;
+  z-index: 10;
+  right: var(--space-3);
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--space-2);
-}
-
-.task-actions .ui-button {
-  flex: 1 1 auto;
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-panel);
+  box-shadow: var(--shadow-md);
 }
 
 .task-editor-form,
@@ -171,8 +191,7 @@
 
 @supports not (backdrop-filter: blur(1px)) {
   .task-quick-capture,
-  .task-view-state,
-  .task-card {
+  .task-view-state {
     background: var(--glass-opaque);
     backdrop-filter: none;
   }
@@ -180,8 +199,7 @@
 
 @media (prefers-reduced-transparency: reduce) {
   .task-quick-capture,
-  .task-view-state,
-  .task-card {
+  .task-view-state {
     background: var(--glass-opaque);
     backdrop-filter: none;
   }
