@@ -11,6 +11,7 @@ Die globalen Tokens stehen in `src/styles/tokens.css`. Komponenten verwenden aus
 - Motion: kurze und normale Dauer sowie eine gemeinsame Easing-Kurve;
 - Farben: Glas, Kanten, Text, Akzentverlauf, Danger, Fokus und Skeleton jeweils für Light und Dark;
 - Glas: `--glass`, `--glass-strong`, `--glass-opaque`, `--field`, `--edge`, `--hairline` und der Nebel `--canvas-*`, siehe „Glas-Ästhetik“;
+- Dichte: `--dense-panel`, `--dense-row`, `--dense-row-active`, `--dense-edge`, `--radius-dense` und `--dense-row-height`, siehe „Quiet Density“;
 - Dashboard: Datenpalette, Diagrammhilfslinien und Verlauf, siehe „Dashboard-Visualisierung“.
 
 ## Accessibility-Regeln
@@ -120,6 +121,7 @@ Alle Ansichten folgen einer gemeinsamen Glas-Sprache: durchscheinende Karten mit
 - Eine Karte ist `background: var(--glass)`, `border: 1px solid var(--edge)`, `backdrop-filter: var(--blur-glass)` und ein oberes Inset-Highlight über `--glass-highlight`.
 - **Blur nur auf oberster Ebene.** Verschachtelte `backdrop-filter` sind verboten. Flächen innerhalb einer Karte nutzen `--glass-strong` ohne eigenen Blur; Eingabefelder nutzen das deckende `--field`.
 - Höchstens etwa acht Glas-Karten gleichzeitig im Viewport. Lange Listen sind Zeilen in einer Karte, keine Karte je Zeile.
+- Datenreiche Arbeitsflächen liegen als deckendes Panel **in** der Glasschale und tragen selbst kein Glas, siehe „Quiet Density“.
 - `@supports not (backdrop-filter: …)` und `prefers-reduced-transparency: reduce` liefern dieselbe Ansicht mit `--glass-opaque` statt Blur. Der Nebel bleibt in beiden Fällen erhalten.
 - Genau ein Glow je Ansicht. In der Regel trägt ihn der primäre Fortschrittsring über `glow`.
 - `--accent-gradient` ist Flächenschmuck für erledigte Zellen, Checkboxen, primäre Buttons, Ringfortschritt und Chart-Füllungen. Ein Verlauf codiert niemals eine Kategorie oder einen Status.
@@ -131,6 +133,59 @@ Durchscheinende Flächen haben keinen festen Hintergrund. `color-contrast.test.t
 Der Stellhebel ist `brightness()` in `--blur-glass`: Es dunkelt den Nebel **unter** der Karte ab und lässt dessen Farbe und Verlauf sichtbar. Ein deckender Grundton über der Karte würde denselben Kontrast erzeugen, aber genau das zerstören, was die Fläche als Glas lesbar macht. Mehr Glas-Alpha hilft im Dark-Theme nicht: Weißes Glas hellt die Karte weiter auf.
 
 **Text steht immer auf einer Glasfläche, nie auf dem blanken Nebel.** Ausnahme sind Überschriften in `--text`; der Test deckt diesen Fall ausdrücklich ab. Gedämpfter Text, Fehlertext und Datenfarben erreichen ihre Schwelle nur auf Glas — dafür gibt es `.page-section` für Abschnitte und `.page-alert` für seitenweite Meldungen.
+
+## Quiet Density
+
+Datenreiche Arbeitsflächen — lange Listen, Tracker, Tabellen und Planungsraster — werden kompakter und ruhiger als der Rest der App. Die Regeln hier sind **additiv**: Sie gelten innerhalb dichter Flächen und ändern nichts an Ansichten außerhalb davon. Siehe [ADR 0014](decisions/0014-quiet-density-dense-surfaces.md).
+
+Der Grundgedanke in einem Satz: **Glas ist der Rahmen, das dichte Panel ist der Inhalt.**
+
+### Die dichte Fläche
+
+- `.ui-dense-panel` ist die Arbeitsfläche. Sie ist **deckend** und trägt kein `backdrop-filter`. Damit sieht sie mit Blur, ohne Blur-Unterstützung und bei `prefers-reduced-transparency: reduce` gleich aus und braucht keine Ausweichfassung.
+- Ein Panel liegt in der Glasschale, nie über einem zweiten Panel. Verschachtelte dichte Flächen gibt es nicht.
+- Innerhalb des Panels gilt `--radius-dense` statt `--radius-xl`. Schatten entfallen; Rahmen sind `--dense-edge` und bleiben 1 px.
+- Ziffern stehen tabellarisch. Das Panel setzt `font-variant-numeric: tabular-nums`, KPIs, Datumsraster und Fortschrittswerte brauchen deshalb keine eigene Regel mehr.
+- Der Fokusring liegt innerhalb dichter Flächen **innen** (`outline-offset: -3px`), weil die Panelfläche beschnitten ist. Breite und Kontrast bleiben unverändert.
+
+### Hero
+
+- Höchstens eine Herofläche je Ansicht, und nur dort, wo sie eine Aussage trägt. Auf einer Liste trägt sie keine.
+- Der Hero verdrängt die erste Erfassungsaktion nicht aus dem ersten mobilen Viewport. Passt beides nicht, weicht der Hero.
+
+### Karten
+
+- Eine Karte gruppiert **verschiedenartige** Inhalte. Gleichartige Datensätze gruppiert ein Panel.
+- Karte je Datensatz ist ausgeschlossen, sobald eine Liste mehr als etwa fünf Einträge zeigen kann. Die bisherige Obergrenze von rund acht Glaskarten im Viewport bleibt daneben bestehen.
+
+### Listenzeilen
+
+- `.ui-dense-row` ist eine Zeile ohne eigene Fläche. Getrennt wird über eine Haarlinie zwischen den Einträgen, nicht über Abstand, Rahmen und Radius je Zeile.
+- Eine Zeile ist mindestens `--dense-row-height` (44 px) hoch. Dichte spart Fläche, nicht Trefferfläche.
+- Genau eine primäre Aktion je Zeile ist sichtbar hervorgehoben. Weitere Aktionen bleiben erreichbar, aber ruhig; vier gleich schwere Aktionen sind keine Auswahl, sondern eine Suchaufgabe.
+- Die aktuelle Auswahl trägt `--dense-row-active`, einen Akzentbalken links **und** `aria-current`. Die Fläche allein trägt den Zustand nie.
+- Leere Platzhalterzeilen gibt es nicht. Eine Liste ohne Einträge zeigt ihren Leerzustand.
+
+### Trackerzellen
+
+- Zeilen sind Einträge, Spalten sind Tage — wie unter „Tracker-Raster“. Innerhalb eines dichten Panels gilt zusätzlich: keine Fläche je Zelle außer für Zustand, kein eigener Radius über `--radius-cell` hinaus.
+- Fehlende oder zukünftige Tage bleiben `Keine Angabe`. Ein Nenner aus Kalendertagen erzeugt sonst ein `0 %`, das niemand erfasst hat.
+- Das Raster scrollt in seinem eigenen Container. Auf Mobil stehen nie sieben schmale Spalten nebeneinander, nur weil die Woche sieben Tage hat.
+
+### Tabs
+
+- Reiter eines Bereichs laufen nicht waagerecht aus dem Viewport. Passt die Reihe nicht, bricht sie um oder wechselt die Form — sie scrollt nicht seitlich weg.
+- Der aktive Reiter ist an Text, Position und Akzent erkennbar, nicht allein am Farbton.
+
+### Diagramme
+
+- In einer Ansicht mit Check-in-Raster steht das Raster **vor** der Auswertung. Das Diagramm erklärt, was bereits erfasst wurde; es ist nie der Einstieg.
+- Innerhalb dichter Flächen bleibt das Diagramm zurückhaltend: Gitternetz `--chart-grid`, keine Verlaufsfüllung als Blickfang, kein Glow.
+- Die Grenzen aus „Diagramme“ gelten unverändert: höchstens drei Serien, Zeitraum und Datenbasis als Text, dieselben Werte zusätzlich als Tabelle.
+
+### Nicht übernommen
+
+Aus dem Vorbild ausdrücklich **nicht** übernommen: `0 %` für fehlende oder zukünftige Daten, `Habits × Kalendertage` als pauschaler Nenner, Pflicht-Emojis, Ampelfarben oder Regenbogen als einzige Zustandsquelle, feste leere Taskzeilen und ein vereinfachter Mindset-Score.
 
 ## Dashboard-Visualisierung
 

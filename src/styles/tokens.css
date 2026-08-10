@@ -17,6 +17,11 @@
  *    Charakter bleiben, nur die Helligkeit sinkt.
  * 4. `--field` ist die deckende Fläche für Eingabefelder. `--glass-strong` ist
  *    die angehobene Glasfläche der Vorlage und für Text zu durchscheinend.
+ *
+ * Die `--dense-*`-Familie (Issue #117) ist die ruhige Arbeitsfläche für
+ * datenreiche Listen, Tracker und Tabellen. Sie ist bewusst deckend: Nur eine
+ * deckende Fläche sieht mit Blur, ohne Blur und bei
+ * `prefers-reduced-transparency: reduce` identisch aus. Siehe ADR 0014.
  */
 
 :root {
@@ -67,6 +72,9 @@
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
   --radius-round: 999px;
+  /* Dichte Flächen tragen einen kleineren Radius als die Glaskarte. */
+  --radius-dense: 0.75rem;
+  --dense-row-height: 2.75rem;
 
   --duration-fast: 120ms;
   --duration-normal: 200ms;
@@ -129,6 +137,12 @@
   --edge-strong: rgb(27 36 54 / 52%);
   --hairline: rgb(27 36 54 / 12%);
   --overlay: rgb(20 26 40 / 45%);
+
+  /* Ruhige Arbeitsfläche für dichte Listen und Raster, siehe ADR 0014. */
+  --dense-panel: #f7f8fc;
+  --dense-row: rgb(27 36 54 / 4%);
+  --dense-row-active: rgb(27 36 54 / 8%);
+  --dense-edge: rgb(27 36 54 / 14%);
 
   --text: #1b2436;
   --text-muted: rgb(27 36 54 / 70%);
@@ -226,6 +240,15 @@
   --edge-strong: rgb(255 255 255 / 60%);
   --hairline: rgb(255 255 255 / 12%);
   --overlay: rgb(12 4 16 / 62%);
+
+  /*
+   * Nahezu schwarz mit dem Violettstich von „Abendrot“. Der Nebel bleibt
+   * ringsum sichtbar; die Arbeitsfläche selbst wird ruhig, siehe ADR 0014.
+   */
+  --dense-panel: #140d19;
+  --dense-row: rgb(255 255 255 / 5%);
+  --dense-row-active: rgb(255 255 255 / 11%);
+  --dense-edge: rgb(255 255 255 / 14%);
 
   --text: #f4f6ff;
   --text-muted: #e2e8ff;

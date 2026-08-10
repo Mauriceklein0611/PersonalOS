@@ -6,6 +6,10 @@ import { describe, expect, it } from "vitest";
  * Glas-Alpha, darüber der Text. Geprüft wird immer der ungünstigste Fleck.
  * Erreicht ein Wert die Schwelle nicht, wird das Token geändert, nicht die
  * Schwelle. Die Werte stammen aus `src/styles/tokens.css`.
+ *
+ * Die dichten Flächen aus Issue #117 sind deckend und deshalb vom Nebel
+ * unabhängig. Dass sie im Browser tatsächlich ohne Blur und deckend
+ * ankommen, prüft `e2e/components.spec.ts`; hier steht nur ihr Kontrast.
  */
 
 type Rgba = { alpha: number; blue: number; green: number; red: number };
@@ -37,6 +41,9 @@ const themes = {
     focusRing: "#bae6fd",
     edgeStrong: rgba(255, 255, 255, 0.6),
     data: ["#ffd88a", "#ffb27d", "#ff9dbd", "#d5a6ff", "#ff9d9d", "#f0e08a"],
+    densePanel: "#140d19",
+    denseRow: rgba(255, 255, 255, 0.05),
+    denseRowActive: rgba(255, 255, 255, 0.11),
   },
   light: {
     canvasStops: ["#e8ecfb", "#f2e9f8", "#e4f2f0"],
@@ -62,6 +69,9 @@ const themes = {
     focusRing: "#0369a1",
     edgeStrong: rgba(27, 36, 54, 0.52),
     data: ["#0a7a55", "#0369a1", "#7c3aed", "#b45309", "#0d9488", "#be185d"],
+    densePanel: "#f7f8fc",
+    denseRow: rgba(27, 36, 54, 0.04),
+    denseRowActive: rgba(27, 36, 54, 0.08),
   },
 } as const;
 
@@ -101,19 +111,38 @@ function pickExtreme(theme: ThemeName, colors: readonly Rgba[]): Rgba {
  *
  * `--glass-strong` erscheint ausschließlich innerhalb einer Karte und liegt
  * deshalb auf der bereits gefilterten Glasfläche, nicht auf dem rohen Nebel.
+ *
+ * Das dichte Panel ist deckend. Es steht deshalb ohne Nebelanteil in der
+ * Liste, und genau das macht seinen Kontrast unabhängig von Blur, fehlender
+ * Blur-Unterstützung und reduzierter Transparenz.
  */
 function surfaces(theme: ThemeName): Array<{ color: Rgba; name: string }> {
   const backdrop = worstBackdrop(theme);
-  const { backdropBrightness, field, glass, glassOpaque, glassStrong } =
-    themes[theme];
+  const {
+    backdropBrightness,
+    densePanel,
+    denseRow,
+    denseRowActive,
+    field,
+    glass,
+    glassOpaque,
+    glassStrong,
+  } = themes[theme];
   const filtered = scale(backdrop, backdropBrightness);
   const glassSurface = composite(glass, filtered);
+  const densePanelSurface = parseHex(densePanel);
 
   return [
     { color: glassSurface, name: "glass" },
     { color: composite(glassStrong, glassSurface), name: "glass-strong" },
     { color: parseHex(glassOpaque), name: "glass-opaque" },
     { color: composite(field, backdrop), name: "field" },
+    { color: densePanelSurface, name: "dense-panel" },
+    { color: composite(denseRow, densePanelSurface), name: "dense-row" },
+    {
+      color: composite(denseRowActive, densePanelSurface),
+      name: "dense-row-active",
+    },
   ];
 }
 
@@ -201,11 +230,16 @@ describe.each(themeNames)("glass non-text contrast %s", (theme) => {
     },
   );
 
-  it.each(data)("keeps the data colour %s visible on glass", (value) => {
-    const [glassSurface] = surfaces(theme);
-    expect(
-      contrastRatio(parseHex(value), glassSurface!.color),
-    ).toBeGreaterThanOrEqual(3);
+  const dataSurfaces = surfaces(theme).filter(
+    ({ name }) => name === "glass" || name === "dense-panel",
+  );
+
+  it.each(
+    dataSurfaces.flatMap(({ color, name }) =>
+      data.map((value) => ({ color, surface: name, value })),
+    ),
+  )("keeps the data colour $value visible on $surface", ({ color, value }) => {
+    expect(contrastRatio(parseHex(value), color)).toBeGreaterThanOrEqual(3);
   });
 });
 

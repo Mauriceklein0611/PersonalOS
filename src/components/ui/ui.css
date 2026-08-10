@@ -460,12 +460,131 @@
   justify-content: center;
 }
 
+/*
+ * Quiet Density, Issue #117 und ADR 0014. Die dichte Arbeitsfläche für lange
+ * Listen, Tracker und Tabellen. Sie ist deckend und trägt deshalb bewusst
+ * kein `backdrop-filter`: Nur eine deckende Fläche sieht mit Blur, ohne Blur
+ * und bei `prefers-reduced-transparency: reduce` gleich aus. Ein Panel liegt
+ * in der Glasschale; ein Panel in einem Panel gibt es nicht.
+ */
+.ui-dense-panel {
+  overflow: hidden;
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  color: var(--text);
+  background: var(--dense-panel);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Die Fläche ist beschnitten, damit Zeilen bis an die Kante laufen. Ein außen
+ * gezeichneter Fokusring wäre dort abgeschnitten; innerhalb dichter Flächen
+ * liegt er deshalb innen und bleibt vollständig sichtbar.
+ */
+.ui-dense-panel :focus-visible {
+  outline-offset: -3px;
+}
+
+.ui-dense-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Die Trennung sitzt zwischen den Einträgen, nicht an der Zeile selbst. So
+ * bleibt sie richtig, egal ob über der Liste noch ein Spaltenkopf steht.
+ */
+.ui-dense-list > * + * {
+  border-top: 1px solid var(--dense-edge);
+}
+
+/*
+ * Eine Zeile je Datensatz, keine Karte je Datensatz. Die Zeile trägt keine
+ * eigene Fläche; getrennt wird über eine Haarlinie, nicht über Abstand.
+ */
+.ui-dense-row {
+  display: flex;
+  min-height: var(--dense-row-height);
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+button.ui-dense-row {
+  cursor: pointer;
+}
+
+button.ui-dense-row:hover,
+.preview-force-hover button.ui-dense-row {
+  background: var(--dense-row);
+}
+
+/*
+ * Die aktuelle Auswahl. Die Fläche ist Zusatz: Der Balken links und das
+ * `aria-current` des Elements tragen den Zustand ebenfalls.
+ */
+.ui-dense-row[aria-current]:not([aria-current="false"]),
+.ui-dense-row-active {
+  box-shadow: inset 3px 0 0 var(--accent-1);
+  background: var(--dense-row-active);
+}
+
+/* Spaltenkopf einer dichten Tabelle: klein, versal, gedämpft. */
+.ui-dense-row-head {
+  min-height: 0;
+  border-bottom: 1px solid var(--dense-edge);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.ui-dense-row-main {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: var(--space-1);
+}
+
+.ui-dense-row-title {
+  overflow-wrap: anywhere;
+  line-height: var(--line-height-tight);
+}
+
+.ui-dense-row-meta {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+/* Zahlenspalte: rechtsbündig, tabellarisch, ohne Umbruch. */
+.ui-dense-numeric {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
 .preview-force-focus .ui-button,
 .preview-force-focus .ui-icon-button,
 .preview-force-focus .ui-control,
 .preview-force-focus .ui-checkbox {
   outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
+}
+
+/* Derselbe innen liegende Ring wie im echten Fokuszustand. */
+.preview-force-focus button.ui-dense-row {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: -3px;
 }
 
 @keyframes ui-spin {
@@ -499,6 +618,10 @@
   }
 }
 
+/*
+ * `.ui-dense-panel` fehlt in beiden Blöcken mit Absicht: Die Fläche ist
+ * bereits deckend und ohne Blur und braucht deshalb keine Ausweichfassung.
+ */
 @supports not (backdrop-filter: blur(1px)) {
   .ui-card,
   .ui-dialog,
