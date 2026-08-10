@@ -11,6 +11,7 @@ import {
   createSavingsGoalRepository,
   createTransactionRepository,
 } from "./repository";
+import type { MonthlyBudget, Transaction } from "./model";
 import { buildMonthlyOverview, type MonthlyOverview } from "./overview";
 
 const month = "2026-08";
@@ -117,40 +118,116 @@ describe("monthly overview across export and import", () => {
   });
 });
 
+function buildTransactions(
+  count: number,
+  categoryCount: number,
+): Transaction[] {
+  return Array.from({ length: count }, (_, index) => ({
+    archivedAt: undefined,
+    bookedOn: `2026-0${(index % 2) + 7}-${String((index % 28) + 1).padStart(2, "0")}`,
+    categoryId: `category-${index % categoryCount}`,
+    createdAt: "2026-08-01T08:00:00.000Z",
+    id: `transaction-${index}`,
+    kind: index % 5 === 0 ? ("income" as const) : ("expense" as const),
+    money: { amountMinor: 100 + (index % 900), currency: "EUR" },
+    updatedAt: "2026-08-01T08:00:00.000Z",
+  }));
+}
+
+function buildBudgets(count: number): MonthlyBudget[] {
+  return Array.from({ length: count }, (_, index) => ({
+    archivedAt: undefined,
+    categoryId: `category-${index}`,
+    createdAt: "2026-08-01T08:00:00.000Z",
+    id: `budget-${index}`,
+    limit: { amountMinor: 50_000, currency: "EUR" },
+    month,
+    updatedAt: "2026-08-01T08:00:00.000Z",
+  }));
+}
+
+/**
+ * Zählt, wie oft die Verdichtung einen Datensatz anfasst.
+ *
+ * Diese Größe ist der Kern von #97. Vorher maß der Test Wanduhrzeit gegen eine
+ * feste Zahl (250 ms) und fiel unter paralleler Last zufällig um — bei 254,6 ms
+ * gegen 250 ms, also knapp, ohne dass sich an der Auswertung etwas geändert
+ * hätte. Ein Test, der jeden beliebigen PR rot färben kann, wird ignoriert und
+ * schützt dann auch dort nicht mehr, wo er soll.
+ *
+ * Die Zahl der Zugriffe hängt allein am Algorithmus. Sie ist auf einem
+ * ausgelasteten Runner dieselbe wie auf einer stillen Maschine, und sie zeigt
+ * eine überproportionale Auswertung unmittelbar an, statt sie in eine
+ * Zeitmessung zu übersetzen.
+ */
+function countingReads<T extends object>(records: readonly T[]) {
+  let reads = 0;
+  const watched = records.map(
+    (record) =>
+      new Proxy(record, {
+        get(target, key, receiver) {
+          reads += 1;
+          return Reflect.get(target, key, receiver) as unknown;
+        },
+      }) as T,
+  );
+  return {
+    reads: () => reads,
+    watched,
+  };
+}
+
 describe("monthly overview with a large local dataset", () => {
   /*
    * Die Verdichtung läuft bei jeder Änderung neu. Sie muss deshalb auch bei
    * realistisch vielen Buchungen in einem Zug durchlaufen, ohne dass die
    * Laufzeit mit der Zahl der Kategorien überproportional wächst.
    */
-  it("stays responsive with several thousand bookings", () => {
-    const categoryCount = 40;
-    const transactions = Array.from({ length: 6_000 }, (_, index) => ({
-      archivedAt: undefined,
-      bookedOn: `2026-0${(index % 2) + 7}-${String((index % 28) + 1).padStart(2, "0")}`,
-      categoryId: `category-${index % categoryCount}`,
-      createdAt: "2026-08-01T08:00:00.000Z",
-      id: `transaction-${index}`,
-      kind: index % 5 === 0 ? ("income" as const) : ("expense" as const),
-      money: { amountMinor: 100 + (index % 900), currency: "EUR" },
-      updatedAt: "2026-08-01T08:00:00.000Z",
-    }));
+  it("reads a booking the same number of times, whatever the category count", () => {
+    const measure = (categoryCount: number) => {
+      const transactions = countingReads(
+        buildTransactions(6_000, categoryCount),
+      );
+      const overview = buildMonthlyOverview({
+        budgets: [],
+        contributions: [],
+        currency: "EUR",
+        month,
+        savingsGoals: [],
+        transactions: transactions.watched,
+      });
+      return {
+        overview,
+        perTransaction: transactions.reads() / transactions.watched.length,
+        total: transactions.reads(),
+      };
+    };
 
-    const startedAt = performance.now();
-    const overview = buildMonthlyOverview({
-      budgets: [],
-      contributions: [],
-      currency: "EUR",
-      month,
-      savingsGoals: [],
-      transactions,
-    });
-    const duration = performance.now() - startedAt;
+    const few = measure(4);
+    const many = measure(40);
+
+    /*
+     * Der eigentliche Schutz: Zehnmal so viele Kategorien kosten nur einen
+     * kleinen, festen Aufwand **je Kategorie** — den Ersteintrag im
+     * Kategorienrang. Verdichtete die Auswertung je Kategorie erneut über alle
+     * Buchungen, wüchse der Unterschied stattdessen mit der Zahl der Buchungen
+     * und läge bei 6.000 Buchungen um Größenordnungen höher.
+     */
+    expect(many.total - few.total).toBeLessThanOrEqual(4 * (40 - 4));
+
+    /*
+     * Die Obergrenze hält den absoluten Aufwand fest. Gemessen sind 10,9
+     * Zugriffe je Buchung: je ein Durchlauf für Archivstatus, Währung und
+     * Monat, danach Einnahmen, Ausgaben, Sparfluss, Kategorienrang und
+     * Vormonatsvergleich. Die Reserve bis 14 lässt Raum für einen weiteren
+     * Durchlauf, ohne einen zweiten Rang über alle Buchungen zu verdecken.
+     */
+    expect(few.perTransaction).toBeLessThan(14);
 
     // Die Erwartung stammt aus den Daten selbst; eine feste Zahl würde nur
     // die Wechselwirkung der Streuung nachbauen.
     const expectedCategories = new Set(
-      transactions
+      buildTransactions(6_000, 40)
         .filter(
           (entry) =>
             entry.kind === "expense" && entry.bookedOn.startsWith(month),
@@ -158,16 +235,77 @@ describe("monthly overview with a large local dataset", () => {
         .map((entry) => entry.categoryId),
     );
 
-    expect(overview.transactionCount).toBeGreaterThan(2_000);
-    expect(overview.expenseByCategory).toHaveLength(expectedCategories.size);
+    expect(many.overview.transactionCount).toBeGreaterThan(2_000);
+    expect(many.overview.expenseByCategory).toHaveLength(
+      expectedCategories.size,
+    );
     expect(expectedCategories.size).toBeGreaterThan(10);
     expect(
-      overview.expenseByCategory.map((share) => share.amountMinor),
+      many.overview.expenseByCategory.map((share) => share.amountMinor),
     ).toEqual(
-      [...overview.expenseByCategory]
+      [...many.overview.expenseByCategory]
         .map((share) => share.amountMinor)
         .sort((left, right) => right - left),
     );
-    expect(duration).toBeLessThan(250);
+  });
+
+  /*
+   * Der Budgetpfad war bisher überhaupt nicht gemessen: Der Test übergab
+   * `budgets: []` und `summariseBudgets` kehrte sofort zurück. Dabei sucht
+   * genau dieser Pfad je Ausgabe erneut linear durch die Budgets.
+   *
+   * Der Test schreibt diesen Stand nicht als Ziel fest, sondern nur seine
+   * Form: Der Aufwand darf mit der Datenmenge wachsen, aber nicht schneller
+   * als sie. Die inhaltlichen Budgets setzt #28.
+   */
+  it("keeps the budget lookup from growing faster than the data", () => {
+    const measure = (transactionCount: number) => {
+      const budgets = countingReads(buildBudgets(40));
+      buildMonthlyOverview({
+        budgets: budgets.watched,
+        contributions: [],
+        currency: "EUR",
+        month,
+        savingsGoals: [],
+        transactions: buildTransactions(transactionCount, 40),
+      });
+      return budgets.reads();
+    };
+
+    const small = measure(3_000);
+    const large = measure(6_000);
+
+    expect(small).toBeGreaterThan(0);
+    // Doppelte Datenmenge, höchstens doppelter Aufwand mit etwas Reserve für
+    // die feste Grundlast. Ein quadratischer Rückschritt reißt das sofort.
+    expect(large).toBeLessThanOrEqual(small * 2 + 200);
+  });
+
+  /*
+   * Grober Rückhalt gegen eine Verlangsamung, die keine zusätzlichen Zugriffe
+   * verursacht — etwa eine teure Formatierung je Buchung.
+   *
+   * Die Grenze ist bewusst weit gefasst, und zwar gegen die gemessene
+   * Streuung, nicht gegen die reine Rechenzeit: Auf ruhiger Maschine braucht
+   * die Verdichtung rund 25 ms, unter paralleler Last wurden 254,6 ms
+   * beobachtet — das Zehnfache. Genau daran ist das alte Budget von 250 ms
+   * gescheitert. 2.000 ms liegen noch einmal rund acht Mal über dieser
+   * Beobachtung unter Last und fallen erst bei einem Rückschritt um eine
+   * Größenordnung.
+   */
+  it("finishes several thousand bookings well inside a coarse ceiling", () => {
+    const transactions = buildTransactions(6_000, 40);
+
+    const startedAt = performance.now();
+    buildMonthlyOverview({
+      budgets: [],
+      contributions: [],
+      currency: "EUR",
+      month,
+      savingsGoals: [],
+      transactions,
+    });
+
+    expect(performance.now() - startedAt).toBeLessThan(2_000);
   });
 });
