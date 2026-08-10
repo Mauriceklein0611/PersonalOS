@@ -437,3 +437,63 @@ describe("FinancePage – frei verfügbar", () => {
     }
   });
 });
+
+describe("FinancePage – Monatsschätzung", () => {
+  // Ohne zwei abgeschlossene Monate erscheint keine Prognose, sondern der
+  // Grund dafür.
+  it("names the missing basis instead of guessing", async () => {
+    const service = createMemoryFinanceService();
+    renderPage(service);
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 2,
+        name: "Schätzung zum Monatsende",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Keine Schätzung: Für eine Schätzung fehlt/),
+    ).toBeInTheDocument();
+  });
+
+  it("marks the figures as an estimate and offers the calculation path", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    const category = await service.createCategory({
+      kind: "expense",
+      name: "Lebensmittel",
+    });
+    for (const bookedOn of ["2026-06-10", "2026-07-10"]) {
+      await service.createTransaction({
+        bookedOn,
+        categoryId: category.id,
+        kind: "expense",
+        money: { amountMinor: 40_000, currency: "EUR" },
+      });
+    }
+    renderPage(service);
+
+    const section = (
+      await screen.findByRole("heading", {
+        level: 2,
+        name: "Schätzung zum Monatsende",
+      })
+    ).closest("section") as HTMLElement;
+
+    expect(
+      within(section).getByText(/Eine Schätzung, kein Ist-Wert/),
+    ).toBeInTheDocument();
+    // Keine Zahl ohne Zeitraum.
+    expect(
+      within(section).getByText(/Erwartete Ausgaben, August 2026/),
+    ).toBeInTheDocument();
+
+    await user.click(
+      within(section).getByRole("button", { name: "Rechenweg anzeigen" }),
+    );
+    expect(within(section).getByText("Grundlage")).toBeInTheDocument();
+    expect(
+      within(section).getByText("Juni 2026, Juli 2026"),
+    ).toBeInTheDocument();
+  });
+});

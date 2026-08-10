@@ -5,6 +5,7 @@ import type { FinanceService } from "../service";
 import "./finance-page.css";
 import { BudgetSection } from "./BudgetSection";
 import { CategorySection } from "./CategorySection";
+import { ForecastSection } from "./ForecastSection";
 import { formatMonth } from "./format";
 import { MonthOverview } from "./MonthOverview";
 import { RecurringSection } from "./RecurringSection";
@@ -70,6 +71,12 @@ export function FinancePage(props: FinancePageProps) {
             onConfirm={page.confirmRecurring}
             onCreate={page.createRecurringTemplate}
             templates={page.recurringTemplates}
+          />
+
+          <ForecastSection
+            currency={page.currency}
+            forecast={page.forecast}
+            monthLabel={formatMonth(page.budgetMonth)}
           />
 
           <MonthOverview
