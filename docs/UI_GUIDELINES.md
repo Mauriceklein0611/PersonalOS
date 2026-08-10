@@ -225,6 +225,7 @@ Dashboard-, Fortschritts- und Tracker-Ansichten folgen einer gemeinsamen, dunkel
 - Zahlen werden nicht gekürzt, solange die ausgeschriebene Entsprechung fehlt.
 - Ohne Datenbasis steht überall `Keine Angabe` statt `0 %`. Der Ring bleibt dann leer, der Balken entfällt.
 - Kennzahl-Tile, Ringfortschritt, Fortschrittsbalken, Ranglisten-Balken und Tracker-Zelle geben ihren Wert immer als Text aus. Ring, Balken und Diagrammfläche sind Dekoration und `aria-hidden`.
+- Beschriftungen und Datenbasen dieser Bausteine tragen `overflow-wrap: anywhere`. Ein einzelnes langes Wort wie „Tagesfortschritt“ ist rund 133 px breit und bestimmt sonst als Mindestbreite das umgebende Raster — sichtbar erst als waagerechter Dokumentüberlauf, oft nur auf dem breiter rendernden Linux-Runner.
 - Ein Gegenzähler wie „107 offen“ bleibt neutral und suggeriert keine Zielvorgabe. Für unterbrochene Serien gibt es kein Warnrot und keine künstliche Dringlichkeit.
 
 ### Tracker-Raster
