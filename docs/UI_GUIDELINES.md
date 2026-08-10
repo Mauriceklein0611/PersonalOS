@@ -152,6 +152,13 @@ Der Grundgedanke in einem Satz: **Glas ist der Rahmen, das dichte Panel ist der 
 
 - Höchstens eine Herofläche je Ansicht, und nur dort, wo sie eine Aussage trägt. Auf einer Liste trägt sie keine.
 - Der Hero verdrängt die erste Erfassungsaktion nicht aus dem ersten mobilen Viewport. Passt beides nicht, weicht der Hero.
+- **Erfassen steht vor Auswerten.** Kennzahlen, Ring und Signale beschreiben, was war; sie sind das Ergebnis, nicht der Einstieg. Auf der Tagesübersicht und im Bereich Geld steht die Erfassung deshalb direkt hinter dem Hero.
+- Ein langer Fließtext gehört nicht neben ein Element fester Breite. Bei 320 px bleibt neben einem 7,5-rem-Ring keine 150 px breite Spalte, in der ein Satz noch lesbar umbricht — er wächst dort auf ein Vielfaches seiner Höhe.
+
+### Überlagernde Hinweise
+
+- Ein fixierter Hinweis darf weder die Kopfzeile noch eine primäre Aktion überdecken. Die Kopfzeile klebt selbst am oberen Rand; ein Hinweis mit voller Breite liegt dort dauerhaft über ihr.
+- Auf Mobil steht ein selten erscheinender Hinweis — etwa der PWA-Status — deshalb im Fluss und schiebt den Inhalt, statt ihn zu verdecken. Ab 52 rem ist daneben Platz für die fixierte Fassung.
 
 ### Karten
 
@@ -218,6 +225,7 @@ Dashboard-, Fortschritts- und Tracker-Ansichten folgen einer gemeinsamen, dunkel
 - Zahlen werden nicht gekürzt, solange die ausgeschriebene Entsprechung fehlt.
 - Ohne Datenbasis steht überall `Keine Angabe` statt `0 %`. Der Ring bleibt dann leer, der Balken entfällt.
 - Kennzahl-Tile, Ringfortschritt, Fortschrittsbalken, Ranglisten-Balken und Tracker-Zelle geben ihren Wert immer als Text aus. Ring, Balken und Diagrammfläche sind Dekoration und `aria-hidden`.
+- Beschriftungen und Datenbasen dieser Bausteine tragen `overflow-wrap: anywhere`. Ein einzelnes langes Wort wie „Tagesfortschritt“ ist rund 133 px breit und bestimmt sonst als Mindestbreite das umgebende Raster — sichtbar erst als waagerechter Dokumentüberlauf, oft nur auf dem breiter rendernden Linux-Runner.
 - Ein Gegenzähler wie „107 offen“ bleibt neutral und suggeriert keine Zielvorgabe. Für unterbrochene Serien gibt es kein Warnrot und keine künstliche Dringlichkeit.
 
 ### Tracker-Raster

@@ -56,14 +56,25 @@
   opacity: 0.82;
 }
 
+/*
+ * `overflow-wrap: anywhere` ist hier kein Notnagel, sondern Teil des
+ * Vertrags: Eine Beschriftung wie „Tagesfortschritt“ ist ein einziges Wort
+ * von rund 133 px. In einer schmaleren Spalte bestimmt sie sonst als
+ * Mindestbreite das Raster, läuft über den Baustein hinaus und erzeugt am
+ * Ende waagerechten Dokumentüberlauf. `anywhere` wirkt anders als
+ * `break-word` auch auf die Mindestbreite und verhindert genau das;
+ * `hyphens` trennt zusätzlich sauber, wo der Browser es kann.
+ */
 .ui-metric-tile-label,
 .ui-ranked-bar-list-label,
 .ui-progress-ring-label,
 .ui-progress-bar-label {
   margin: 0;
+  overflow-wrap: anywhere;
   color: var(--text-muted);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
+  hyphens: auto;
   letter-spacing: var(--letter-spacing-label);
   line-height: var(--line-height-normal);
   text-transform: uppercase;
@@ -97,6 +108,7 @@
 .ui-chart-source,
 .ui-chart-empty {
   margin: 0;
+  overflow-wrap: anywhere;
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
@@ -127,6 +139,15 @@
 
 .ui-progress-ring[data-size="sm"] .ui-progress-ring-visual {
   max-width: 6rem;
+}
+
+/*
+ * Der Wertetext bleibt einzeilig. Im kleinen Ring muss er deshalb kleiner
+ * sein: „12 von 15“ in der KPI-Größe ist breiter als der Ring selbst und
+ * liefe aus ihm heraus, statt umzubrechen.
+ */
+.ui-progress-ring[data-size="sm"] .ui-progress-ring-text {
+  font-size: var(--font-size-xl);
 }
 
 .ui-progress-ring-visual > * {

@@ -435,11 +435,62 @@ describe("TodayPage – Tagesfortschritt", () => {
       }),
     );
 
+    // Der Wertetext nennt den Stand, die Datenbasis darunter den Umfang.
+    expect(await screen.findByText("0 von 2")).toBeInTheDocument();
+    expect(screen.getByText("Aufgaben und Routinen")).toBeInTheDocument();
+  });
+});
+
+describe("TodayPage – Erfassen vor Auswerten", () => {
+  /*
+   * #118: Die Erfassung steht vor Kennzahlen und Signalen. Das ist keine
+   * Geschmacksfrage — bei 375 × 844 px begann die erste Eingabe vorher
+   * unterhalb der Falz, und der Morgen-Check-in fing mit Scrollen an.
+   */
+  it("places both capture actions before the metrics", async () => {
+    const { container } = renderPage(createServices());
+    await screen.findByRole("textbox", { name: "Aufgabe für heute" });
+
+    const capture = container.querySelector(".today-capture");
+    const metrics = container.querySelector(".today-metrics");
+    expect(capture).not.toBeNull();
+    expect(metrics).not.toBeNull();
     expect(
-      await screen.findByText(
-        "0 von 2 Einheiten erledigt (Aufgaben und Routinen)",
-      ),
+      capture!.compareDocumentPosition(metrics!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Ausgabe erfassen" }),
     ).toBeInTheDocument();
+  });
+
+  /*
+   * Ansehen darf nichts anlegen. `load` würde eine Score-Konfiguration
+   * schreiben, die niemand angelegt hat — sichtbar unter anderem in der Zahl
+   * der lokalen Datensätze in den Einstellungen.
+   */
+  it("reads the score without writing anything", async () => {
+    const scoreService = createStubScoreService();
+    const load = vi.spyOn(scoreService, "load");
+    const preview = vi.spyOn(scoreService, "preview");
+    const saveComponents = vi.spyOn(scoreService, "saveComponents");
+    const setEnabled = vi.spyOn(scoreService, "setEnabled");
+
+    renderPage(
+      createServices(),
+      () => fixedNow,
+      createMemoryFinanceService(),
+      undefined,
+      createMemorySavingsService(),
+      scoreService,
+    );
+    await screen.findByRole("textbox", { name: "Aufgabe für heute" });
+
+    expect(preview).toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
+    expect(saveComponents).not.toHaveBeenCalled();
+    expect(setEnabled).not.toHaveBeenCalled();
   });
 });
 

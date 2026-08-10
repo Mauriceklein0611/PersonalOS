@@ -362,29 +362,33 @@ export function TodayPage({
 
   return (
     <section aria-labelledby="page-title" className="route-page today-page">
-      {/* Glas-Hero: Datum, Begrüßung und der Tagesring als einziges Glow. */}
+      {/*
+        Kompakter Hero: Datum, Tagesaussage und der Tagesring als einziges
+        Glow. Die Zeile „Tagesübersicht“ über der Überschrift „Heute“ ist
+        entfallen — sie sagte dasselbe zweimal und schob die erste
+        Erfassungsaktion mit unter die Falz.
+      */}
       <header className="page-header today-hero">
-        <div className="page-header-copy">
-          <p className="page-eyebrow">Tagesübersicht</p>
-          <h1 id="page-title">Heute</h1>
-          <p className="page-description">
-            {greetings[overview.greeting]} {formatToday(context.today)}
-          </p>
-          <p className="today-focus">
-            {overview.mostImportantTask
-              ? `Wichtigstes für heute: ${overview.mostImportantTask.title}`
-              : "Für heute steht keine Aufgabe an. Du kannst den Tag frei einteilen."}
-          </p>
-        </div>
-        <div className="page-header-aside">
-          {/* Aufgaben und Routinen zusammen: Der Ring misst den Tag,
-              nicht einen Ausschnitt davon. */}
+        <div className="today-hero-top">
+          <div className="today-hero-copy">
+            <h1 id="page-title">Heute</h1>
+            <p className="today-date">
+              {greetings[overview.greeting]} {formatToday(context.today)}
+            </p>
+          </div>
+          {/*
+            Aufgaben und Routinen zusammen: Der Ring misst den Tag, nicht
+            einen Ausschnitt davon. Die Datenbasis steht kurz, weil der
+            Wertetext darüber „3 von 5“ bereits nennt; die lange Fassung
+            wiederholte das und wuchs in der schmalen Spalte auf fünf Zeilen.
+          */}
           <ProgressRing
             caption={
               overview.progress.planned === 0
                 ? "Für heute ist nichts geplant."
-                : `${overview.progress.done} von ${overview.progress.planned} Einheiten erledigt (Aufgaben und Routinen)`
+                : "Aufgaben und Routinen"
             }
+            className="today-hero-ring"
             glow
             label="Tagesfortschritt"
             size="sm"
@@ -396,6 +400,11 @@ export function TodayPage({
             }
           />
         </div>
+        <p className="today-focus">
+          {overview.mostImportantTask
+            ? `Wichtigstes für heute: ${overview.mostImportantTask.title}`
+            : "Für heute steht keine Aufgabe an. Du kannst den Tag frei einteilen."}
+        </p>
       </header>
 
       {error ? (
@@ -410,6 +419,58 @@ export function TodayPage({
         </p>
       ) : (
         <div className="page-grid">
+          {/*
+            Erfassen steht vor Auswerten. Der „Morgen-Check-in unter zwei
+            Minuten“ begann vorher bei etwa y=854 in einem 844 px hohen
+            Viewport: Der erste Bildschirm zeigte Begrüßung, Ring und
+            Kennzahlen, aber kein Eingabefeld. Kennzahlen und Signale
+            beschreiben den Tag; sie sind das Ergebnis, nicht der Einstieg.
+          */}
+          <section
+            aria-labelledby="today-capture-title"
+            className="today-capture"
+            data-span="full"
+          >
+            <h2 className="today-capture-title" id="today-capture-title">
+              Schnell erfassen
+            </h2>
+
+            <form
+              className="today-quick-capture"
+              onSubmit={(event) => void quickCreateTask(event)}
+            >
+              <Input
+                autoComplete="off"
+                error={quickError}
+                hint="Wird für heute geplant und bleibt verschiebbar."
+                label="Aufgabe für heute"
+                maxLength={500}
+                onChange={(event) => {
+                  setQuickTitle(event.currentTarget.value);
+                  setQuickError(undefined);
+                }}
+                placeholder="Was möchtest du festhalten?"
+                value={quickTitle}
+              />
+              <Button type="submit">Aufgabe hinzufügen</Button>
+            </form>
+
+            {/* Was unbequem ist, unterbleibt: Eine Ausgabe braucht hier nur
+                Betrag und Kategorie. */}
+            <QuickExpenseForm
+              onSaved={(transactionId, amount) => {
+                setNotice(`Die Ausgabe über ${amount} wurde gebucht.`);
+                setUndo({
+                  id: transactionId,
+                  message: "Die Ausgabe wurde archiviert.",
+                  run: () => financeService.archiveTransaction(transactionId),
+                });
+              }}
+              service={financeService}
+              today={context.today}
+            />
+          </section>
+
           {/*
             Genau vier Kennzahlen, mehr nicht. Die vierte erscheint nur mit
             gesetztem Budget: Ein übriges Budget ohne Budget wäre keine Zahl,
@@ -485,42 +546,6 @@ export function TodayPage({
               </ul>
             </section>
           ) : null}
-
-          <form
-            className="today-quick-capture"
-            data-span="full"
-            onSubmit={(event) => void quickCreateTask(event)}
-          >
-            <Input
-              autoComplete="off"
-              error={quickError}
-              hint="Die Aufgabe wird für heute geplant. Im Aufgabenbereich kannst du sie verschieben."
-              label="Aufgabe für heute"
-              maxLength={500}
-              onChange={(event) => {
-                setQuickTitle(event.currentTarget.value);
-                setQuickError(undefined);
-              }}
-              placeholder="Was möchtest du festhalten?"
-              value={quickTitle}
-            />
-            <Button type="submit">Aufgabe hinzufügen</Button>
-          </form>
-
-          {/* Was unbequem ist, unterbleibt: Eine Ausgabe braucht hier nur
-              Betrag und Kategorie. */}
-          <QuickExpenseForm
-            onSaved={(transactionId, amount) => {
-              setNotice(`Die Ausgabe über ${amount} wurde gebucht.`);
-              setUndo({
-                id: transactionId,
-                message: "Die Ausgabe wurde archiviert.",
-                run: () => financeService.archiveTransaction(transactionId),
-              });
-            }}
-            service={financeService}
-            today={context.today}
-          />
 
           <section className="today-list-card">
             <h2>Aufgaben für heute</h2>
@@ -707,8 +732,18 @@ function describeMood(journal: {
   return `Zuletzt erfasste Stimmung: ${journal.lastMood.value} von 5, vom ${formatDay(journal.lastMood.localDate)}. Das ist ein Eintrag aus der Vergangenheit und nicht dein heutiger Stand.`;
 }
 
+/**
+ * Der Tageskopf nennt Wochentag, Tag und Monat, aber kein Jahr. Auf einer
+ * Ansicht, die ausschließlich von heute handelt, trägt die Jahreszahl nichts
+ * bei und kostet bei 375 px eine zweite Zeile neben dem Ring.
+ */
 function formatToday(day: CalendarDay): string {
-  return formatDay(day);
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+    weekday: "long",
+  }).format(new Date(`${day}T00:00:00.000Z`));
 }
 
 function formatDay(day: CalendarDay): string {

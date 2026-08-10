@@ -102,3 +102,31 @@ test("starts offline from static caches and keeps local actions available", asyn
     await context.setOffline(false);
   }
 });
+
+/*
+ * #118: Fixiert nahm der Hinweis bei 390 px die volle Breite am oberen Rand
+ * ein — und die Kopfzeile klebt selbst dort. Er lag damit dauerhaft über
+ * Marke, Nebenbereichen und Farbschema.
+ */
+test("keeps the install hint clear of the header on mobile", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const hint = page.getByText(
+    "PersonalOS kann jetzt ohne Netzwerk gestartet werden.",
+  );
+  await expect(hint).toBeVisible({ timeout: 20_000 });
+
+  const hintBox = await page.locator(".pwa-toast-region").boundingBox();
+  const barBox = await page.locator(".top-bar").boundingBox();
+  const captureBox = await page.locator(".today-capture").boundingBox();
+
+  // Der Hinweis endet, bevor die Kopfzeile beginnt, und beide vor der Erfassung.
+  expect(hintBox!.y + hintBox!.height).toBeLessThanOrEqual(barBox!.y + 1);
+  expect(barBox!.y + barBox!.height).toBeLessThanOrEqual(captureBox!.y + 1);
+
+  await page.getByRole("button", { name: "Hinweis schließen" }).click();
+  await expect(hint).toBeHidden();
+});

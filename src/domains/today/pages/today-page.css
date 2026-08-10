@@ -9,6 +9,62 @@
   font-size: var(--font-size-lg);
 }
 
+/*
+ * Kopf und Ring stehen von der kleinsten Breite an nebeneinander. Der Ring
+ * unter dem Text kostete eine volle Zeile, und die erste Erfassungsaktion
+ * begann erst darunter. Die Angabe ist zwei Klassen tief, damit sie das
+ * `padding` von `.page-header` unabhängig von der Ladereihenfolge der
+ * Stylesheets schlägt.
+ */
+.today-page .today-hero {
+  gap: var(--space-3);
+  padding: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/*
+ * Überschrift und Datum stehen neben dem Ring, die Tagesaussage darunter
+ * über die volle Breite. Läge sie neben dem Ring, bräche sie bei 320 px in
+ * einer knapp 150 px breiten Spalte um — der Hero wurde dadurch über 500 px
+ * hoch und schob jede Erfassungsaktion unter die Falz.
+ */
+.today-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.today-hero-copy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+/*
+ * Feste Breite statt `auto`: Sonst bestimmt die längste Zeile der Datenbasis
+ * die Spalte und drückt Überschrift und Datum zusammen.
+ */
+.today-hero-ring {
+  width: 8.5rem;
+  flex: none;
+}
+
+.today-page .today-capture-title {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.today-date {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
 .today-focus {
   margin: 0;
   overflow-wrap: anywhere;
@@ -42,8 +98,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.today-quick-capture,
-.today-quick-expense,
+.today-capture,
 .today-journal-card,
 .today-list-card {
   display: grid;
@@ -57,24 +112,55 @@
   backdrop-filter: var(--blur-glass);
 }
 
+/*
+ * Beide Erfassungen liegen in einer Karte statt in zweien. Zwei Karten
+ * kosteten Rahmen, Radius und zweimal Innenabstand — genug, um die zweite
+ * Aktion aus der ersten Bildschirmhöhe zu schieben.
+ */
+.today-capture {
+  gap: var(--space-3);
+}
+
+.today-quick-capture,
+.today-quick-expense {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+}
+
 .today-quick-capture .ui-button {
   align-self: end;
 }
 
-.today-quick-expense h2 {
+.today-quick-expense h3 {
   margin: 0;
+  font-size: var(--font-size-md);
 }
 
-/* Betrag und Kategorie nebeneinander, sobald der Platz reicht. */
+/*
+ * Betrag und Kategorie stehen von der kleinsten Breite an nebeneinander, der
+ * Knopf darunter über beide Spalten. Gestapelt kostete der Block rund 96 px
+ * mehr — genug, um den Einstieg „Ausgabe erfassen“ bei 390 × 844 px unter die
+ * Falz zu schieben. Ab 30 rem reicht der Platz auch für den Knopf daneben.
+ */
 .today-quick-expense-form {
   display: grid;
   gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.today-quick-expense-form > .ui-button {
+  grid-column: 1 / -1;
 }
 
 @media (min-width: 30rem) {
   .today-quick-expense-form {
     align-items: end;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+
+  .today-quick-expense-form > .ui-button {
+    grid-column: auto;
   }
 }
 
@@ -167,7 +253,7 @@
 }
 
 @supports not (backdrop-filter: blur(1px)) {
-  .today-quick-capture,
+  .today-capture,
   .today-journal-card,
   .today-list-card {
     background: var(--glass-opaque);
@@ -176,7 +262,7 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .today-quick-capture,
+  .today-capture,
   .today-journal-card,
   .today-list-card {
     background: var(--glass-opaque);
