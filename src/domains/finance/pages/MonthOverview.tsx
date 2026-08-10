@@ -12,6 +12,7 @@ import {
 } from "../../../lib/money/money";
 import type { FinanceCategory } from "../model";
 import type { MonthlyOverview } from "../overview";
+import { formatMoneyScale } from "./format";
 
 export type MonthOverviewProps = {
   categoriesById: ReadonlyMap<string, FinanceCategory>;
@@ -118,9 +119,7 @@ export function MonthOverview({
                 "Entfernte Kategorie",
             )}
             emptyMessage="Für diesen Monat ist keine Ausgabe erfasst."
-            formatValue={(value) =>
-              formatMoney(createMoney(value, overview.currency))
-            }
+            formatValue={(value) => formatMoneyScale(value, overview.currency)}
             period={period}
             series={[
               {

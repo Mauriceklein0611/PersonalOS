@@ -1,14 +1,13 @@
 import { useMemo, useState } from "react";
 
 import { Button, Chart, Select } from "../../../components/ui";
-import { createMoney, formatMoney } from "../../../lib/money/money";
 import {
   buildCategoryTrend,
   describeCategoryTrend,
   maximumTrendMonths,
 } from "../category-trend";
 import type { FinanceCategory, Transaction } from "../model";
-import { formatMonth } from "./format";
+import { formatMoneyScale, formatMonth } from "./format";
 
 export type CategoryTrendSectionProps = {
   categories: FinanceCategory[];
@@ -50,7 +49,7 @@ export function CategoryTrendSection({
   );
 
   const asMoney = (amountMinor: number) =>
-    formatMoney(createMoney(amountMinor, currency));
+    formatMoneyScale(amountMinor, currency);
 
   return (
     <section
