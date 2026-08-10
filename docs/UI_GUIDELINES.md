@@ -196,6 +196,9 @@ Die Ansichten einer Domainseite stehen in `ViewTabs`. Die Bereichsreiter der Kop
 ### Diagramme
 
 - In einer Ansicht mit Check-in-Raster steht das Raster **vor** der Auswertung. Das Diagramm erklärt, was bereits erfasst wurde; es ist nie der Einstieg.
+- Ein Diagramm hinter einer Ausklappfläche wird erst **gerendert**, wenn sie offen ist. `React.lazy` allein genügt nicht: Sobald die Fläche im Baum steht, lädt der Chunk. Nur der nicht gerenderte Zweig hält eine Route frei von der Diagrammbibliothek.
+- Textwerte, die eine Kurve begleiten, stehen vor dem Raster, das Diagramm dahinter. Sie kosten nichts nachzuladen und tragen dieselbe Aussage.
+- In einem waagerecht scrollenden Raster bleibt die erste Spalte über `position: sticky` stehen. Oben klebende Kopfzeilen bleiben aus: Der Scroller scrollt nur waagerecht, ein oben klebender Kopf hinge an der Seitenscrollung und verdeckte dort Zellen und Fokusring.
 - Innerhalb dichter Flächen bleibt das Diagramm zurückhaltend: Gitternetz `--chart-grid`, keine Verlaufsfüllung als Blickfang, kein Glow.
 - Die Grenzen aus „Diagramme“ gelten unverändert: höchstens drei Serien, Zeitraum und Datenbasis als Text, dieselben Werte zusätzlich als Tabelle.
 

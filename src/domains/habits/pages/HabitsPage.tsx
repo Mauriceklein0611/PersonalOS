@@ -102,6 +102,7 @@ export function HabitsPage({
     useState<HabitProgressPeriod>("last28Days");
   const [undo, setUndo] = useState<HabitUndoAction>();
   const [weekOffset, setWeekOffset] = useState(0);
+  const [isWeekAnalysisOpen, setIsWeekAnalysisOpen] = useState(false);
 
   const today = useMemo(
     () => calendarDayForInstant(now(), timeZone),
@@ -514,8 +515,7 @@ export function HabitsPage({
               </Button>
             </div>
             <p className="habit-view-hint">
-              Die laufende Woche ist die letzte auswertbare Woche. Check-ins
-              sind bis einschließlich heute möglich.
+              Check-ins sind bis einschließlich heute möglich.
             </p>
             {weekHabits.length === 0 ? (
               <EmptyState
@@ -524,57 +524,26 @@ export function HabitsPage({
               />
             ) : (
               <>
-                <div className="habit-week-dashboard">
-                  <div className="habit-week-chart">
-                    <Chart
-                      categories={weekCourse.map((entry) =>
-                        formatCalendarDayShort(entry.day),
-                      )}
-                      emptyMessage="In dieser Woche war an keinem Tag etwas geplant."
-                      period={`${formatCalendarDay(weekStart)} bis ${formatCalendarDay(weekEnd)}`}
-                      series={
-                        weekHasPlannedDays
-                          ? [
-                              {
-                                id: "done",
-                                label: "Erledigt",
-                                tone: 1,
-                                values: weekCourse.map((entry) => entry.done),
-                              },
-                              {
-                                id: "due",
-                                label: "Geplant",
-                                tone: 2,
-                                values: weekCourse.map((entry) => entry.due),
-                              },
-                            ]
-                          : []
-                      }
-                      source={`Grundlage: ${weekHabits.length} in dieser Woche aktive Routinen. Übersprungene Tage zählen nicht als erledigt.`}
-                      title="Wochenverlauf"
-                    />
-                    {weekHasPlannedDays ? (
-                      <ul className="habit-week-course">
-                        {weekCourse.map((entry) => (
-                          <li key={entry.day}>
-                            <span>{formatCalendarDayShort(entry.day)}</span>
-                            <span>
-                              {entry.done} von {entry.due}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                  <RankedBarList
-                    caption="Orientierung, keine Rangordnung."
-                    emptyMessage="Noch keine laufende Serie."
-                    items={streakRanking}
-                    label="Aktive Serien"
-                    tone={2}
-                  />
-                </div>
-                <div className="habit-week-card">
+                {/*
+                  Erfassen vor Auswerten, Issue #121. Vorher standen Diagramm,
+                  Tageswerte und Serien vor dem Raster; auf Mobil lag das
+                  einzige interaktive Element der Ansicht damit weit unter dem
+                  ersten Bildschirm.
+                */}
+                {weekHasPlannedDays ? (
+                  <ul className="habit-week-course">
+                    {weekCourse.map((entry) => (
+                      <li key={entry.day}>
+                        <span>{formatCalendarDayShort(entry.day)}</span>
+                        <span>
+                          {entry.done} von {entry.due}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                <div className="ui-dense-panel habit-week-panel">
                   <HabitWeekGrid
                     busyHabitId={busyHabitId}
                     days={weekDays}
@@ -584,6 +553,68 @@ export function HabitsPage({
                     today={today}
                   />
                 </div>
+
+                {/*
+                  Das Diagramm wird erst gerendert, wenn die Auswertung offen
+                  ist. Nur so bleibt die Wochenansicht frei von der
+                  Diagrammbibliothek, solange niemand sie sehen will —
+                  `React.lazy` allein lädt sie, sobald die Fläche im Baum steht.
+                */}
+                <details
+                  className="habit-week-analysis"
+                  onToggle={(event) =>
+                    setIsWeekAnalysisOpen(event.currentTarget.open)
+                  }
+                  open={isWeekAnalysisOpen}
+                >
+                  <summary className="habit-week-analysis-summary">
+                    Auswertung dieser Woche
+                  </summary>
+                  {isWeekAnalysisOpen ? (
+                    <div className="habit-week-chart">
+                      <Chart
+                        categories={weekCourse.map((entry) =>
+                          formatCalendarDayShort(entry.day),
+                        )}
+                        emptyMessage="In dieser Woche war an keinem Tag etwas geplant."
+                        period={`${formatCalendarDay(weekStart)} bis ${formatCalendarDay(weekEnd)}`}
+                        series={
+                          weekHasPlannedDays
+                            ? [
+                                {
+                                  id: "done",
+                                  label: "Erledigt",
+                                  tone: 1,
+                                  values: weekCourse.map((entry) => entry.done),
+                                },
+                                {
+                                  id: "due",
+                                  label: "Geplant",
+                                  tone: 2,
+                                  values: weekCourse.map((entry) => entry.due),
+                                },
+                              ]
+                            : []
+                        }
+                        source={`Grundlage: ${weekHabits.length} in dieser Woche aktive Routinen. Übersprungene Tage zählen nicht als erledigt.`}
+                        title="Wochenverlauf"
+                      />
+                    </div>
+                  ) : null}
+                </details>
+
+                {/*
+                  Die Serien bleiben außerhalb der Ausklappfläche: Sie sind
+                  Text und Balken aus vorhandenen Werten und kosten nichts
+                  nachzuladen.
+                */}
+                <RankedBarList
+                  caption="Orientierung, keine Rangordnung."
+                  emptyMessage="Noch keine laufende Serie."
+                  items={streakRanking}
+                  label="Aktive Serien"
+                  tone={2}
+                />
               </>
             )}
           </>

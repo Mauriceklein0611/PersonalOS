@@ -6,7 +6,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: clamp(2rem, 7vw, 4rem);
+  /* Dichter als eine Heroeinleitung: Darunter beginnt die Arbeit. */
+  margin-top: var(--space-6);
 }
 
 .habit-page-error,
@@ -17,7 +18,7 @@
 
 /* Der Baustein bringt seine Gestalt mit; hier steht nur die Einordnung. */
 .habit-view-tabs {
-  margin-top: var(--space-6);
+  margin-top: var(--space-4);
 }
 
 .habit-view-panel {
@@ -61,8 +62,7 @@
 /* Karten liegen als oberste Ebene über dem Nebel und tragen deshalb Blur. */
 .habit-card,
 .habit-progress-card,
-.habit-view-status,
-.habit-week-card {
+.habit-view-status {
   display: grid;
   min-width: 0;
   gap: var(--space-3);
@@ -77,8 +77,7 @@
 @supports not (backdrop-filter: blur(1px)) {
   .habit-card,
   .habit-progress-card,
-  .habit-view-status,
-  .habit-week-card {
+  .habit-view-status {
     background: var(--glass-opaque);
     backdrop-filter: none;
   }
@@ -87,8 +86,7 @@
 @media (prefers-reduced-transparency: reduce) {
   .habit-card,
   .habit-progress-card,
-  .habit-view-status,
-  .habit-week-card {
+  .habit-view-status {
     background: var(--glass-opaque);
     backdrop-filter: none;
   }
@@ -201,11 +199,41 @@
   margin-bottom: var(--space-3);
 }
 
-.habit-week-dashboard {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-4);
+/*
+ * Das Raster liegt als dichte Fläche in der Seite, nicht in einer eigenen
+ * Glaskarte: Eine Karte um ein Raster kostet Rahmen, Radius und
+ * Innenabstand, ohne etwas zu gruppieren, was nicht ohnehin zusammengehört.
+ */
+.habit-week-panel {
   margin-bottom: var(--space-4);
+}
+
+/*
+ * Die Auswertung klappt auf. Geschlossen steht ihr Inhalt nicht im Baum,
+ * und damit lädt die Wochenansicht die Diagrammbibliothek gar nicht erst.
+ */
+.habit-week-analysis {
+  margin-bottom: var(--space-4);
+}
+
+.habit-week-analysis-summary {
+  display: inline-flex;
+  min-height: var(--control-height);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--radius-round);
+  color: var(--text);
+  background: var(--glass-strong);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.habit-week-analysis[open] .habit-week-analysis-summary {
+  margin-bottom: var(--space-3);
+  border-color: var(--accent-1);
+  color: var(--accent-1);
 }
 
 /* Der Verlauf nennt jeden Tag zusätzlich als Text, damit die Kurve nur
@@ -221,9 +249,10 @@
   list-style: none;
 }
 
+/* Eine Zeile je Tag, nicht zwei: Die Reihe steht vor dem Raster. */
 .habit-week-course li {
-  display: grid;
-  gap: 0.1rem;
+  display: inline-flex;
+  gap: var(--space-1);
   font-variant-numeric: tabular-nums;
 }
 
@@ -238,13 +267,6 @@
   gap: var(--space-2);
 }
 
-@media (min-width: 52rem) {
-  .habit-week-dashboard {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    align-items: start;
-  }
-}
-
 .habit-week-caption {
   margin-bottom: var(--space-2);
   color: var(--text-muted);
@@ -256,10 +278,23 @@
   display: block;
 }
 
-.habit-week-table tbody th {
+/*
+ * Die Routinenspalte bleibt beim waagerechten Scrollen stehen. Ohne sie
+ * weiß nach zwei Spalten niemand mehr, welche Zeile er antippt. Nur links
+ * klebend, nicht oben: Der Scroller scrollt ausschließlich waagerecht, ein
+ * oben klebender Kopf hinge an der Seitenscrollung und verdeckte dort
+ * Zellen und Fokusring.
+ */
+.habit-week-table tbody th,
+.habit-week-table thead th:first-child {
+  position: sticky;
+  z-index: 1;
+  left: 0;
   min-width: 7rem;
   max-width: 10rem;
   overflow-wrap: anywhere;
+  background: var(--dense-panel);
+  text-align: left;
 }
 
 .habit-progress-card h3 {
