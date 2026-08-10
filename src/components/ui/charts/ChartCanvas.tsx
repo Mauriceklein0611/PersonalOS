@@ -27,6 +27,15 @@ export default function ChartCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<EChartsType | null>(null);
   const [theme, setTheme] = useState<ChartTheme>(() => readChartTheme());
+  const [failure, setFailure] = useState<unknown>(null);
+
+  /*
+   * Die Bibliothek zeichnet auch außerhalb des React-Ablaufs, etwa aus dem
+   * `ResizeObserver`. Ein Fehler von dort erreicht keine Fehlergrenze und
+   * bliebe unbehandelt. Er wird deshalb gemerkt und beim nächsten Rendern
+   * geworfen, wo `ChartErrorBoundary` ihn auffängt.
+   */
+  if (failure !== null) throw failure;
 
   // Ein Theme-Wechsel schaltet die CSS-Tokens um; das Diagramm liest sie neu.
   useEffect(() => {
@@ -47,7 +56,15 @@ export default function ChartCanvas({
     });
     chartRef.current = chart;
 
-    const resize = () => chart.resize();
+    // Ein Neuzeichnen rechnet die Achsenbeschriftungen neu und ruft dabei
+    // `formatValue`. Wirft es, endet der Fehler sonst im Beobachter.
+    const resize = () => {
+      try {
+        chart.resize();
+      } catch (error) {
+        setFailure(error);
+      }
+    };
     const observer =
       typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
     observer?.observe(element);

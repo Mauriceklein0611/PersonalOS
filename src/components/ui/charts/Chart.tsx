@@ -4,6 +4,7 @@ import { classNames } from "../../../lib/class-names";
 import { dataSeriesMarkers, noDataText } from "../data-series";
 import { Skeleton } from "../Skeleton";
 import { maximumChartSeries, type ChartSeries } from "./chart-series";
+import { ChartErrorBoundary } from "./ChartErrorBoundary";
 
 /**
  * Die Bibliothek liegt in einem eigenen Chunk und wird erst geladen, wenn
@@ -11,6 +12,14 @@ import { maximumChartSeries, type ChartSeries } from "./chart-series";
  * funktionieren ohne sie.
  */
 const ChartCanvas = lazy(() => import("./ChartCanvas"));
+
+/**
+ * Deckt beides ab: eine Bibliothek, die sich offline nicht nachladen lässt,
+ * und eine, die beim Zeichnen scheitert. Für den Betrachter ist das derselbe
+ * Fall — die Grafik fehlt, die Angaben ringsum stimmen weiter.
+ */
+const plotFailureText =
+  "Das Diagramm konnte nicht gezeichnet werden. Zeitraum und Datenbasis bleiben unverändert.";
 
 export type { ChartSeries };
 
@@ -67,21 +76,25 @@ export function Chart({
 
       {showChart ? (
         <>
-          <Suspense
-            fallback={
-              <div aria-hidden="true" className="ui-chart-plot">
-                <Skeleton lines={1} />
-              </div>
-            }
+          <ChartErrorBoundary
+            fallback={<p className="ui-dataviz-error">{plotFailureText}</p>}
           >
-            <ChartCanvas
-              categories={categories}
-              formatValue={formatValue}
-              horizontal={horizontal}
-              series={visibleSeries}
-              type={type}
-            />
-          </Suspense>
+            <Suspense
+              fallback={
+                <div aria-hidden="true" className="ui-chart-plot">
+                  <Skeleton lines={1} />
+                </div>
+              }
+            >
+              <ChartCanvas
+                categories={categories}
+                formatValue={formatValue}
+                horizontal={horizontal}
+                series={visibleSeries}
+                type={type}
+              />
+            </Suspense>
+          </ChartErrorBoundary>
           <ChartTable
             categories={categories}
             formatValue={formatValue}
