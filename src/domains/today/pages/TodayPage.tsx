@@ -4,6 +4,7 @@ import {
   useMemo,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import { Link } from "react-router";
 
@@ -17,14 +18,35 @@ import {
   Input,
   MetricTile,
   ProgressRing,
+  SignalRow,
   Toast,
 } from "../../../components/ui";
 import { getIsoWeekBounds } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
+import type {
+  FinanceCategory,
+  MonthlyBudget,
+  SavingsContribution,
+  SavingsGoal,
+  Transaction,
+} from "../../finance/model";
+import {
+  personalOsSavingsService,
+  type SavingsService,
+} from "../../finance/savings-service";
 import {
   personalOsFinanceService,
   type FinanceService,
 } from "../../finance/service";
+import {
+  personalOsScoreService,
+  type ScoreOverview,
+  type ScoreService,
+} from "../../insights/service";
+import {
+  describeCompleteness,
+  formatScoreValue,
+} from "../../insights/score-view-model";
 import type { Habit, HabitEntryStatus } from "../../habits/model";
 import {
   personalOsHabitService,
@@ -41,11 +63,27 @@ import { QuickExpenseForm } from "../components/QuickExpenseForm";
 import {
   buildTodayOverview,
   createTodayContext,
-  type TodayCapacity,
   type TodayGreeting,
   type TodayInput,
 } from "../queries";
+import {
+  buildTodaySignals,
+  describeRemainingBudget,
+  type TodaySignalKind,
+} from "../signals";
 import "./today-page.css";
+
+/**
+ * Ein Signal ist eine Beobachtung — der Link ist das Angebot, ihr nachzugehen.
+ * Ohne ihn wäre die Zeile eine Sackgasse.
+ */
+const signalLinks: Record<TodaySignalKind, ReactNode> = {
+  budget: <Link to="/finanzen">Zu den Finanzen</Link>,
+  capacity: <Link to="/aufgaben">Zu den Aufgaben</Link>,
+  overdue: <Link to="/aufgaben">Zu den Aufgaben</Link>,
+  reflection: <Link to="/journal">Journal öffnen</Link>,
+  savings: <Link to="/finanzen">Zu den Sparzielen</Link>,
+};
 
 const greetings: Record<TodayGreeting, string> = {
   day: "Schön, dass du da bist.",
@@ -73,12 +111,35 @@ const emptyInput: TodayInput = {
   tasks: [],
 };
 
+/**
+ * Die Finanzdaten, die Signale und Restbudget brauchen. Sie liegen getrennt
+ * von `TodayInput`, weil `buildTodayOverview` sie nicht liest — die Übersicht
+ * bleibt eine reine Verdichtung aus Aufgaben, Gewohnheiten und Journal.
+ */
+type TodayFinanceInput = {
+  budgets: MonthlyBudget[];
+  categories: FinanceCategory[];
+  contributions: SavingsContribution[];
+  savingsGoals: SavingsGoal[];
+  transactions: Transaction[];
+};
+
+const emptyFinanceInput: TodayFinanceInput = {
+  budgets: [],
+  categories: [],
+  contributions: [],
+  savingsGoals: [],
+  transactions: [],
+};
+
 export type TodayPageProps = {
   dailyCapacityMinutes?: number;
   financeService?: FinanceService;
   habitService?: HabitService;
   journalService?: JournalService;
   now?: () => Date;
+  savingsService?: SavingsService;
+  scoreService?: ScoreService;
   taskService?: TaskService;
   timeZone?: string;
 };
@@ -89,6 +150,8 @@ export function TodayPage({
   habitService = personalOsHabitService,
   journalService = personalOsJournalService,
   now = systemNow,
+  savingsService = personalOsSavingsService,
+  scoreService = personalOsScoreService,
   taskService = personalOsTaskService,
   timeZone: timeZoneOverride,
 }: TodayPageProps) {
@@ -100,8 +163,10 @@ export function TodayPage({
   );
   const [busyId, setBusyId] = useState<string>();
   const [error, setError] = useState<string>();
+  const [finance, setFinance] = useState<TodayFinanceInput>(emptyFinanceInput);
   const [input, setInput] = useState<TodayInput>(emptyInput);
   const [isLoading, setIsLoading] = useState(true);
+  const [score, setScore] = useState<ScoreOverview>();
   const [notice, setNotice] = useState<string>();
   const [quickError, setQuickError] = useState<string>();
   const [quickTitle, setQuickTitle] = useState("");
@@ -129,20 +194,75 @@ export function TodayPage({
     };
   }, [context.today, habitService, journalService, taskService]);
 
+  /*
+   * Finanzen und Life Score hängen an einem eigenen Ladeweg. Sie ergänzen die
+   * Seite, sie tragen sie nicht: Fällt einer aus, schweigen die betroffenen
+   * Signale und die Kennzahl meldet „Keine Angabe“ — der Tagesablauf aus
+   * Aufgaben, Gewohnheiten und Journal bleibt vollständig bedienbar.
+   */
+  const loadContext = useCallback(async () => {
+    const [financeInput, scoreOverview] = await Promise.all([
+      readFinanceSnapshot(
+        { financeService, savingsService },
+        context.today,
+      ).catch(() => emptyFinanceInput),
+      // `preview` statt `load`: Das Dashboard zeigt den Score, es richtet ihn
+      // nicht ein. Ansehen darf nichts in die Datenbank schreiben.
+      scoreService
+        .preview(context.today, context.timeZone)
+        .then((overview): ScoreOverview | undefined => overview)
+        .catch(() => undefined),
+    ]);
+    return { financeInput, scoreOverview };
+  }, [
+    context.timeZone,
+    context.today,
+    financeService,
+    savingsService,
+    scoreService,
+  ]);
+
+  useEffect(() => {
+    let isCurrent = true;
+    void loadContext().then((next) => {
+      if (!isCurrent) return;
+      setFinance(next.financeInput);
+      setScore(next.scoreOverview);
+    });
+    return () => {
+      isCurrent = false;
+    };
+  }, [loadContext]);
+
   const reload = useCallback(async () => {
-    setInput(
-      await readTodaySnapshot(
+    // Eine gebuchte Ausgabe verschiebt Budget und Signale sofort mit.
+    const [snapshot, next] = await Promise.all([
+      readTodaySnapshot(
         { habitService, journalService, taskService },
         context.today,
       ),
-    );
-  }, [context.today, habitService, journalService, taskService]);
+      loadContext(),
+    ]);
+    setInput(snapshot);
+    setFinance(next.financeInput);
+    setScore(next.scoreOverview);
+  }, [context.today, habitService, journalService, loadContext, taskService]);
 
   // Die Verdichtung läuft über alle Aufgaben, Habits und Journaleinträge und
   // darf nicht bei jedem Tastendruck im Schnellerfassen-Feld neu rechnen.
   const overview = useMemo(
     () => buildTodayOverview({ ...input, dailyCapacityMinutes }, context),
     [context, dailyCapacityMinutes, input],
+  );
+
+  const signals = useMemo(
+    () => buildTodaySignals({ ...finance, overview }, context),
+    [context, finance, overview],
+  );
+
+  const remainingBudget = useMemo(
+    () => describeRemainingBudget(finance, context),
+    [context, finance],
   );
 
   async function runAction(
@@ -257,24 +377,22 @@ export function TodayPage({
           </p>
         </div>
         <div className="page-header-aside">
+          {/* Aufgaben und Gewohnheiten zusammen: Der Ring misst den Tag,
+              nicht einen Ausschnitt davon. */}
           <ProgressRing
             caption={
-              overview.habitDueCount === 0
-                ? "Heute ist keine Gewohnheit fällig."
-                : `${overview.habitSettledCount} von ${overview.habitDueCount} Gewohnheiten erfasst`
+              overview.progress.planned === 0
+                ? "Für heute ist nichts geplant."
+                : `${overview.progress.done} von ${overview.progress.planned} Einheiten erledigt (Aufgaben und Gewohnheiten)`
             }
             glow
             label="Tagesfortschritt"
             size="sm"
-            value={
-              overview.habitDueCount === 0
-                ? null
-                : overview.habitSettledCount / overview.habitDueCount
-            }
+            value={overview.progress.ratio}
             valueText={
-              overview.habitDueCount === 0
+              overview.progress.planned === 0
                 ? undefined
-                : `${overview.habitSettledCount} von ${overview.habitDueCount}`
+                : `${overview.progress.done} von ${overview.progress.planned}`
             }
           />
         </div>
@@ -292,6 +410,11 @@ export function TodayPage({
         </p>
       ) : (
         <div className="page-grid">
+          {/*
+            Genau vier Kennzahlen, mehr nicht. Die vierte erscheint nur mit
+            gesetztem Budget: Ein Restbudget ohne Budget wäre keine Zahl,
+            sondern eine Behauptung.
+          */}
           <div className="today-metrics" data-span="full">
             <MetricTile
               context={
@@ -313,25 +436,55 @@ export function TodayPage({
             />
             <MetricTile
               context={
-                overview.journal.hasEntryToday
-                  ? `${overview.journal.filledFieldCount} Felder ausgefüllt`
-                  : "Freiwillig und jederzeit nachtragbar"
+                score
+                  ? describeCompleteness(score.result)
+                  : "Noch keine Grundlage geladen"
               }
-              label="Abendreflexion"
-              value={overview.journal.hasEntryToday ? "Erfasst" : "Offen"}
+              label="Life Score"
+              value={score ? formatScoreValue(score.result.total) : null}
             />
-            {/*
-              Ohne eine einzige Schätzung erscheint die Kachel gar nicht:
-              Eine Summe aus null Schätzungen wäre eine Behauptung.
-            */}
-            {overview.capacity ? (
+            {remainingBudget ? (
               <MetricTile
-                context={describeCapacity(overview.capacity)}
-                label="Geplante Zeit heute"
-                value={formatMinutes(overview.capacity.totalMinutes)}
+                context={remainingBudget.context}
+                label="Restbudget des Monats"
+                value={remainingBudget.value}
               />
             ) : null}
           </div>
+
+          {/* Der Wert steht oben, der Rechenweg eine Ebene tiefer. Eine Zahl
+              ohne Weg zur Erklärung wäre eine Behauptung. */}
+          <p className="today-score-link" data-span="full">
+            <Link to="/insights">Wie der Life Score entsteht</Link>
+          </p>
+
+          {/*
+            Ebene 4 des Audits: Trifft nichts zu, steht hier nichts — und das
+            ist die Aussage. Ein Leerzustand wäre eine Zeile mehr, die jeden
+            Tag dasselbe sagt.
+          */}
+          {signals.length > 0 ? (
+            <section
+              aria-labelledby="today-signals-title"
+              className="today-signals"
+              data-span="full"
+            >
+              <h2 className="today-signals-title" id="today-signals-title">
+                Signale
+              </h2>
+              <ul className="today-signal-list">
+                {signals.map((signal) => (
+                  <SignalRow
+                    action={signalLinks[signal.kind]}
+                    key={signal.id}
+                    tone={signal.tone}
+                  >
+                    {signal.text}
+                  </SignalRow>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <form
             className="today-quick-capture"
@@ -523,47 +676,23 @@ async function readTodaySnapshot(
   };
 }
 
-/** „90 Min." bis unter einer Stunde, darüber „1 h 30 min". */
-function formatMinutes(minutes: number): string {
-  if (minutes < 60) return `${minutes} Min.`;
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
-}
-
 /**
- * Nennt die Datengrundlage und, falls ein Budget gesetzt ist, das Verhältnis
- * dazu. Sachlich formuliert: Die Summe liegt über dem Budget — das ist eine
- * Feststellung, keine Mahnung und keine Aussage über den Nutzer.
+ * Die Finanzdaten hinter Signalen und Restbudget. Bewusst getrennt vom
+ * Tagesabruf: Sie ergänzen die Seite, sie tragen sie nicht.
  */
-function describeCapacity(capacity: TodayCapacity): string {
-  const parts = [
-    `Grundlage: ${capacity.estimatedTaskCount} ${
-      capacity.estimatedTaskCount === 1
-        ? "geschätzte Aufgabe"
-        : "geschätzte Aufgaben"
-    }`,
-  ];
-
-  if (capacity.unestimatedTaskCount > 0) {
-    parts.push(
-      `${capacity.unestimatedTaskCount} ${
-        capacity.unestimatedTaskCount === 1
-          ? "Aufgabe ohne Schätzung ist nicht enthalten"
-          : "Aufgaben ohne Schätzung sind nicht enthalten"
-      }`,
-    );
-  }
-
-  if (capacity.budgetMinutes !== undefined) {
-    parts.push(
-      capacity.isOverBudget
-        ? `Das liegt über deinem Tagesbudget von ${formatMinutes(capacity.budgetMinutes)}`
-        : `Tagesbudget: ${formatMinutes(capacity.budgetMinutes)}`,
-    );
-  }
-
-  return `${parts.join(". ")}.`;
+async function readFinanceSnapshot(
+  services: { financeService: FinanceService; savingsService: SavingsService },
+  today: CalendarDay,
+): Promise<TodayFinanceInput> {
+  const [budgets, categories, contributions, savingsGoals, transactions] =
+    await Promise.all([
+      services.financeService.listBudgets(today.slice(0, 7)),
+      services.financeService.listCategories(),
+      services.savingsService.listContributions(),
+      services.savingsService.listGoals(),
+      services.financeService.listTransactions(),
+    ]);
+  return { budgets, categories, contributions, savingsGoals, transactions };
 }
 
 function describeMood(journal: {

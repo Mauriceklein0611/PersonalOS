@@ -91,6 +91,7 @@ function createStubService(
 
   const service: ScoreService = {
     load: () => Promise.resolve(overview()),
+    preview: () => Promise.resolve(overview()),
     loadSettings: () => Promise.resolve(settings),
     saveComponents: (components) => {
       settings = {

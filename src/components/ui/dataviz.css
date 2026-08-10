@@ -600,3 +600,36 @@ button.ui-tracker-cell:disabled {
     transition: none;
   }
 }
+
+/* Signalzeile: eine Zeile, keine Karte. Karten kosten senkrechten Raum, den
+   mobil niemand hat. Der Rand links trägt die Stufe, der Text die Aussage —
+   die Farbe ist damit nie die einzige Quelle. */
+.ui-signal-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) 0 var(--space-2) var(--space-3);
+  border-left: 3px solid var(--hairline);
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+/* Aufmerksamkeit, kein Alarm: Ein Signal stellt fest, es mahnt nicht. Deshalb
+   der Markenakzent und bewusst nicht `--danger`, das für zerstörende Aktionen
+   reserviert bleibt. */
+.ui-signal-row[data-tone="attention"] {
+  border-left-color: var(--accent-1);
+}
+
+.ui-signal-row-text {
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.ui-signal-row-action {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}

@@ -4,6 +4,8 @@ import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { createMemoryFinanceService } from "../../../test/factories/finance";
+import { createMemorySavingsService } from "../../../test/factories/savings";
+import { createStubScoreService } from "../../../test/factories/score";
 import type { Habit, HabitEntry } from "../../habits/model";
 import type { HabitService } from "../../habits/service";
 import type { JournalEntry } from "../../journal/model";
@@ -21,11 +23,18 @@ type Services = {
   taskService: TaskService;
 };
 
+/**
+ * Finanzen, Sparziele und Life Score laufen über Ersatzdienste. Ohne sie
+ * griffe die Seite auf die echten Dienste und damit auf die Datenbank zu —
+ * geprüft wird hier die Oberfläche, nicht die Persistenz.
+ */
 function renderPage(
   services: Services,
   now = () => fixedNow,
   financeService = createMemoryFinanceService(),
   dailyCapacityMinutes?: number,
+  savingsService = createMemorySavingsService(),
+  scoreService = createStubScoreService(),
 ) {
   return render(
     <MemoryRouter>
@@ -35,6 +44,8 @@ function renderPage(
         habitService={services.habitService}
         journalService={services.journalService}
         now={now}
+        savingsService={savingsService}
+        scoreService={scoreService}
         taskService={services.taskService}
         timeZone="Europe/Berlin"
       />
@@ -181,11 +192,62 @@ describe("TodayPage", () => {
     expect(
       screen.queryByText(/Sehr persönlicher Text/),
     ).not.toBeInTheDocument();
-    const tile = screen
-      .getByText("Abendreflexion")
-      .closest(".ui-metric-tile") as HTMLElement;
-    expect(within(tile).getByText("Erfasst")).toBeInTheDocument();
-    expect(within(tile).getByText("2 Felder ausgefüllt")).toBeInTheDocument();
+  });
+
+  /*
+   * Genau vier Kennzahlen. Der Abendreflexion und der geplanten Zeit ist mit
+   * dem Umbau je eine Ebene zugewiesen: die Reflexion als Karte und als
+   * Signal am Abend, die geplante Zeit als Signal, sobald sie über dem
+   * Tagesbudget liegt. Als Dauerkachel sagten beide jeden Tag dasselbe.
+   */
+  it("shows exactly the four agreed metrics", async () => {
+    renderPage(createServices());
+
+    await screen.findByText("Life Score");
+    const labels = screen
+      .getAllByText(
+        /^(Aufgaben heute|Gewohnheiten heute|Life Score|Restbudget des Monats|Abendreflexion|Geplante Zeit heute)$/,
+      )
+      .map((element) => element.textContent);
+
+    // Ohne gesetztes Budget bleibt die vierte Kachel weg: Ein Restbudget ohne
+    // Budget wäre keine Zahl, sondern eine Behauptung.
+    expect(labels).toEqual([
+      "Aufgaben heute",
+      "Gewohnheiten heute",
+      "Life Score",
+    ]);
+  });
+
+  it("names the life score with its completeness and links the explanation", async () => {
+    renderPage(createServices());
+
+    const tile = (await screen.findByText("Life Score")).closest(
+      ".ui-metric-tile",
+    ) as HTMLElement;
+    expect(within(tile).getByText("72 von 100")).toBeInTheDocument();
+    expect(within(tile).getByText(/von \d+ Bereichen/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Wie der Life Score entsteht" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the life score readable without a basis", async () => {
+    renderPage(
+      createServices(),
+      () => fixedNow,
+      undefined,
+      undefined,
+      undefined,
+      createStubScoreService(null),
+    );
+
+    const tile = (await screen.findByText("Life Score")).closest(
+      ".ui-metric-tile",
+    ) as HTMLElement;
+    // Niemals „0" für fehlende Daten.
+    expect(tile.textContent).not.toContain("0 von 100");
+    expect(within(tile).getByText("Keine Angabe")).toBeInTheDocument();
   });
 
   it("books an expense from the dashboard and offers to undo it", async () => {
@@ -259,46 +321,51 @@ describe("TodayPage", () => {
   });
 });
 
+/*
+ * Die geplante Zeit ist mit dem Dashboard-Umbau von einer Dauerkachel zu einem
+ * Signal geworden. Sie meldet sich nur noch, wenn sie über dem Tagesbudget
+ * liegt — ein Tag im Rahmen braucht keine Zeile.
+ */
 describe("TodayPage – geplante Zeit", () => {
-  it("shows no sum while not a single task carries an estimate", async () => {
+  it("stays silent while the planned time is within the budget", async () => {
     renderPage(
       createServices({
-        tasks: [createTask("t1", { plannedDate: "2026-08-04" })],
+        tasks: [
+          createTask("t1", { estimatedMinutes: 60, plannedDate: "2026-08-04" }),
+        ],
       }),
+      () => fixedNow,
+      undefined,
+      120,
     );
 
     await screen.findByRole("heading", {
       level: 2,
       name: "Aufgaben für heute",
     });
+    expect(screen.queryByText(/Heute geplant:/)).not.toBeInTheDocument();
     expect(screen.queryByText("Geplante Zeit heute")).not.toBeInTheDocument();
   });
 
-  it("names the tasks without an estimate instead of counting them as zero", async () => {
+  it("stays silent without a single estimate, whatever the budget", async () => {
     renderPage(
       createServices({
-        tasks: [
-          createTask("t1", { estimatedMinutes: 45, plannedDate: "2026-08-04" }),
-          createTask("t2", { estimatedMinutes: 30, plannedDate: "2026-08-04" }),
-          createTask("t3", { plannedDate: "2026-08-04" }),
-        ],
+        tasks: [createTask("t1", { plannedDate: "2026-08-04" })],
       }),
+      () => fixedNow,
+      undefined,
+      120,
     );
 
-    const tile = (await screen.findByText("Geplante Zeit heute")).closest(
-      ".ui-metric-tile",
-    ) as HTMLElement;
-
-    expect(within(tile).getByText("1 h 15 min")).toBeInTheDocument();
-    expect(
-      within(tile).getByText(
-        "Grundlage: 2 geschätzte Aufgaben. 1 Aufgabe ohne Schätzung ist nicht enthalten.",
-      ),
-    ).toBeInTheDocument();
+    await screen.findByRole("heading", {
+      level: 2,
+      name: "Aufgaben für heute",
+    });
+    expect(screen.queryByText(/Heute geplant:/)).not.toBeInTheDocument();
   });
 
   // Sachlich, ohne Dringlichkeitsrhetorik: eine Feststellung, keine Mahnung.
-  it("states plainly that the sum is above the budget", async () => {
+  it("names the planned time once it exceeds the budget", async () => {
     renderPage(
       createServices({
         tasks: [
@@ -313,36 +380,70 @@ describe("TodayPage – geplante Zeit", () => {
       120,
     );
 
-    const tile = (await screen.findByText("Geplante Zeit heute")).closest(
-      ".ui-metric-tile",
+    const row = (await screen.findByText("Heute geplant: 3 h 20 min")).closest(
+      ".ui-signal-row",
     ) as HTMLElement;
 
-    expect(
-      within(tile).getByText(/Das liegt über deinem Tagesbudget von 2 h\./),
-    ).toBeInTheDocument();
+    expect(row).toBeInTheDocument();
     for (const word of ["Achtung", "Warnung", "zu viel", "schaffst"]) {
-      expect(tile.textContent).not.toContain(word);
+      expect(row.textContent).not.toContain(word);
     }
   });
+});
 
-  it("names the budget without a remark while the sum stays within it", async () => {
+describe("TodayPage – Signale", () => {
+  it("shows no signal area at all when nothing is remarkable", async () => {
+    renderPage(createServices());
+
+    await screen.findByRole("heading", {
+      level: 2,
+      name: "Aufgaben für heute",
+    });
+    // Der leere Bereich ist die Aussage; eine Überschrift ohne Inhalt wäre
+    // eine Zeile, die jeden Tag dasselbe sagt.
+    expect(
+      screen.queryByRole("heading", { level: 2, name: "Signale" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("names overdue tasks and offers a way to them", async () => {
+    renderPage(
+      createServices({
+        tasks: [createTask("t1", { plannedDate: "2026-08-02" })],
+      }),
+    );
+
+    await screen.findByRole("heading", { level: 2, name: "Signale" });
+    const row = screen
+      .getByText("1 Aufgabe aus den Vortagen")
+      .closest(".ui-signal-row") as HTMLElement;
+    expect(
+      within(row).getByRole("link", { name: "Zu den Aufgaben" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("TodayPage – Tagesfortschritt", () => {
+  /*
+   * Der Ring ist das prominenteste Element der Seite. Solange er allein die
+   * Gewohnheiten maß, blieb er an einem Tag ohne fällige Gewohnheit leer,
+   * auch wenn jede Aufgabe erledigt war.
+   */
+  it("counts tasks and habits together", async () => {
     renderPage(
       createServices({
         tasks: [
-          createTask("t1", { estimatedMinutes: 60, plannedDate: "2026-08-04" }),
+          createTask("t1", { plannedDate: "2026-08-04" }),
+          createTask("t2", { plannedDate: "2026-08-04" }),
         ],
       }),
-      () => fixedNow,
-      undefined,
-      120,
     );
 
-    const tile = (await screen.findByText("Geplante Zeit heute")).closest(
-      ".ui-metric-tile",
-    ) as HTMLElement;
-
-    expect(within(tile).getByText(/Tagesbudget: 2 h\./)).toBeInTheDocument();
-    expect(tile.textContent).not.toContain("über deinem");
+    expect(
+      await screen.findByText(
+        "0 von 2 Einheiten erledigt (Aufgaben und Gewohnheiten)",
+      ),
+    ).toBeInTheDocument();
   });
 });
 

@@ -15,6 +15,7 @@ import {
   RankedBarList,
   SearchField,
   Select,
+  SignalRow,
   Skeleton,
   Textarea,
   Toast,
@@ -324,6 +325,30 @@ export function Component() {
           </ul>
         </div>
       </section>
+
+      <PreviewSection title="Signale" tone="dashboard">
+        <PreviewItem label="Beobachtung über einer Schwelle">
+          <ul className="preview-signal-list">
+            <SignalRow
+              action={<a href="#signal-preview">Zu den Finanzen</a>}
+              tone="attention"
+            >
+              Beispielkategorie: 82 % des Monatsbudgets nach 12 Tagen
+            </SignalRow>
+            <SignalRow tone="attention">3 Aufgaben aus den Vortagen</SignalRow>
+          </ul>
+        </PreviewItem>
+        <PreviewItem label="Hinweis ohne überschrittene Schwelle">
+          <ul className="preview-signal-list">
+            <SignalRow
+              action={<a href="#signal-preview">Journal öffnen</a>}
+              tone="info"
+            >
+              Der Abend ist ein guter Moment für die Reflexion
+            </SignalRow>
+          </ul>
+        </PreviewItem>
+      </PreviewSection>
 
       <PreviewSection title="Diagramme" tone="dashboard">
         <PreviewItem label="Linie mit Verlaufsfüllung">

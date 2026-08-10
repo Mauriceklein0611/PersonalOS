@@ -52,6 +52,24 @@ export type TodayCapacity = {
   unestimatedTaskCount: number;
 };
 
+/**
+ * Der Tagesfortschritt über Aufgaben **und** Gewohnheiten.
+ *
+ * Der Ring ist das prominenteste Element der Seite. Solange er allein die
+ * Gewohnheiten maß, zeigte er einen Bruchteil des Tages und blieb an einem
+ * Tag ohne fällige Gewohnheit selbst dann leer, wenn alle Aufgaben erledigt
+ * waren.
+ *
+ * `planned` ist null, wenn für heute weder eine Aufgabe noch eine Gewohnheit
+ * ansteht. Dann gibt es keinen Anteil — und nicht etwa null Prozent.
+ */
+export type TodayProgress = {
+  done: number;
+  planned: number;
+  /** Anteil der erledigten an den geplanten Einheiten, oder `null`. */
+  ratio: number | null;
+};
+
 export type TodayOverview = {
   /** Fehlt, solange keine einzige offene Aufgabe eine Schätzung trägt. */
   capacity?: TodayCapacity;
@@ -64,6 +82,7 @@ export type TodayOverview = {
   mostImportantTask?: Task;
   openTasks: Task[];
   overdueTaskCount: number;
+  progress: TodayProgress;
   settledHabits: TodayHabit[];
 };
 
@@ -124,9 +143,11 @@ export function buildTodayOverview(
     (entry) => entry.state === "done" || entry.state === "skipped",
   );
 
+  const completedTaskCount = countTasksCompletedOn(input.tasks, context);
+
   return {
     capacity: buildCapacity(openTasks, input.dailyCapacityMinutes),
-    completedTaskCount: countTasksCompletedOn(input.tasks, context),
+    completedTaskCount,
     dueHabits,
     greeting: getGreeting(context.hour),
     habitDueCount: dueHabits.length + settledHabits.length,
@@ -135,7 +156,43 @@ export function buildTodayOverview(
     mostImportantTask: openTasks[0],
     openTasks,
     overdueTaskCount,
+    progress: buildProgress({
+      completedTaskCount,
+      habitDueCount: dueHabits.length + settledHabits.length,
+      habitSettledCount: settledHabits.length,
+      openTaskCount: openTasks.length,
+    }),
     settledHabits,
+  };
+}
+
+/**
+ * Erledigte von geplanten Einheiten. Eine Einheit ist eine für heute geplante
+ * Aufgabe oder eine heute fällige Gewohnheit; beide zählen gleich, weil beide
+ * eine Handlung des Tages sind.
+ *
+ * Eine heute abgeschlossene Aufgabe steht nicht mehr in `openTasks`. Sie
+ * gehört trotzdem in beide Zahlen — sonst schrumpfte der Nenner mit jedem
+ * Haken, und der Ring stünde den ganzen Tag bei hundert Prozent.
+ */
+function buildProgress({
+  completedTaskCount,
+  habitDueCount,
+  habitSettledCount,
+  openTaskCount,
+}: {
+  completedTaskCount: number;
+  habitDueCount: number;
+  habitSettledCount: number;
+  openTaskCount: number;
+}): TodayProgress {
+  const planned = openTaskCount + completedTaskCount + habitDueCount;
+  const done = completedTaskCount + habitSettledCount;
+
+  return {
+    done,
+    planned,
+    ratio: planned === 0 ? null : done / planned,
   };
 }
 

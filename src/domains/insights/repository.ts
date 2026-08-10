@@ -28,6 +28,13 @@ export type ScoreSettingsRepository = Repository<
    * behandeln muss.
    */
   loadOrCreate(): Promise<ScoreSettings>;
+  /**
+   * Liest die Konfiguration, ohne sie anzulegen. Für Ansichten, die den Score
+   * nur zeigen: Das bloße Betrachten einer Seite darf nichts in die Datenbank
+   * schreiben. `undefined` heißt „noch nie eingestellt"; die Standardgewichte
+   * gelten dann trotzdem.
+   */
+  loadIfPresent(): Promise<ScoreSettings | undefined>;
 };
 
 export function createScoreSettingsRepository(
@@ -48,6 +55,10 @@ export function createScoreSettingsRepository(
   });
 
   return Object.assign(records, {
+    async loadIfPresent() {
+      const [existing] = await records.list();
+      return existing;
+    },
     async loadOrCreate() {
       return runInTransaction(database, ["scoreSettings"], async () => {
         const [existing] = await records.list();

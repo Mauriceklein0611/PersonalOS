@@ -183,3 +183,34 @@
     backdrop-filter: none;
   }
 }
+
+/* Ebene 4 des Audits. Zeilen statt Karten: Karten kosten senkrechten Raum,
+   den mobil niemand hat. Der Abschnitt erscheint nur, wenn es etwas zu
+   melden gibt — ein Leerzustand wäre eine Zeile, die jeden Tag dasselbe sagt. */
+.today-signals {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.today-signals-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.today-signal-list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.today-score-link {
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
