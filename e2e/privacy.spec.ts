@@ -81,7 +81,12 @@ test("downloads a safety backup before clearing local data", async ({
   );
   await page.goto("/einstellungen");
 
-  // Die Aufgabe und der beim Start angelegte Settings-Datensatz.
+  /*
+   * Die Aufgabe und der beim Start angelegte Settings-Datensatz — mehr nicht.
+   * Das Dashboard zeigt seit #73 auch den Life Score; es liest ihn dabei nur
+   * und legt keine zweite Konfiguration an. Ansehen darf nichts schreiben,
+   * sonst wüchse die Zahl allein vom Betrachten.
+   */
   await expect(page.getByText("2 lokale Datensätze")).toBeVisible();
   await page
     .getByRole("button", { name: "Alle lokalen Daten löschen" })

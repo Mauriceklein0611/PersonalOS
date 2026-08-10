@@ -70,9 +70,17 @@ Ein Hinweis mit „Rückgängig“ verschwindet erst, wenn er geschlossen wird o
 
 ## Gemeinsame Bausteine sind verbindlich
 
-Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker-, Such- oder Diagramm-Bausteine. Sie verwenden `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell`, `SearchField` und `Chart` aus `src/components/ui`.
+Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker-, Such-, Signal- oder Diagramm-Bausteine. Sie verwenden `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell`, `SearchField`, `SignalRow` und `Chart` aus `src/components/ui`.
 
 Fehlt eine Variante, wird der gemeinsame Baustein erweitert. Ein lokaler Nachbau wirkt zunächst kleiner, entkoppelt die Seite aber von Tokens, Kontrasttests und Leerzuständen und muss später erneut angefasst werden.
+
+## Signale sind Beobachtungen
+
+`SignalRow` meldet, dass etwas eine Schwelle überschritten hat. Eine Zeile, kein Kasten: Kästen kosten senkrechten Raum, den mobil niemand hat.
+
+Zwei Stufen, mehr nicht. `attention` heißt, dass etwas über eine Schwelle gegangen ist; `info` heißt, dass es etwas zu wissen gibt. Ein Warnrot gibt es nicht — `--danger` bleibt zerstörenden Aktionen vorbehalten. Der farbige Rand links trägt die Stufe, der Text trägt die Aussage; die Farbe ist damit nie die einzige Quelle.
+
+Der Text ist eine Feststellung, kein Imperativ: „3 Aufgaben aus den Vortagen", nicht „Erledige deine Rückstände". Trifft nichts zu, erscheint kein Signalbereich — der leere Zustand ist die Aussage und braucht keine eigene Zeile.
 
 ## Freitextsuche in Listen
 

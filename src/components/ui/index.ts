@@ -26,6 +26,7 @@ export {
 } from "./RankedBarList";
 export { SearchField, type SearchFieldProps } from "./SearchField";
 export { Select, type SelectProps } from "./Select";
+export { SignalRow, type SignalRowProps, type SignalTone } from "./SignalRow";
 export { Skeleton, type SkeletonProps } from "./Skeleton";
 export { Textarea, type TextareaProps } from "./Textarea";
 export { Toast, type ToastProps } from "./Toast";

@@ -141,3 +141,13 @@
     backdrop-filter: none;
   }
 }
+
+/* Signalzeilen liegen in einer Liste; die Vorschau zeigt sie ohne
+   Listenpunkte, genau wie im Signalbereich der Tagesübersicht. */
+.preview-signal-list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

@@ -144,6 +144,33 @@ describe("ScoreService", () => {
     expect(second.id).toBe(first.id);
   });
 
+  /*
+   * Das Dashboard zeigt den Score bei jedem Start. Würde es dabei die
+   * Konfiguration anlegen, entstünde ein Datensatz, den niemand angelegt hat —
+   * sichtbar unter anderem in der Zahl der lokalen Datensätze. Ansehen darf
+   * nichts schreiben.
+   */
+  it("previews the score without creating a configuration", async () => {
+    const { service } = createService();
+
+    const preview = await service.preview(lifeScoreToday, lifeScoreTimeZone);
+
+    expect(preview.result.total).toBeCloseTo(expectedLifeScore.total, 10);
+    expect(await database.table("scoreSettings").count()).toBe(0);
+  });
+
+  it("previews with the stored configuration once one exists", async () => {
+    const { service } = createService();
+    await service.saveComponents([
+      { enabled: false, key: "finance", weight: 0 },
+    ]);
+
+    const preview = await service.preview(lifeScoreToday, lifeScoreTimeZone);
+
+    expect(findScoreComponent(preview.result, "finance").enabled).toBe(false);
+    expect(await database.table("scoreSettings").count()).toBe(1);
+  });
+
   it("calculates the golden example through the query contract", async () => {
     const { service } = createService();
 

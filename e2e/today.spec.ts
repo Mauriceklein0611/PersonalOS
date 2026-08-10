@@ -156,3 +156,77 @@ test("puts capture before evaluation on the finance page", async ({ page }) => {
 
   expect(captureBox?.y ?? 0).toBeLessThan(overviewBox?.y ?? 0);
 });
+
+/*
+ * #73: Die Startroute ist die meistbesuchte Ansicht. Sie ohne die
+ * Diagrammbibliothek zu halten, ist der stärkste Leistungshebel des Projekts.
+ *
+ * Geprüft wird der Netzverkehr und nicht der Importgraph: Vite führt jeden
+ * dynamischen Chunk in einer zentralen Tabelle im Eintragschunk, ganz gleich,
+ * wer ihn lädt. Nur die tatsächliche Anforderung beantwortet die Frage.
+ */
+test("loads the dashboard without the chart library", async ({ page }) => {
+  const requested: string[] = [];
+  page.on("request", (request) => requested.push(request.url()));
+
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Heute" }),
+  ).toBeVisible();
+  await expect(page.getByText("Life Score", { exact: true })).toBeVisible();
+  await page.waitForLoadState("networkidle");
+
+  expect(requested.filter((url) => /ChartCanvas|echarts/i.test(url))).toEqual(
+    [],
+  );
+
+  /*
+   * Gegenprobe: Eine Seite, die wirklich zeichnet, fordert den Chunk sehr wohl
+   * an. Ohne sie liefe die Prüfung nach einer Umbenennung des Chunks still ins
+   * Leere und wäre immer grün. Die Buchung ist nötig, weil ein Diagramm ohne
+   * Datengrundlage im Leerzustand bleibt und gar nicht erst lädt.
+   */
+  await page.goto("/finanzen");
+  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("42,00");
+  await page
+    .getByRole("combobox", { name: /Kategorie der Buchung/ })
+    .selectOption({ label: "Lebensmittel" });
+  await page.getByRole("button", { name: "Buchung speichern" }).click();
+  await expect(page.getByText("Die Buchung wurde gespeichert.")).toBeVisible();
+
+  await expect
+    .poll(() => requested.filter((url) => /ChartCanvas/i.test(url)).length)
+    .toBeGreaterThan(0);
+});
+
+test("keeps the signal area silent on a calm day and speaks when something crosses a line", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/");
+
+  // Ein ruhiger Tag sieht ruhig aus.
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Signale" }),
+  ).toHaveCount(0);
+
+  await page
+    .getByRole("textbox", { name: "Aufgabe für heute" })
+    .fill("Rückstand von gestern");
+  await page.getByRole("button", { name: "Aufgabe hinzufügen" }).click();
+  await expect(
+    page.getByText("Wichtigstes für heute: Rückstand von gestern"),
+  ).toBeVisible();
+
+  // Für heute geplant ist nicht überfällig — der Bereich bleibt still.
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Signale" }),
+  ).toHaveCount(0);
+
+  const hasHorizontalOverflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth,
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+});

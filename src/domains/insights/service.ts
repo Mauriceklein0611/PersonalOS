@@ -131,6 +131,15 @@ export const personalOsInsightService = createInsightService();
 export type ScoreService = {
   /** Liest die gespeicherte Konfiguration und rechnet den Tag neu durch. */
   load(today: CalendarDay, timeZone: string): Promise<ScoreOverview>;
+  /**
+   * Wie `load`, legt aber keine Konfiguration an, wenn noch keine existiert.
+   *
+   * Für Ansichten, die den Score nur zeigen. Das Dashboard wird bei jedem
+   * Start geöffnet; würde es dabei schreiben, entstünde ein Datensatz, den
+   * niemand angelegt hat — sichtbar unter anderem in der Zahl der lokalen
+   * Datensätze in den Einstellungen.
+   */
+  preview(today: CalendarDay, timeZone: string): Promise<ScoreOverview>;
   loadSettings(): Promise<ScoreSettings>;
   saveComponents(
     components: readonly ScoreComponentConfig[],
@@ -156,6 +165,26 @@ export function createScoreService(
           today,
         }),
         settings: stored,
+      };
+    },
+    async preview(today, timeZone) {
+      const stored = await settings.loadIfPresent();
+      const components = stored?.components ?? resolveScoreComponents([]);
+      const input = await readLifeScoreInput(sources, {
+        month: monthOfDay(getFinancePeriod(today).from),
+        period: getLifeScorePeriod(today),
+      });
+      return {
+        result: calculateLifeScore(input, { components, timeZone, today }),
+        settings: stored ?? {
+          components,
+          createdAt: today,
+          enabled: true,
+          // Kein Datensatz, also auch keine Kennung. Der Wert wird nur
+          // gelesen; gespeichert wird hier nichts.
+          id: "",
+          updatedAt: today,
+        },
       };
     },
     loadSettings: () => settings.loadOrCreate(),
