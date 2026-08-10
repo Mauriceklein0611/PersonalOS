@@ -203,6 +203,12 @@ test("keeps the signal area silent on a calm day and speaks when something cross
   page,
 }) => {
   await page.setViewportSize({ width: 320, height: 720 });
+  /*
+   * Feste Uhrzeit am Vormittag. Ab 18 Uhr meldet der Signalbereich zu Recht
+   * den Reflexionshinweis; ohne feste Zeit prüfte dieser Test also je nach
+   * Tageszeit etwas anderes und fiel abends um.
+   */
+  await page.clock.setFixedTime(new Date("2026-08-10T09:00:00"));
   await page.goto("/");
 
   // Ein ruhiger Tag sieht ruhig aus.
