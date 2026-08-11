@@ -101,7 +101,7 @@ a {
   gap: 0.5rem 1rem;
   padding: max(0.65rem, env(safe-area-inset-top)) 1rem 0.65rem;
   border-bottom: 1px solid var(--hairline);
-  background: var(--glass);
+  background: var(--shell-glass);
   backdrop-filter: var(--blur-glass);
 }
 
@@ -193,7 +193,6 @@ a {
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
   font-size: 0.8rem;
-  backdrop-filter: var(--blur-glass);
 }
 
 /*
@@ -291,7 +290,6 @@ a {
   border-radius: var(--radius-xl);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
-  backdrop-filter: var(--blur-glass);
 }
 
 .page-section > h2 {
@@ -314,7 +312,6 @@ a {
   background: var(--glass);
   box-shadow: var(--glass-highlight);
   font-weight: var(--font-weight-medium);
-  backdrop-filter: var(--blur-glass);
 }
 
 /* Kopfbereich einer Ansicht als Glas-Hero. */
@@ -325,7 +322,7 @@ a {
   padding: clamp(1.25rem, 5vw, 2rem);
   border: 1px solid var(--edge);
   border-radius: var(--radius-xl);
-  background: var(--glass);
+  background: var(--shell-glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
   backdrop-filter: var(--blur-glass);
 }
@@ -369,7 +366,7 @@ a {
   left: 0;
   padding-bottom: env(safe-area-inset-bottom);
   border-top: 1px solid var(--hairline);
-  background: var(--glass);
+  background: var(--shell-glass);
   backdrop-filter: var(--blur-glass);
 }
 
@@ -579,7 +576,7 @@ a {
     flex-direction: column;
     padding: max(1.5rem, env(safe-area-inset-top)) 1rem 1.5rem;
     border-right: 1px solid var(--hairline);
-    background: var(--glass);
+    background: var(--shell-glass);
     backdrop-filter: var(--blur-glass);
   }
 

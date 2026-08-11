@@ -9,8 +9,8 @@ Die globalen Tokens stehen in `src/styles/tokens.css`. Komponenten verwenden aus
 - Radien: `sm`, `md`, `lg`, `xl` und `round`;
 - Schatten: `sm`, `md` und `lg`;
 - Motion: kurze und normale Dauer sowie eine gemeinsame Easing-Kurve;
-- Farben: Glas, Kanten, Text, Akzentverlauf, Akzentschrift (`--accent-text`), Danger, Fokus und Skeleton jeweils für Light und Dark;
-- Glas: `--glass`, `--glass-strong`, `--glass-opaque`, `--field`, `--edge`, `--hairline` und der Nebel `--canvas-*`, siehe „Glas-Ästhetik“;
+- Farben: Flächen, Kanten, Text, Akzentverlauf, Akzentschrift (`--accent-text`), Danger, Fokus und Skeleton jeweils für Light und Dark;
+- Flächen: `--shell-glass`, `--glass`, `--glass-strong`, `--glass-opaque`, `--field`, `--edge`, `--hairline` und der Nebel `--canvas-*`, siehe „Neo Quiet Density“;
 - Dichte: `--dense-panel`, `--dense-row`, `--dense-row-active`, `--dense-edge`, `--radius-dense` und `--dense-row-height`, siehe „Quiet Density“;
 - Dashboard: Datenpalette, Diagrammhilfslinien und Verlauf, siehe „Dashboard-Visualisierung“.
 
@@ -111,48 +111,39 @@ Der Text ist eine Feststellung, kein Imperativ: „3 Aufgaben aus den Vortagen",
 - Der Leerzustand „Kein Treffer“ nennt den Suchbegriff und unterscheidet sich vom Leerzustand ohne Daten.
 - Der Suchbegriff wird nicht gespeichert und nicht protokolliert; `autoComplete="off"` verhindert die Formularhistorie des Browsers. Das Journal zeigt auch bei einem Treffer keinen Textauszug über die übliche Verlaufszeile hinaus.
 
-## Glas-Ästhetik
+## Neo Quiet Density
 
-Alle Ansichten folgen einer gemeinsamen Glas-Sprache: durchscheinende Karten mit Blur über einem mehrfarbigen Nebel-Hintergrund. Dark-first mit der Palette „Abendrot“, gleichwertiges Light-Theme mit „Tageslicht“. Siehe Issue #55.
+Alle Ansichten folgen einer gemeinsamen dunklen, ruhigen Arbeitsfläche mit präzisen Neon-Akzenten. Quiet Density ist seit Issue #150 und [ADR 0015](decisions/0015-neo-quiet-density.md) die Grundsprache, nicht mehr nur eine additive Ausnahme. Die historischen Token- und Klassennamen der Glasfamilie bleiben kompatibel, bezeichnen außerhalb der Shell aber deckende Flächen.
 
 ### Seitengrund
 
-- Der Nebel liegt in `.app-canvas` hinter allem und ist rein dekorativ. Er besteht aus `--canvas-base` und vier Flecken `--canvas-blob-1` bis `--canvas-blob-4`.
+- Der sehr dunkle Seitengrund liegt in `.app-canvas` hinter allem. Vier schwache Neonflecken geben Tiefe, ohne eine zweite Informationsebene zu erzeugen.
 - Der Nebel ist statisch. Animierte Flecken gibt es nicht. `background-attachment: fixed` gilt erst ab 52 rem, weil ein fixierter Hintergrund auf iOS jeden Scroll-Repaint kostet.
 - Die Seite selbst (`.route-page`) ist reines Layout ohne eigene Fläche. Die Karten liegen darin.
 
-### Glas-Flächen
+### Flächenfamilie
 
-- Eine Karte ist `background: var(--glass)`, `border: 1px solid var(--edge)`, `backdrop-filter: var(--blur-glass)` und ein oberes Inset-Highlight über `--glass-highlight`.
-- **Blur nur auf oberster Ebene.** Verschachtelte `backdrop-filter` sind verboten. Flächen innerhalb einer Karte nutzen `--glass-strong` ohne eigenen Blur; Eingabefelder nutzen das deckende `--field`.
-- Höchstens etwa acht Glas-Karten gleichzeitig im Viewport. Lange Listen sind Zeilen in einer Karte, keine Karte je Zeile.
-- Datenreiche Arbeitsflächen liegen als deckendes Panel **in** der Glasschale und tragen selbst kein Glas, siehe „Quiet Density“.
-- `@supports not (backdrop-filter: …)` und `prefers-reduced-transparency: reduce` liefern dieselbe Ansicht mit `--glass-opaque` statt Blur. Der Nebel bleibt in beiden Fällen erhalten.
-- Genau ein Glow je Ansicht. In der Regel trägt ihn der primäre Fortschrittsring über `glow`.
-- `--accent-gradient` ist Flächenschmuck für erledigte Zellen, Checkboxen, primäre Buttons, Ringfortschritt und Chart-Füllungen. Ein Verlauf codiert niemals eine Kategorie oder einen Status.
+- Shell, mobile Navigation und Hero dürfen `--shell-glass` mit genau einer Blur-Ebene verwenden. Sie sind die atmosphärische Ausnahme.
+- Karten und Diagramme verwenden das deckende `--glass`; innere Flächen `--glass-strong`, Eingabefelder `--field` und datenreiche Panels `--dense-panel`.
+- Lange Listen sind Zeilen in einem Panel, keine Karte je Datensatz. Schatten bleiben schwach, Radien klein und Kanten präzise.
+- Reduced Transparency ändert nur Shell und Hero. Arbeitsflächen sehen mit und ohne Blur identisch aus.
+- Genau ein starker Glow je Ansicht. Er liegt auf primärem Fortschritt oder der wichtigsten Kennzahl, nie auf einem ganzen Container.
+- `--accent-gradient` markiert Primäraktion und Fortschritt. Datenkategorien verwenden die sechs einzelnen `--data-*`-Farben.
 
-### Kontrast auf Glas
+### Neon und Kontrast
 
-Durchscheinende Flächen haben keinen festen Hintergrund. `color-contrast.test.ts` rechnet deshalb die tatsächliche Schichtung nach — Nebelfleck über Grundverlauf, darüber die Helligkeitskorrektur des Filters, darüber das Glas-Alpha, darüber der Text — und prüft immer den ungünstigsten Fleck. Erreicht ein Wert die Schwelle nicht, wird das Token geändert, nicht die Schwelle.
+- Neon-Lime und Cyan sind primäre Akzente; Magenta, Violett, Amber und Blau erweitern ausschließlich die Datenpalette.
+- Knallige Farbe trägt große Zahlen, Fortschritt, Fokus, aktuelle Auswahl, Abschluss und Datenserie. Fließtext und Sekundäraktionen bleiben neutral.
+- `--accent-1` ist eine Flächen- und Linienfarbe. Akzentuierte Schrift verwendet `--accent-text`; Buttons auf dem Verlauf verwenden `--accent-contrast`.
+- `color-contrast.test.ts` prüft jede deckende Fläche direkt und berechnet für `--shell-glass` weiterhin den ungünstigsten Nebelfleck.
+- Farbe bleibt Zusatz. Label, Zahl, Zeichen, Muster, Position und ARIA tragen jeden Zustand auch ohne Farbwahrnehmung.
 
-Der Stellhebel ist `brightness()` in `--blur-glass`: Es dunkelt den Nebel **unter** der Karte ab und lässt dessen Farbe und Verlauf sichtbar. Ein deckender Grundton über der Karte würde denselben Kontrast erzeugen, aber genau das zerstören, was die Fläche als Glas lesbar macht. Mehr Glas-Alpha hilft im Dark-Theme nicht: Weißes Glas hellt die Karte weiter auf.
-
-**Text steht immer auf einer Glasfläche, nie auf dem blanken Nebel.** Ausnahme sind Überschriften in `--text`; der Test deckt diesen Fall ausdrücklich ab. Gedämpfter Text, Fehlertext und Datenfarben erreichen ihre Schwelle nur auf Glas — dafür gibt es `.page-section` für Abschnitte und `.page-alert` für seitenweite Meldungen.
-
-**`--accent-1` ist keine Schriftfarbe.** Sie färbt Flächen, Rahmen, Verläufe und Datenreihen. Akzentuierte Schrift — aktiver Navigationslink, aktiver Reiter, gewählte Skalenstufe — verwendet `--accent-text`. Auf `--accent-1` als Schrift kommt der ungünstigste Fleck auf 3,6:1 (light) und 2,5:1 (dark); das Audit vom 11.08.2026 hat den Fund unter A-01 aufgenommen, siehe [Accessibility-Audit](audits/accessibility-audit.md).
-
-`--accent-soft` ist die weiche Fläche unter genau dieser Schrift. Im hellen Theme ist sie ein Akzentschleier, im dunklen Theme dunkelt sie ab: Ein aufhellender Schleier über der hellsten Glasstelle lässt selbst reines Weiß nur 4,48:1 erreichen. Beide Schichten zusammen gehören in die Prüfung, nicht die Schrift allein.
-
-## Quiet Density
-
-Datenreiche Arbeitsflächen — lange Listen, Tracker, Tabellen und Planungsraster — werden kompakter und ruhiger als der Rest der App. Die Regeln hier sind **additiv**: Sie gelten innerhalb dichter Flächen und ändern nichts an Ansichten außerhalb davon. Siehe [ADR 0014](decisions/0014-quiet-density-dense-surfaces.md).
-
-Der Grundgedanke in einem Satz: **Glas ist der Rahmen, das dichte Panel ist der Inhalt.**
+Der Grundgedanke in einem Satz: **Die Fläche bleibt leise, die relevante Zahl darf leuchten.**
 
 ### Die dichte Fläche
 
 - `.ui-dense-panel` ist die Arbeitsfläche. Sie ist **deckend** und trägt kein `backdrop-filter`. Damit sieht sie mit Blur, ohne Blur-Unterstützung und bei `prefers-reduced-transparency: reduce` gleich aus und braucht keine Ausweichfassung.
-- Ein Panel liegt in der Glasschale, nie über einem zweiten Panel. Verschachtelte dichte Flächen gibt es nicht.
+- Ein Panel liegt in einer ruhigen Karte, nie über einem zweiten Panel. Verschachtelte dichte Flächen gibt es nicht.
 - Innerhalb des Panels gilt `--radius-dense` statt `--radius-xl`. Schatten entfallen; Rahmen sind `--dense-edge` und bleiben 1 px.
 - Ziffern stehen tabellarisch. Das Panel setzt `font-variant-numeric: tabular-nums`, KPIs, Datumsraster und Fortschrittswerte brauchen deshalb keine eigene Regel mehr.
 - Der Fokusring liegt innerhalb dichter Flächen **innen** (`outline-offset: -3px`), weil die Panelfläche beschnitten ist. Breite und Kontrast bleiben unverändert.
@@ -172,7 +163,7 @@ Der Grundgedanke in einem Satz: **Glas ist der Rahmen, das dichte Panel ist der 
 ### Karten
 
 - Eine Karte gruppiert **verschiedenartige** Inhalte. Gleichartige Datensätze gruppiert ein Panel.
-- Karte je Datensatz ist ausgeschlossen, sobald eine Liste mehr als etwa fünf Einträge zeigen kann. Die bisherige Obergrenze von rund acht Glaskarten im Viewport bleibt daneben bestehen.
+- Karte je Datensatz ist ausgeschlossen, sobald eine Liste mehr als etwa fünf Einträge zeigen kann. Die bisherige Obergrenze von rund acht Karten im Viewport bleibt daneben bestehen.
 
 ### Listenzeilen
 
@@ -242,8 +233,8 @@ Dashboard-, Fortschritts- und Tracker-Ansichten folgen einer gemeinsamen, dunkel
 
 ### Flächen und Tiefe
 
-- Der Seitengrund ist der Nebel, die Karte liegt mit `--glass` darüber, verschachtelte Flächen nutzen `--glass-strong`.
-- Trennung entsteht über Flächenhelligkeit, Radius und weichen Schatten. `--hairline` bleibt eine 1-px-Linie und ersetzt keine Fläche.
+- Der Seitengrund ist nahezu schwarz, die deckende Karte liegt mit `--glass` darüber, verschachtelte Flächen nutzen `--glass-strong`.
+- Trennung entsteht über Flächenhelligkeit, kleine Radien und präzise Haarlinien. Schatten bleiben schwach.
 - Radien: Karte `--radius-xl`, Tile `--radius-tile`, Zelle `--radius-cell`, Pill `--radius-round`.
 - Dark-first bedeutet nicht „nur dunkel“. Jedes Token existiert für Light und Dark und ist im Kontrasttest abgedeckt.
 
@@ -253,7 +244,7 @@ Dashboard-, Fortschritts- und Tracker-Ansichten folgen einer gemeinsamen, dunkel
 - Farbe ist immer Zusatz. Jede Serie trägt zusätzlich ein Label und ein Muster: `dataSeriesMarkers` liefert das Zeichen für Legenden, `dataSeriesDashes` das Strichmuster für Linien.
 - Datenfarben erreichen als grafisches Element mindestens 3:1 gegen Karte und Seitengrund. Zeichen auf einer weichen Fläche erreichen 4,5:1.
 - Verläufe sind ausschließlich Flächenschmuck, etwa `--accent-gradient`. Ein Verlauf codiert niemals eine Kategorie oder einen Status.
-- Glow ist auf genau ein Element je Ansicht begrenzt und trägt nie allein eine Aussage. Neon wird nicht eingesetzt.
+- Glow ist auf genau ein Element je Ansicht begrenzt und trägt nie allein eine Aussage. Neon ist semantischer Akzent, keine Containerdekoration.
 
 ### Zahlen und Zustände
 
@@ -282,7 +273,7 @@ Dashboard-, Fortschritts- und Tracker-Ansichten folgen einer gemeinsamen, dunkel
 
 ### Motion
 
-Neue Bewegung beschränkt sich auf ein kurzes Einblenden und den Fortschrittsübergang mit `--duration-fast`. `prefers-reduced-motion: reduce` schaltet beides vollständig ab.
+Karten und Kennzahlen erscheinen ohne Einblendanimation: Eine teilweise transparente Karte schwächt Kontrast genau im Moment der Orientierung. Bewegung beschränkt sich auf kurze Fortschrittsübergänge mit `--duration-fast`; `prefers-reduced-motion: reduce` schaltet sie vollständig ab.
 
 ## Komponentenübersicht
 

@@ -176,7 +176,6 @@
   border-radius: var(--radius-xl);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
-  backdrop-filter: var(--blur-glass);
 }
 
 @supports not (backdrop-filter: blur(1px)) {

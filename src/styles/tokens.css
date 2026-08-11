@@ -1,31 +1,13 @@
 /*
- * Glas-Ästhetik, Issue #55. Zwei Paletten: „Abendrot“ (dark, Standard) und
- * „Tageslicht“ (light). Komponenten verwenden ausschließlich die semantischen
- * Variablen dieser Datei; Rohfarbwerte stehen nur hier.
+ * Neo Quiet Density, Issue #150 und ADR 0015.
  *
- * Das Glas ist in beiden Themes ein heller Milchglas-Schleier, wie in der
- * Vorlage. Damit gedämpfter Text darauf trotzdem 4,5:1 erreicht, liegt der
- * Stellhebel beim Nebel und beim Text, nicht beim Glas:
+ * Ruhige, deckende Arbeitsflächen sind die Grundsprache. Der farbige Nebel
+ * bleibt als atmosphärischer Rand sichtbar; Transparenz und Blur gehören nur
+ * noch zur Shell und zum Hero. Neonfarben tragen Zahlen, Fortschritt, Fokus,
+ * Auswahl und Datenserien. Fließtext und Container bleiben neutral.
  *
- * 1. Die Nebelflecken sind gedämpfter als in der Vorlage. Bei deren Deckkraft
- *    erreicht gedämpfter Text auf der hellsten Stelle nur 2,9:1, und mehr
- *    Glas-Alpha verschlimmert das, weil weißes Glas die Karte weiter aufhellt.
- * 2. `--text-muted` ist deckender als in der Vorlage. Gedämpfter Text ist
- *    selbst durchscheinend und hellt sonst mit der Karte zusammen auf.
- * 3. Light `--accent-1`/`--data-1` und `--accent-2` sind abgedunkelt. Weiße
- *    Schrift auf dem Originalgrün erreicht 3,2:1 statt 4,5:1. Farbton und
- *    Charakter bleiben, nur die Helligkeit sinkt.
- * 4. `--field` ist die deckende Fläche für Eingabefelder. `--glass-strong` ist
- *    die angehobene Glasfläche der Vorlage und für Text zu durchscheinend.
- * 5. `--accent-1` ist eine Flächen- und Linienfarbe, keine Textfarbe. Als
- *    Schrift erreicht sie auf der hellsten Glasstelle nur 3,6:1 (light) und
- *    2,5:1 (dark). Akzentuierte Schrift verwendet deshalb `--accent-text`;
- *    gefunden im Accessibility-Audit, siehe `docs/audits/accessibility-audit.md`.
- *
- * Die `--dense-*`-Familie (Issue #117) ist die ruhige Arbeitsfläche für
- * datenreiche Listen, Tracker und Tabellen. Sie ist bewusst deckend: Nur eine
- * deckende Fläche sieht mit Blur, ohne Blur und bei
- * `prefers-reduced-transparency: reduce` identisch aus. Siehe ADR 0014.
+ * Komponenten verwenden ausschließlich die semantischen Variablen dieser
+ * Datei. Light und Dark erfüllen dieselben Kontrast- und Zustandsregeln.
  */
 
 :root {
@@ -69,112 +51,113 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  --radius-sm: 0.5rem;
-  --radius-cell: 0.625rem;
-  --radius-md: 0.75rem;
-  --radius-tile: 1rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+  --radius-sm: 0.375rem;
+  --radius-cell: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-tile: 0.75rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
   --radius-round: 999px;
   /* Dichte Flächen tragen einen kleineren Radius als die Glaskarte. */
-  --radius-dense: 0.75rem;
+  --radius-dense: 0.625rem;
   --dense-row-height: 2.75rem;
 
   --duration-fast: 120ms;
   --duration-normal: 200ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
-  --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 18%);
+  --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 8%);
 
   --control-height: 2.75rem;
   --mobile-nav-height: 4.5rem;
 }
 
 /*
- * Tageslicht. Steht auch ohne `data-theme` bereit, damit vor dem
+ * Quiet Light. Steht auch ohne `data-theme` bereit, damit vor dem
  * Theme-Bootstrap nichts ungestaltet erscheint.
  */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
-  color: #1b2436;
-  background: #e8ecfb;
+  color: #15202b;
+  background: #edf4f3;
 
-  --canvas-base: linear-gradient(160deg, #e8ecfb 0%, #f2e9f8 45%, #e4f2f0 100%);
+  --canvas-base: linear-gradient(160deg, #edf7f3 0%, #eef5fa 52%, #f6f0fb 100%);
   /*
    * Umgekehrt zum Dark-Theme: Hier darf der Nebel die Karte nicht abdunkeln.
    * Die Flecken sind deshalb hell und gesättigt statt tief.
    */
   --canvas-blob-1: radial-gradient(
     50% 60% at 15% 10%,
-    rgb(90 210 255 / 45%) 0%,
+    rgb(42 220 172 / 24%) 0%,
     transparent 60%
   );
   --canvas-blob-2: radial-gradient(
     45% 55% at 85% 15%,
-    rgb(178 150 255 / 45%) 0%,
+    rgb(45 196 255 / 20%) 0%,
     transparent 60%
   );
   --canvas-blob-3: radial-gradient(
     55% 60% at 70% 90%,
-    rgb(120 245 200 / 42%) 0%,
+    rgb(194 85 255 / 16%) 0%,
     transparent 60%
   );
   --canvas-blob-4: radial-gradient(
     40% 50% at 20% 85%,
-    rgb(255 150 205 / 40%) 0%,
+    rgb(255 70 181 / 13%) 0%,
     transparent 60%
   );
-  --canvas-solid: #eef1fb;
+  --canvas-solid: #eef4f4;
 
   /*
    * `brightness` im Filter hebt den Untergrund unter der Karte an, statt eine
    * deckende Schicht darüberzulegen. Farbe und Verlauf des Nebels bleiben
    * dadurch durch das Glas sichtbar.
    */
-  --blur-glass: blur(18px) saturate(1.3) brightness(1.06);
-  --glass: rgb(255 255 255 / 52%);
-  --glass-strong: rgb(255 255 255 / 72%);
-  --glass-opaque: #f4f7ff;
-  --field: rgb(255 255 255 / 92%);
-  --edge: rgb(255 255 255 / 85%);
-  --edge-strong: rgb(27 36 54 / 52%);
-  --hairline: rgb(27 36 54 / 12%);
+  --blur-glass: blur(18px) saturate(1.15);
+  --shell-glass: rgb(248 252 251 / 84%);
+  --glass: rgb(248 250 252);
+  --glass-strong: rgb(240 245 247);
+  --glass-opaque: #f8fafc;
+  --field: rgb(255 255 255);
+  --edge: rgb(5 122 85 / 20%);
+  --edge-strong: rgb(21 32 43 / 55%);
+  --hairline: rgb(21 32 43 / 12%);
   --overlay: rgb(20 26 40 / 45%);
 
   /* Ruhige Arbeitsfläche für dichte Listen und Raster, siehe ADR 0014. */
-  --dense-panel: #f7f8fc;
-  --dense-row: rgb(27 36 54 / 4%);
-  --dense-row-active: rgb(27 36 54 / 8%);
-  --dense-edge: rgb(27 36 54 / 14%);
+  --dense-panel: #f4f7f8;
+  --dense-row: rgb(21 32 43 / 4%);
+  --dense-row-active: rgb(5 122 85 / 10%);
+  --dense-edge: rgb(21 32 43 / 14%);
 
-  --text: #1b2436;
-  --text-muted: rgb(27 36 54 / 70%);
+  --text: #15202b;
+  --text-muted: rgb(21 32 43 / 72%);
 
-  --accent-1: #0a7a55;
-  --accent-2: #0369a1;
+  --accent-1: #057a55;
+  --accent-2: #006b8f;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   --accent-contrast: #ffffff;
-  --accent-glow: rgb(14 164 114 / 35%);
-  --accent-soft: rgb(10 122 85 / 14%);
+  --accent-glow: rgb(5 122 85 / 28%);
+  --accent-soft: rgb(5 122 85 / 12%);
   /* Akzentschrift auf Glas und auf `--accent-soft`, geprüft gegen 4,5:1. */
-  --accent-text: #075f42;
-  --focus-ring: #0369a1;
+  --accent-text: #056342;
+  --focus-ring: #006b8f;
 
   --danger: #8f3025;
   --danger-soft: rgb(143 48 37 / 12%);
   --danger-surface: #8f3025;
   --danger-contrast: #ffffff;
 
-  --data-1: #0a7a55;
-  --data-2: #0369a1;
-  --data-3: #7c3aed;
+  --data-1: #057a55;
+  --data-2: #006b8f;
+  --data-3: #7a35b8;
   --data-4: #b45309;
-  --data-5: #0d9488;
-  --data-6: #be185d;
-  --data-1-soft: rgb(10 122 85 / 16%);
-  --data-2-soft: rgb(3 105 161 / 16%);
-  --data-3-soft: rgb(124 58 237 / 16%);
+  --data-5: #087f78;
+  --data-6: #b21c64;
+  --data-1-soft: rgb(5 122 85 / 14%);
+  --data-2-soft: rgb(0 107 143 / 14%);
+  --data-3-soft: rgb(122 53 184 / 14%);
   --data-4-soft: rgb(180 83 9 / 16%);
   --data-5-soft: rgb(13 148 136 / 16%);
   --data-6-soft: rgb(190 24 93 / 16%);
@@ -186,19 +169,19 @@
   --skeleton: rgb(27 36 54 / 10%);
   --skeleton-highlight: rgb(255 255 255 / 70%);
 
-  --shadow-sm: 0 0.5rem 2rem rgb(20 26 40 / 14%);
-  --shadow-md: 0 1.25rem 3rem rgb(20 26 40 / 18%);
-  --shadow-lg: 0 2rem 5rem rgb(20 26 40 / 26%);
+  --shadow-sm: 0 0.5rem 1.5rem rgb(21 32 43 / 8%);
+  --shadow-md: 0 1rem 2.5rem rgb(21 32 43 / 12%);
+  --shadow-lg: 0 1.5rem 4rem rgb(21 32 43 / 18%);
   --shadow: var(--shadow-md);
 }
 
-/* Abendrot. */
+/* Neo Quiet Density. */
 :root[data-theme="dark"] {
   color-scheme: dark;
   color: #f4f6ff;
-  background: #2a1030;
+  background: #05070d;
 
-  --canvas-base: linear-gradient(160deg, #2a1030 0%, #3a1226 45%, #241030 100%);
+  --canvas-base: linear-gradient(160deg, #05070d 0%, #07101a 52%, #0b0712 100%);
   /*
    * Jeder Fleck hat einen breiten Kern und erst danach den Abfall. Ohne diesen
    * zweiten Farbstopp liegt die volle Farbe nur im Mittelpunkt und der Nebel
@@ -206,106 +189,94 @@
    */
   --canvas-blob-1: radial-gradient(
     75% 85% at 12% 8%,
-    rgb(255 178 125 / 50%) 0%,
-    rgb(255 178 125 / 30%) 32%,
+    rgb(58 255 181 / 18%) 0%,
+    rgb(58 255 181 / 8%) 32%,
     transparent 72%
   );
   --canvas-blob-2: radial-gradient(
     70% 80% at 88% 12%,
-    rgb(255 143 179 / 52%) 0%,
-    rgb(255 143 179 / 32%) 32%,
+    rgb(61 222 255 / 17%) 0%,
+    rgb(61 222 255 / 7%) 32%,
     transparent 72%
   );
   --canvas-blob-3: radial-gradient(
     80% 85% at 78% 92%,
-    rgb(199 139 255 / 46%) 0%,
-    rgb(199 139 255 / 28%) 32%,
+    rgb(191 119 255 / 16%) 0%,
+    rgb(191 119 255 / 7%) 32%,
     transparent 72%
   );
   --canvas-blob-4: radial-gradient(
     65% 75% at 15% 88%,
-    rgb(255 216 138 / 40%) 0%,
-    rgb(255 216 138 / 24%) 32%,
+    rgb(255 74 193 / 13%) 0%,
+    rgb(255 74 193 / 6%) 32%,
     transparent 72%
   );
-  --canvas-solid: #2c1234;
+  --canvas-solid: #05070d;
 
-  /*
-   * Das Glas ist der weiße Schleier der Vorlage. Lesbar wird er dadurch, dass
-   * `brightness` im Filter den Nebel unter der Karte abdunkelt, statt eine
-   * graue Schicht darüberzulegen: Farbe und Verlauf bleiben sichtbar, nur die
-   * Helligkeit sinkt. Ohne diesen Schritt trägt die Karte auf der hellsten
-   * Nebelstelle keinen Text mit 4,5:1.
-   */
-  --blur-glass: blur(18px) saturate(1.45) brightness(0.6);
-  --glass: rgb(255 255 255 / 9%);
-  --glass-strong: rgb(255 255 255 / 11%);
-  --glass-opaque: #3a2040;
-  --field: rgb(46 24 55 / 92%);
-  --edge: rgb(255 255 255 / 22%);
-  --edge-strong: rgb(255 255 255 / 60%);
-  --hairline: rgb(255 255 255 / 12%);
-  --overlay: rgb(12 4 16 / 62%);
+  /* Nur Shell und Hero lassen den gedämpften Neon-Nebel durchscheinen. */
+  --blur-glass: blur(18px) saturate(1.25) brightness(0.78);
+  --shell-glass: rgb(7 12 20 / 84%);
+  --glass: rgb(11 17 28);
+  --glass-strong: rgb(16 25 39);
+  --glass-opaque: #0b111c;
+  --field: rgb(7 13 23);
+  --edge: rgb(77 228 255 / 20%);
+  --edge-strong: rgb(151 255 212 / 52%);
+  --hairline: rgb(226 238 255 / 11%);
+  --overlay: rgb(1 3 8 / 76%);
 
-  /*
-   * Nahezu schwarz mit dem Violettstich von „Abendrot“. Der Nebel bleibt
-   * ringsum sichtbar; die Arbeitsfläche selbst wird ruhig, siehe ADR 0014.
-   */
-  --dense-panel: #140d19;
-  --dense-row: rgb(255 255 255 / 5%);
-  --dense-row-active: rgb(255 255 255 / 11%);
-  --dense-edge: rgb(255 255 255 / 14%);
+  /* Kompakteste, nahezu schwarze Arbeitsfläche, siehe ADR 0014/0015. */
+  --dense-panel: #070b12;
+  --dense-row: rgb(226 238 255 / 4%);
+  --dense-row-active: rgb(108 255 182 / 10%);
+  --dense-edge: rgb(226 238 255 / 13%);
 
-  --text: #f4f6ff;
-  --text-muted: #e2e8ff;
+  --text: #f2f7ff;
+  --text-muted: #b8c5d8;
 
-  --accent-1: #ffb27d;
-  --accent-2: #ff8fb3;
+  --accent-1: #6cffb6;
+  --accent-2: #4de4ff;
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --accent-contrast: #33130a;
-  --accent-glow: rgb(255 178 125 / 55%);
-  /*
-   * Im dunklen Theme dunkelt die weiche Akzentfläche ab, statt aufzuhellen.
-   * Ein aufhellender Schleier über der hellsten Glasstelle lässt selbst weiße
-   * Schrift nur 4,48:1 erreichen; kein Textwert rettet diese Fläche.
-   */
-  --accent-soft: rgb(51 19 10 / 45%);
+  --accent-contrast: #03110d;
+  --accent-glow: rgb(108 255 182 / 42%);
+  /* Weiche Auswahlfläche: sichtbar, aber deutlich ruhiger als der Neontext. */
+  --accent-soft: rgb(108 255 182 / 12%);
   /* Akzentschrift auf Glas und auf `--accent-soft`, geprüft gegen 4,5:1. */
-  --accent-text: #ffe8dc;
-  --focus-ring: #bae6fd;
+  --accent-text: #9effd1;
+  --focus-ring: #4de4ff;
 
   /*
    * `--danger` ist Fehlertext auf Glas und deshalb hell. Ein destruktiver
    * Button braucht dagegen eine kräftige Fläche, sonst wirkt er harmlos.
    */
-  --danger: #ffe8e3;
-  --danger-soft: rgb(255 232 227 / 16%);
-  --danger-surface: #ff8f7a;
-  --danger-contrast: #24100d;
+  --danger: #ff9ab2;
+  --danger-soft: rgb(255 90 132 / 14%);
+  --danger-surface: #ff5a84;
+  --danger-contrast: #1a0309;
 
-  --data-1: #ffd88a;
-  --data-2: #ffb27d;
-  --data-3: #ff9dbd;
-  --data-4: #d5a6ff;
-  --data-5: #ff9d9d;
-  --data-6: #f0e08a;
-  --data-1-soft: rgb(255 216 138 / 22%);
-  --data-2-soft: rgb(255 178 125 / 22%);
-  --data-3-soft: rgb(255 157 189 / 22%);
-  --data-4-soft: rgb(213 166 255 / 22%);
-  --data-5-soft: rgb(255 157 157 / 22%);
-  --data-6-soft: rgb(240 224 138 / 22%);
+  --data-1: #7dffbd;
+  --data-2: #55e7ff;
+  --data-3: #ff70cf;
+  --data-4: #b79cff;
+  --data-5: #ffd166;
+  --data-6: #78a9ff;
+  --data-1-soft: rgb(125 255 189 / 16%);
+  --data-2-soft: rgb(85 231 255 / 16%);
+  --data-3-soft: rgb(255 112 207 / 16%);
+  --data-4-soft: rgb(183 156 255 / 16%);
+  --data-5-soft: rgb(255 209 102 / 16%);
+  --data-6-soft: rgb(120 169 255 / 16%);
 
-  --chart-grid: rgb(255 255 255 / 14%);
-  --chart-track: rgb(255 255 255 / 16%);
-  --chart-area-opacity: 0.34;
+  --chart-grid: rgb(184 197 216 / 12%);
+  --chart-track: rgb(184 197 216 / 14%);
+  --chart-area-opacity: 0.28;
 
   --skeleton: rgb(255 255 255 / 12%);
   --skeleton-highlight: rgb(255 255 255 / 26%);
 
-  --shadow-sm: 0 0.5rem 2rem rgb(10 8 40 / 30%);
-  --shadow-md: 0 1.25rem 3rem rgb(10 8 40 / 40%);
-  --shadow-lg: 0 2rem 5rem rgb(10 8 40 / 55%);
+  --shadow-sm: 0 0.5rem 1.5rem rgb(0 0 0 / 26%);
+  --shadow-md: 0 1rem 2.5rem rgb(0 0 0 / 34%);
+  --shadow-lg: 0 1.5rem 4rem rgb(0 0 0 / 45%);
   --shadow: var(--shadow-md);
 }
 

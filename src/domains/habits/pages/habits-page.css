@@ -71,7 +71,6 @@
   border-radius: var(--radius-xl);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
-  backdrop-filter: var(--blur-glass);
 }
 
 @supports not (backdrop-filter: blur(1px)) {
@@ -201,7 +200,7 @@
 
 /*
  * Das Raster liegt als dichte Fläche in der Seite, nicht in einer eigenen
- * Glaskarte: Eine Karte um ein Raster kostet Rahmen, Radius und
+ * Karte: Eine zusätzliche Fläche um ein Raster kostet Rahmen, Radius und
  * Innenabstand, ohne etwas zu gruppieren, was nicht ohnehin zusammengehört.
  */
 .habit-week-panel {

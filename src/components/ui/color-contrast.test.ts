@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 /**
- * Glas hat keinen festen Hintergrund. Jede Prüfung rechnet deshalb die
- * tatsächliche Schichtung nach: Nebelfleck über Grundverlauf, darüber das
- * Glas-Alpha, darüber der Text. Geprüft wird immer der ungünstigste Fleck.
+ * Neo Quiet Density verwendet deckende Arbeitsflächen. Nur die Shell und der
+ * Hero bleiben durchscheinend; für sie rechnet die Prüfung weiterhin den
+ * ungünstigsten Nebelfleck und den Shell-Alpha-Wert zusammen.
  * Erreicht ein Wert die Schwelle nicht, wird das Token geändert, nicht die
  * Schwelle. Die Werte stammen aus `src/styles/tokens.css`.
  *
@@ -17,65 +17,67 @@ type Rgba = { alpha: number; blue: number; green: number; red: number };
 const themes = {
   dark: {
     /** Farbstopps des Grundverlaufs; der hellste trägt den Nebel. */
-    canvasStops: ["#2a1030", "#3a1226", "#241030"],
+    canvasStops: ["#05070d", "#07101a", "#0b0712"],
     /** Nebelflecken; sie überlappen einander nicht. */
     blobs: [
-      rgba(255, 178, 125, 0.5),
-      rgba(255, 143, 179, 0.52),
-      rgba(199, 139, 255, 0.44),
-      rgba(255, 216, 138, 0.4),
+      rgba(58, 255, 181, 0.18),
+      rgba(61, 222, 255, 0.17),
+      rgba(191, 119, 255, 0.16),
+      rgba(255, 74, 193, 0.13),
     ],
     /** `brightness` aus `--blur-glass`; der Filter dimmt den Untergrund. */
-    backdropBrightness: 0.6,
-    glass: rgba(255, 255, 255, 0.09),
-    glassStrong: rgba(255, 255, 255, 0.11),
-    glassOpaque: "#3a2040",
-    field: rgba(46, 24, 55, 0.92),
-    text: "#f4f6ff",
-    textMuted: rgba(226, 232, 255, 1),
-    accents: ["#ffb27d", "#ff8fb3"],
-    accentContrast: "#33130a",
-    accentText: "#ffe8dc",
-    accentSoft: rgba(51, 19, 10, 0.45),
-    danger: "#ffe8e3",
-    dangerSurface: "#ff8f7a",
-    dangerContrast: "#24100d",
-    focusRing: "#bae6fd",
-    edgeStrong: rgba(255, 255, 255, 0.6),
-    data: ["#ffd88a", "#ffb27d", "#ff9dbd", "#d5a6ff", "#ff9d9d", "#f0e08a"],
-    densePanel: "#140d19",
-    denseRow: rgba(255, 255, 255, 0.05),
-    denseRowActive: rgba(255, 255, 255, 0.11),
+    backdropBrightness: 0.78,
+    shellGlass: rgba(7, 12, 20, 0.84),
+    glass: rgba(11, 17, 28, 1),
+    glassStrong: rgba(16, 25, 39, 1),
+    glassOpaque: "#0b111c",
+    field: rgba(7, 13, 23, 1),
+    text: "#f2f7ff",
+    textMuted: rgba(184, 197, 216, 1),
+    accents: ["#6cffb6", "#4de4ff"],
+    accentContrast: "#03110d",
+    accentText: "#9effd1",
+    accentSoft: rgba(108, 255, 182, 0.12),
+    danger: "#ff9ab2",
+    dangerSurface: "#ff5a84",
+    dangerContrast: "#1a0309",
+    focusRing: "#4de4ff",
+    edgeStrong: rgba(151, 255, 212, 0.52),
+    data: ["#7dffbd", "#55e7ff", "#ff70cf", "#b79cff", "#ffd166", "#78a9ff"],
+    densePanel: "#070b12",
+    denseRow: rgba(226, 238, 255, 0.04),
+    denseRowActive: rgba(108, 255, 182, 0.1),
   },
   light: {
-    canvasStops: ["#e8ecfb", "#f2e9f8", "#e4f2f0"],
+    canvasStops: ["#edf7f3", "#eef5fa", "#f6f0fb"],
     blobs: [
-      rgba(90, 210, 255, 0.45),
-      rgba(178, 150, 255, 0.45),
-      rgba(120, 245, 200, 0.42),
-      rgba(255, 150, 205, 0.4),
+      rgba(42, 220, 172, 0.24),
+      rgba(45, 196, 255, 0.2),
+      rgba(194, 85, 255, 0.16),
+      rgba(255, 70, 181, 0.13),
     ],
     /** Hier hebt der Filter den Untergrund an, statt ihn zu dimmen. */
-    backdropBrightness: 1.06,
-    glass: rgba(255, 255, 255, 0.52),
-    glassStrong: rgba(255, 255, 255, 0.72),
-    glassOpaque: "#f4f7ff",
-    field: rgba(255, 255, 255, 0.92),
-    text: "#1b2436",
-    textMuted: rgba(27, 36, 54, 0.7),
-    accents: ["#0a7a55", "#0369a1"],
+    backdropBrightness: 1,
+    shellGlass: rgba(248, 252, 251, 0.84),
+    glass: rgba(248, 250, 252, 1),
+    glassStrong: rgba(240, 245, 247, 1),
+    glassOpaque: "#f8fafc",
+    field: rgba(255, 255, 255, 1),
+    text: "#15202b",
+    textMuted: rgba(21, 32, 43, 0.72),
+    accents: ["#057a55", "#006b8f"],
     accentContrast: "#ffffff",
-    accentText: "#075f42",
-    accentSoft: rgba(10, 122, 85, 0.14),
+    accentText: "#056342",
+    accentSoft: rgba(5, 122, 85, 0.12),
     danger: "#8f3025",
     dangerSurface: "#8f3025",
     dangerContrast: "#ffffff",
-    focusRing: "#0369a1",
-    edgeStrong: rgba(27, 36, 54, 0.52),
-    data: ["#0a7a55", "#0369a1", "#7c3aed", "#b45309", "#0d9488", "#be185d"],
-    densePanel: "#f7f8fc",
-    denseRow: rgba(27, 36, 54, 0.04),
-    denseRowActive: rgba(27, 36, 54, 0.08),
+    focusRing: "#006b8f",
+    edgeStrong: rgba(21, 32, 43, 0.55),
+    data: ["#057a55", "#006b8f", "#7a35b8", "#b45309", "#087f78", "#b21c64"],
+    densePanel: "#f4f7f8",
+    denseRow: rgba(21, 32, 43, 0.04),
+    denseRowActive: rgba(5, 122, 85, 0.1),
   },
 } as const;
 
@@ -83,8 +85,8 @@ type ThemeName = keyof typeof themes;
 const themeNames = Object.keys(themes) as ThemeName[];
 
 /**
- * Für helle Schrift auf dunklem Glas ist der hellste Untergrund der schlimmste
- * Fall, für dunkle Schrift auf hellem Glas der dunkelste.
+ * Für helle Schrift auf der dunklen Shell ist der hellste Untergrund der
+ * schlimmste Fall, für dunkle Schrift auf der hellen Shell der dunkelste.
  */
 function worstBackdrop(theme: ThemeName): Rgba {
   const { blobs, canvasStops } = themes[theme];
@@ -109,15 +111,8 @@ function pickExtreme(theme: ThemeName, colors: readonly Rgba[]): Rgba {
 }
 
 /**
- * Alle Flächen, auf denen in dieser Ansicht Text oder Grafik landen kann,
- * in derselben Reihenfolge geschichtet wie im Browser: Der Filter dimmt oder
- * hebt den Nebel unter der Karte, darüber liegt der weiße Schleier.
- *
- * `--glass-strong` erscheint ausschließlich innerhalb einer Karte und liegt
- * deshalb auf der bereits gefilterten Glasfläche, nicht auf dem rohen Nebel.
- *
- * Das dichte Panel ist deckend. Es steht deshalb ohne Nebelanteil in der
- * Liste, und genau das macht seinen Kontrast unabhängig von Blur, fehlender
+ * Die Shell wird über dem ungünstigsten Nebel geschichtet. Alle übrigen
+ * Flächen sind deckend und damit unabhängig von Blur, fehlender
  * Blur-Unterstützung und reduzierter Transparenz.
  */
 function surfaces(theme: ThemeName): Array<{ color: Rgba; name: string }> {
@@ -131,12 +126,14 @@ function surfaces(theme: ThemeName): Array<{ color: Rgba; name: string }> {
     glass,
     glassOpaque,
     glassStrong,
+    shellGlass,
   } = themes[theme];
   const filtered = scale(backdrop, backdropBrightness);
   const glassSurface = composite(glass, filtered);
   const densePanelSurface = parseHex(densePanel);
 
   return [
+    { color: composite(shellGlass, filtered), name: "shell-glass" },
     { color: glassSurface, name: "glass" },
     { color: composite(glassStrong, glassSurface), name: "glass-strong" },
     { color: parseHex(glassOpaque), name: "glass-opaque" },

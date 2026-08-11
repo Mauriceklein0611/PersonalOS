@@ -1,9 +1,9 @@
 /*
  * Glas-Utility und Seitengrund, Issue #55.
  *
- * `.glass` ist die einzige Stelle, an der `backdrop-filter` gesetzt wird.
- * Verschachtelte Glas-Ebenen sind verboten: Eine Karte in einer Karte nutzt
- * `.glass-inner`, also `--glass-strong` ohne eigenen Blur.
+ * Der historische Klassenname bleibt aus Kompatibilitätsgründen. Seit ADR
+ * 0015 ist `.glass` eine deckende Quiet-Density-Fläche. Blur gehört nur noch
+ * zur Shell und zum Hero in `styles.css`.
  */
 
 .app-canvas {
@@ -23,7 +23,6 @@
   border-radius: var(--radius-xl);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
-  backdrop-filter: var(--blur-glass);
 }
 
 /* Innere Flächen sind eine solide Abstufung, niemals eine zweite Blur-Ebene. */
@@ -90,6 +89,7 @@
 .glass-kpi {
   margin: 0;
   overflow-wrap: anywhere;
+  color: var(--accent-text);
   font-size: var(--font-size-kpi);
   font-weight: var(--font-weight-kpi);
   font-variant-numeric: tabular-nums;

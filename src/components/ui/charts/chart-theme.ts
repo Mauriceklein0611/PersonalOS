@@ -23,23 +23,23 @@ export type ChartTheme = {
  * halten das Diagramm lesbar und sind bewusst neutral.
  */
 const fallbackTheme: ChartTheme = {
-  accent1: "#ffb27d",
-  accent2: "#ff8fb3",
-  areaOpacity: 0.3,
-  edge: "#8a8f9e",
-  glass: "#2f1539",
-  grid: "#8a8f9e",
+  accent1: "#6cffb6",
+  accent2: "#4de4ff",
+  areaOpacity: 0.28,
+  edge: "#385064",
+  glass: "#0b111c",
+  grid: "#324255",
   series: {
-    1: "#ffd88a",
-    2: "#ffb27d",
-    3: "#ff8fb3",
-    4: "#c78bff",
-    5: "#ff9d9d",
-    6: "#f0e08a",
+    1: "#7dffbd",
+    2: "#55e7ff",
+    3: "#ff70cf",
+    4: "#b79cff",
+    5: "#ffd166",
+    6: "#78a9ff",
   },
-  text: "#f4f6ff",
-  textMuted: "#c9cee6",
-  track: "#8a8f9e",
+  text: "#f2f7ff",
+  textMuted: "#b8c5d8",
+  track: "#324255",
 };
 
 export function readChartTheme(

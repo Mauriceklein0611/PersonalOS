@@ -197,15 +197,15 @@ export function Component() {
       </PreviewSection>
 
       {/*
-        Quiet Density, Issue #117. Beide Spalten zeigen dieselben drei
+        Neo Quiet Density, Issue #150. Beide Spalten zeigen dieselben drei
         erfundenen Datensätze; nur die Darstellung unterscheidet sich.
       */}
       <section className="preview-section">
-        <h2>Quiet Density</h2>
+        <h2>Neo Quiet Density</h2>
         <p className="preview-note">
-          Links eine Glaskarte je Datensatz, rechts dieselben Angaben als Zeilen
-          in einem dichten Panel. Das Panel ist deckend und trägt keinen eigenen
-          Blur.
+          Links eine große Karte je Datensatz, rechts dieselben Angaben als
+          Zeilen in einem dichten Panel. Beide Flächen sind deckend; Neon liegt
+          auf Auswahl und Zahl, nicht auf dem Container.
         </p>
         <div className="preview-compare">
           <div className="preview-compare-column">
@@ -247,8 +247,8 @@ export function Component() {
         </div>
 
         <p className="preview-note">
-          Ohne Blur und bei reduzierter Transparenz sieht dieselbe Fläche
-          unverändert aus — sie war nie durchscheinend.
+          Ohne Blur und bei reduzierter Transparenz sieht dieselbe Arbeitsfläche
+          unverändert aus. Nur Shell und Hero verwenden Transparenz.
         </p>
         <div className="preview-stack preview-force-opaque">
           <DenseRecordPanel
