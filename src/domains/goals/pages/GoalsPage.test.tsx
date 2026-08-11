@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -59,6 +59,15 @@ describe("GoalsPage", () => {
     await screen.findByText("Noch kein Ziel");
 
     await createGoal(user, "Synthetisches Ziel");
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("textbox", { name: /Titel/ }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("button", { name: "Neues Ziel" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
     expect(
       await screen.findByRole("heading", {
         level: 2,

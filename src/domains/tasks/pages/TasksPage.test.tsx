@@ -26,6 +26,10 @@ describe("TasksPage", () => {
     await screen.findByText(
       "Die Inbox ist leer. Erfasse oben eine Aufgabe mit Titel.",
     );
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: "Aufgaben filtern" }),
+    ).toHaveValue("inbox");
     await user.type(
       screen.getByRole("textbox", { name: "Neue Aufgabe" }),
       "Rechnung prüfen",
@@ -144,9 +148,9 @@ describe("TasksPage", () => {
     expect(
       screen.queryByRole("heading", { level: 2, name: "Wochenplan erstellen" }),
     ).not.toBeInTheDocument();
-    // Der Zähler des Reiters zeigt dieselbe Auswahl wie die Liste darunter.
+    // Der kompakte Filter zeigt dieselbe Auswahl wie die Liste darunter.
     expect(
-      screen.getByRole("tab", { name: "Inbox: 1 Aufgaben" }),
+      screen.getByRole("option", { name: "Inbox · 1" }),
     ).toBeInTheDocument();
   });
 
@@ -201,7 +205,10 @@ describe("TasksPage", () => {
       />,
     );
 
-    await user.click(await screen.findByRole("tab", { name: /^Wochenliste/ }));
+    await user.selectOptions(
+      await screen.findByRole("combobox", { name: "Aufgaben filtern" }),
+      "week",
+    );
     expect(
       screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
     ).toHaveTextContent("Was muss ich diese Woche im Blick behalten?");
@@ -209,7 +216,7 @@ describe("TasksPage", () => {
       screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
     ).toHaveTextContent("Zeitraum: 02.08.2026 bis 08.08.2026");
 
-    await user.click(screen.getByRole("tab", { name: /^Wochenplan/ }));
+    await user.click(screen.getByRole("button", { name: "Wochenplan" }));
     expect(
       screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
     ).toHaveTextContent("Was habe ich an welchem Tag eingeplant?");
@@ -240,7 +247,7 @@ describe("TasksPage", () => {
       />,
     );
 
-    await user.click(await screen.findByRole("tab", { name: /^Wochenplan/ }));
+    await user.click(await screen.findByRole("button", { name: "Wochenplan" }));
 
     // Nur Aufgaben mit Plandatum; die Frist allein plant keinen Tag ein.
     expect(
@@ -274,7 +281,8 @@ describe("TasksPage", () => {
     );
   });
 
-  it("counts the week plan tab like the days below it", async () => {
+  it("counts the week plan surface like the days below it", async () => {
+    const user = userEvent.setup();
     const { service } = createMemoryTaskService([
       createDatedTask("08", "Geplant", { plannedDate: "2026-08-06" }),
       createDatedTask("09", "Inbox bleibt Inbox", {}),
@@ -288,11 +296,11 @@ describe("TasksPage", () => {
       />,
     );
 
+    await user.click(await screen.findByRole("button", { name: "Wochenplan" }));
+    expect(screen.getByText("1 geplante Aufgaben")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Liste" }));
     expect(
-      await screen.findByRole("tab", { name: "Wochenplan: 1 Aufgaben" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("tab", { name: "Inbox: 1 Aufgaben" }),
+      screen.getByRole("option", { name: "Inbox · 1" }),
     ).toBeInTheDocument();
   });
 
@@ -437,7 +445,10 @@ describe("TasksPage – Plandatum und Frist", () => {
       />,
     );
 
-    await user.click(await screen.findByRole("tab", { name: /^Heute/ }));
+    await user.selectOptions(
+      await screen.findByRole("combobox", { name: "Aufgaben filtern" }),
+      "today",
+    );
 
     // Vorher trugen alle drei dasselbe Wort „Überfällig“ — oder gar nichts.
     expect(
@@ -467,7 +478,10 @@ describe("TasksPage – Plandatum und Frist", () => {
       />,
     );
 
-    await user.click(await screen.findByRole("tab", { name: /^Erledigt/ }));
+    await user.selectOptions(
+      await screen.findByRole("combobox", { name: "Aufgaben filtern" }),
+      "completed",
+    );
 
     expect(
       await screen.findByRole("heading", { level: 2, name: "Längst erledigt" }),

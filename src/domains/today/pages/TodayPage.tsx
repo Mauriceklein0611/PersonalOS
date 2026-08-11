@@ -382,7 +382,11 @@ export function TodayPage({
   }
 
   return (
-    <section aria-labelledby="page-title" className="route-page today-page">
+    <section
+      aria-labelledby="page-title"
+      className="route-page today-page"
+      data-surface="overview"
+    >
       {/*
         Kompakter Hero: Datum, Tagesaussage und der Tagesring als einziges
         Glow. Die Zeile „Tagesübersicht“ über der Überschrift „Heute“ ist
@@ -501,9 +505,9 @@ export function TodayPage({
           ) : null}
 
           {/*
-            Genau vier Kennzahlen, mehr nicht. Die vierte erscheint nur mit
-            gesetztem Budget: Ein übriges Budget ohne Budget wäre keine Zahl,
-            sondern eine Behauptung.
+            Maximal drei Kennzahlen. Aufgaben und Routinen sind die festen
+            Tageswerte; bei gesetztem Budget ist der handlungsnahe Restbetrag
+            wichtiger als der allgemeine Life Score.
           */}
           <div className="today-metrics" data-span="full">
             <MetricTile
@@ -524,29 +528,34 @@ export function TodayPage({
               label="Routinen heute"
               value={`${overview.dueHabits.length} offen`}
             />
-            <MetricTile
-              context={
-                score
-                  ? describeCompleteness(score.result)
-                  : "Noch keine Grundlage geladen"
-              }
-              label="Life Score"
-              value={score ? formatScoreValue(score.result.total) : null}
-            />
             {remainingBudget ? (
               <MetricTile
                 context={remainingBudget.context}
                 label="Budget übrig"
                 value={remainingBudget.value}
               />
-            ) : null}
+            ) : (
+              <MetricTile
+                context={
+                  score
+                    ? describeCompleteness(score.result)
+                    : "Noch keine Grundlage geladen"
+                }
+                label="Life Score"
+                value={score ? formatScoreValue(score.result.total) : null}
+              />
+            )}
           </div>
 
           {/* Der Wert steht oben, der Rechenweg eine Ebene tiefer. Eine Zahl
               ohne Weg zur Erklärung wäre eine Behauptung. */}
-          <p className="today-score-link" data-span="full">
-            <Link to="/auswertung/ueberblick">Wie der Life Score entsteht</Link>
-          </p>
+          {!remainingBudget ? (
+            <p className="today-score-link" data-span="full">
+              <Link to="/auswertung/ueberblick">
+                Wie der Life Score entsteht
+              </Link>
+            </p>
+          ) : null}
 
           {/*
             Ebene 4 des Audits: Trifft nichts zu, steht hier nichts — und das

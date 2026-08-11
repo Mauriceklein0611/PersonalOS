@@ -60,7 +60,9 @@ test("persists a task through editing, completion, reopening and archive undo", 
   await expect(
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
   ).toBeHidden();
-  await page.getByRole("tab", { name: /^Erledigt/ }).click();
+  await page
+    .getByRole("combobox", { name: "Aufgaben filtern" })
+    .selectOption("completed");
   await expect(
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
   ).toBeVisible();
@@ -75,14 +77,18 @@ test("persists a task through editing, completion, reopening and archive undo", 
   await expect(
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
   ).toBeHidden();
-  await page.getByRole("tab", { name: /^Inbox/ }).click();
+  await page
+    .getByRole("combobox", { name: "Aufgaben filtern" })
+    .selectOption("inbox");
   await expect(
     page.getByRole("heading", { level: 2, name: "Rechnung prüfen" }),
   ).toBeVisible();
 
   await page.getByLabel(/^Weitere Aktionen für/).click();
   await page.getByRole("button", { name: /abbrechen$/ }).click();
-  await page.getByRole("tab", { name: /^Erledigt/ }).click();
+  await page
+    .getByRole("combobox", { name: "Aufgaben filtern" })
+    .selectOption("completed");
   await expect(page.getByText("Abgebrochen", { exact: true })).toBeVisible();
 
   await page.getByLabel(/^Weitere Aktionen für/).click();
@@ -159,12 +165,14 @@ test("plans a week and shows exactly one day on mobile", async ({ page }) => {
   await page.getByLabel("Plandatum").fill(plannedDate);
   await page.getByRole("button", { name: "Änderungen speichern" }).click();
 
-  await page.getByRole("tab", { name: /^Wochenliste/ }).click();
+  await page
+    .getByRole("combobox", { name: "Aufgaben filtern" })
+    .selectOption("week");
   await expect(
     page.getByRole("note", { name: "Zweck dieser Ansicht" }),
   ).toContainText("Was muss ich diese Woche im Blick behalten?");
 
-  await page.getByRole("tab", { name: /^Wochenplan/ }).click();
+  await page.getByRole("button", { name: "Wochenplan" }).click();
   await expect(
     page.getByRole("note", { name: "Zweck dieser Ansicht" }),
   ).toContainText("Was habe ich an welchem Tag eingeplant?");
@@ -237,9 +245,11 @@ test("keeps the task views free of the chart library", async ({ page }) => {
     page.getByRole("heading", { level: 2, name: "Unterlagen sortieren" }),
   ).toBeVisible();
 
-  for (const view of [/^Heute/, /^Wochenliste/, /^Wochenplan/, /^Erledigt/]) {
-    await page.getByRole("tab", { name: view }).click();
+  const filter = page.getByRole("combobox", { name: "Aufgaben filtern" });
+  for (const view of ["today", "week", "completed"]) {
+    await filter.selectOption(view);
   }
+  await page.getByRole("button", { name: "Wochenplan" }).click();
   await page.waitForLoadState("networkidle");
 
   expect(requested.filter((url) => /ChartCanvas|echarts/i.test(url))).toEqual(

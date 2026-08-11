@@ -13,11 +13,11 @@ import {
 import {
   Button,
   Input,
+  PageToolbar,
   SearchField,
+  Select,
   Toast,
   ViewPurpose,
-  ViewTabs,
-  viewTabId,
 } from "../../../components/ui";
 import type { WeekStartsOn } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
@@ -72,6 +72,11 @@ const taskViews: Array<{
     label: "Erledigt",
   },
 ];
+
+const taskListViews = taskViews.filter(
+  (view): view is (typeof taskViews)[number] & { id: TaskView } =>
+    view.id !== "weekPlan",
+);
 
 export type TasksPageProps = {
   goalLinks?: GoalLinkService;
@@ -265,17 +270,35 @@ export function TasksPage({
   }
 
   return (
-    <section className="route-page tasks-page" aria-labelledby="page-title">
-      <header className="page-header">
-        <div className="page-header-copy">
-          <p className="page-eyebrow">Planung</p>
-          <h1 id="page-title">Aufgaben</h1>
-          <p className="page-description">
-            Erfasse schnell, plane bewusst und behalte nur den passenden
-            Zeitraum im Blick.
-          </p>
-        </div>
-      </header>
+    <section
+      className="route-page tasks-page"
+      aria-labelledby="page-title"
+      data-surface="work"
+    >
+      <PageToolbar
+        actions={
+          <>
+            <Button
+              aria-pressed={activeView !== "weekPlan"}
+              onClick={() => setActiveView("inbox")}
+              variant={activeView !== "weekPlan" ? "secondary" : "ghost"}
+            >
+              Liste
+            </Button>
+            <Button
+              aria-pressed={activeView === "weekPlan"}
+              onClick={() => setActiveView("weekPlan")}
+              variant={activeView === "weekPlan" ? "secondary" : "ghost"}
+            >
+              Wochenplan
+            </Button>
+          </>
+        }
+        description="Erfasse schnell, filtere den Bestand oder plane bewusst in derselben breiten Arbeitsfläche."
+        eyebrow="Planung"
+        surface="work"
+        title="Aufgaben"
+      />
 
       <form
         className="task-quick-capture"
@@ -303,40 +326,49 @@ export function TasksPage({
         </p>
       ) : null}
 
-      <SearchField
-        hint="Sucht in Titel und Notiz der angezeigten Ansicht."
-        label="Aufgaben durchsuchen"
-        onChange={setSearchTerm}
-        placeholder="Zum Beispiel Rechnung"
-        resultLabel={searchResultLabel}
-        value={searchTerm}
-      />
-
-      <ViewTabs
-        activeId={activeView}
-        idPrefix="task-view"
-        label="Aufgabenansicht"
-        onChange={setActiveView}
-        panelId="task-view-panel"
-        tabs={taskViews.map((view) => {
-          const count =
-            view.id === "weekPlan"
-              ? weekPlan.planned
-              : queryTasks(matchingTasks, view.id, context).length;
-          return {
-            count: { label: `${count} Aufgaben`, value: count },
-            id: view.id,
-            label: view.label,
-          };
-        })}
-      />
+      <div className="task-filter-toolbar">
+        {activeView !== "weekPlan" ? (
+          <Select
+            label="Aufgaben filtern"
+            onChange={(event) =>
+              setActiveView(event.currentTarget.value as TaskView)
+            }
+            value={activeView}
+          >
+            {taskListViews.map((view) => {
+              const count = queryTasks(matchingTasks, view.id, context).length;
+              return (
+                <option key={view.id} value={view.id}>
+                  {view.label} · {count}
+                </option>
+              );
+            })}
+          </Select>
+        ) : (
+          <p className="task-plan-count">
+            {weekPlan.planned} geplante Aufgaben
+          </p>
+        )}
+        <SearchField
+          hint="Sucht in Titel und Notiz der angezeigten Arbeitsfläche."
+          label="Aufgaben durchsuchen"
+          onChange={setSearchTerm}
+          placeholder="Zum Beispiel Rechnung"
+          resultLabel={searchResultLabel}
+          value={searchTerm}
+        />
+      </div>
 
       <div
-        aria-labelledby={viewTabId("task-view", activeView)}
+        aria-label={
+          activeView === "weekPlan"
+            ? "Wochenplan"
+            : `${taskViews.find((view) => view.id === activeView)?.label} Aufgabenliste`
+        }
         aria-live="polite"
         className="task-view-panel"
         id="task-view-panel"
-        role="tabpanel"
+        role="region"
       >
         {activeView === "week" ? (
           <ViewPurpose
