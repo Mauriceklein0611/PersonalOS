@@ -97,6 +97,7 @@ export function AppPreferencesPanel() {
   return (
     <Card
       description="Diese Werte gelten in allen Bereichen und liegen im lokalen Datensatz. Sie sind Teil jedes Exports."
+      headingLevel={2}
       title="App-Einstellungen"
     >
       {!isStored ? (

@@ -116,6 +116,7 @@ export function BackupPanel({
   return (
     <Card
       description="Erstelle einen vollständigen lokalen Export oder prüfe ein Backup vor der Wiederherstellung."
+      headingLevel={2}
       title="Backup und Wiederherstellung"
     >
       <div className="backup-actions">

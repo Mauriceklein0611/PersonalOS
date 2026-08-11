@@ -79,6 +79,7 @@ export function LocalDataPanel({
   return (
     <Card
       description="Prüfe, wo PersonalOS Daten ablegt, und entferne sie nur mit einem vorherigen Sicherheitsbackup."
+      headingLevel={2}
       title="Lokaler Speicher und Datenschutz"
     >
       <dl className="local-data-summary">
@@ -106,7 +107,7 @@ export function LocalDataPanel({
       </p>
 
       <section className="local-privacy-note" aria-labelledby="privacy-title">
-        <h4 id="privacy-title">Was local-first schützt – und was nicht</h4>
+        <h3 id="privacy-title">Was local-first schützt – und was nicht</h3>
         <p>
           PersonalOS überträgt deine Einträge nicht automatisch und verwendet
           weder Konto noch Cloud-Synchronisation. Die lokale Datenbank ist aber

@@ -12,7 +12,6 @@ Stand: 07.08.2026. Diese Liste beschreibt bewusst akzeptierte Grenzen des aktuel
 
 ## Oberfläche
 
-- Die Ansichtswechsel in Aufgaben und Routinen sind als `tablist` ausgezeichnet, unterstützen aber noch keine Pfeiltastennavigation zwischen den Tabs. Jeder Tab ist einzeln über die Tabulatortaste erreichbar.
 - Die Wochenansicht der Routinen scrollt bei schmalen Ansichten horizontal in ihrem eigenen Bereich.
 - Zukünftige Wochen lassen sich in der Wochenansicht nicht öffnen; die laufende Woche ist die letzte auswertbare.
 - Die Ausgaben-Schnellerfassung auf dem Dashboard bucht immer auf den heutigen Tag und kennt keine Notiz. Beides steht im Finanzbereich; die Schnellerfassung bleibt bewusst auf Betrag und Kategorie beschränkt.
@@ -24,6 +23,7 @@ Stand: 07.08.2026. Diese Liste beschreibt bewusst akzeptierte Grenzen des aktuel
 - Die Offline-Anzeige kombiniert Browserereignisse mit einem inhaltsfreien Same-Origin-`HEAD`-Check. Sie ist ein Hinweis, keine Zusicherung.
 - Private und Inkognito-Fenster verwerfen lokale Daten beim Schließen.
 - Die automatisierten Browsertests laufen gegen Chromium. Andere Browser und Geräte sind noch nicht abgedeckt.
+- Das [Accessibility-Audit](audits/accessibility-audit.md) stützt sich auf automatisierte Regelprüfungen und Tastaturtests. Eine Prüfung mit echten Screenreadern und mit Nutzern, die auf Hilfsmittel angewiesen sind, hat nicht stattgefunden.
 
 ## Leistung
 

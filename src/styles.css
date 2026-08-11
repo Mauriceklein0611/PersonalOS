@@ -248,7 +248,7 @@ a {
 .page-eyebrow,
 .state-kicker {
   margin: 0;
-  color: var(--accent-1);
+  color: var(--accent-text);
   font-size: 0.76rem;
   font-weight: var(--font-weight-kpi);
   letter-spacing: var(--letter-spacing-label);
@@ -421,7 +421,7 @@ a {
 }
 
 .navigation-link-active {
-  color: var(--accent-1);
+  color: var(--accent-text);
   background: var(--accent-soft);
 }
 
@@ -470,7 +470,7 @@ a {
 
 .area-tab-active {
   border-bottom-color: var(--accent-1);
-  color: var(--accent-1);
+  color: var(--accent-text);
 }
 
 .desktop-subnav-list {
@@ -627,7 +627,7 @@ a {
 
   .navigation-link-active,
   .navigation-link-active:hover {
-    color: var(--accent-1);
+    color: var(--accent-text);
     background: var(--accent-soft);
   }
 
@@ -639,6 +639,15 @@ a {
 
   .mobile-brand,
   .mobile-navigation {
+    display: none;
+  }
+
+  /*
+   * Die Seitenleiste trägt die Nebenbereiche auf Desktop bereits. Beide
+   * gleichzeitig ergäben zwei Navigationsbereiche desselben Namens und
+   * dieselben Ziele zweimal in der Tabulatorreihenfolge.
+   */
+  .top-bar-nav {
     display: none;
   }
 

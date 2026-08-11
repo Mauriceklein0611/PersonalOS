@@ -35,6 +35,8 @@ const themes = {
     textMuted: rgba(226, 232, 255, 1),
     accents: ["#ffb27d", "#ff8fb3"],
     accentContrast: "#33130a",
+    accentText: "#ffe8dc",
+    accentSoft: rgba(51, 19, 10, 0.45),
     danger: "#ffe8e3",
     dangerSurface: "#ff8f7a",
     dangerContrast: "#24100d",
@@ -63,6 +65,8 @@ const themes = {
     textMuted: rgba(27, 36, 54, 0.7),
     accents: ["#0a7a55", "#0369a1"],
     accentContrast: "#ffffff",
+    accentText: "#075f42",
+    accentSoft: rgba(10, 122, 85, 0.14),
     danger: "#8f3025",
     dangerSurface: "#8f3025",
     dangerContrast: "#ffffff",
@@ -177,6 +181,29 @@ describe.each(themeNames)("glass palette %s", (theme) => {
       expect(contrastRatio(parseHex(danger), color)).toBeGreaterThanOrEqual(
         4.5,
       );
+    },
+  );
+
+  /*
+   * Der ausgewählte Zustand — aktiver Navigationslink, aktiver Reiter, gewählte
+   * Skalenstufe — färbt seine Schrift im Akzent und legt sie auf
+   * `--accent-soft`. Beide Schichten gehören deshalb in dieselbe Prüfung: Die
+   * weiche Fläche verschiebt den Untergrund, auf dem die Schrift landet.
+   */
+  const accentSurfaces = surfaces(theme).flatMap(({ color, name }) => [
+    { color, name },
+    {
+      color: composite(themes[theme].accentSoft, color),
+      name: `${name} + accent-soft`,
+    },
+  ]);
+
+  it.each(accentSurfaces)(
+    "keeps accent text readable on $name",
+    ({ color }) => {
+      expect(
+        contrastRatio(parseHex(themes[theme].accentText), color),
+      ).toBeGreaterThanOrEqual(4.5);
     },
   );
 

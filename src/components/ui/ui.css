@@ -84,7 +84,7 @@
 }
 
 .ui-button-ghost {
-  color: var(--accent-1);
+  color: var(--accent-text);
   background: transparent;
 }
 
@@ -120,7 +120,7 @@
 .ui-icon-button:hover:not(:disabled),
 .preview-force-hover .ui-icon-button:not(:disabled) {
   border-color: var(--accent-1);
-  color: var(--accent-1);
+  color: var(--accent-text);
   background: var(--accent-soft);
 }
 
@@ -388,7 +388,7 @@
 }
 
 .ui-toast-visual {
-  color: var(--accent-1);
+  color: var(--accent-text);
   font-size: var(--font-size-xl);
 }
 
@@ -520,7 +520,7 @@
 /* Farbe ist Zusatz; ausgewählt ist der Reiter auch über `aria-selected`. */
 .ui-view-tab[aria-selected="true"] {
   border-color: var(--accent-1);
-  color: var(--accent-1);
+  color: var(--accent-text);
   background: var(--accent-soft);
 }
 

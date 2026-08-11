@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Link, NavLink, Outlet, useNavigation } from "react-router";
 
 import { OfflineIndicator } from "../../components/feedback/OfflineIndicator";
@@ -6,10 +7,14 @@ import { DesktopNavigation } from "../navigation/DesktopNavigation";
 import { MobileNavigation } from "../navigation/MobileNavigation";
 import { secondaryNavigationItems } from "../navigation/navigation-items";
 import { ThemeSwitcher } from "../theme/ThemeSwitcher";
+import { useRouteAnnouncement } from "./use-route-announcement";
 
 export function AppLayout() {
   const navigation = useNavigation();
   const isLoading = navigation.state !== "idle";
+  const mainRef = useRef<HTMLElement>(null);
+
+  useRouteAnnouncement(mainRef, isLoading);
 
   return (
     <div className="app-frame">
@@ -60,7 +65,12 @@ export function AppLayout() {
           </div>
         ) : null}
 
-        <main className="main-content" id="main-content" tabIndex={-1}>
+        <main
+          className="main-content"
+          id="main-content"
+          ref={mainRef}
+          tabIndex={-1}
+        >
           <Outlet />
         </main>
       </div>

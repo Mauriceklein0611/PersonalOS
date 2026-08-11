@@ -9,7 +9,7 @@ test("navigates the lazy shell and persists the theme on desktop", async ({
   await expect(
     page.getByRole("heading", { level: 1, name: "Heute" }),
   ).toBeVisible();
-  await expect(page).toHaveTitle("PersonalOS");
+  await expect(page).toHaveTitle("Heute – PersonalOS");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.getByLabel("Farbschema")).toHaveValue("system");
 
@@ -22,6 +22,9 @@ test("navigates the lazy shell and persists the theme on desktop", async ({
   await expect(
     page.getByRole("heading", { level: 1, name: "Aufgaben" }),
   ).toBeVisible();
+  // Titel und Fokus wechseln mit, sonst bliebe der Bereichswechsel unhörbar.
+  await expect(page).toHaveTitle("Aufgaben – PersonalOS");
+  await expect(page.getByRole("main")).toBeFocused();
   await expect(
     desktopNavigation.getByRole("link", { name: "Aufgaben" }),
   ).toHaveAttribute("aria-current", "page");

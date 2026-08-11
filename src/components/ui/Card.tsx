@@ -6,6 +6,12 @@ export type CardProps = HTMLAttributes<HTMLElement> & {
   children: ReactNode;
   description?: string;
   footer?: ReactNode;
+  /**
+   * Ebene der Kartenüberschrift. Eine Karte innerhalb eines Abschnitts mit
+   * `h2` bleibt bei `3`; steht sie direkt unter der Seitenüberschrift, gehört
+   * ihr die `2`. Übersprungene Ebenen sind ein Fund des Accessibility-Audits.
+   */
+  headingLevel?: 2 | 3;
   title?: string;
   tone?: "default" | "muted";
 };
@@ -16,12 +22,14 @@ export const Card = forwardRef<HTMLElement, CardProps>(function Card(
     className,
     description,
     footer,
+    headingLevel = 3,
     title,
     tone = "default",
     ...articleProps
   },
   ref,
 ) {
+  const Heading = `h${headingLevel}` as const;
   return (
     <article
       {...articleProps}
@@ -34,7 +42,7 @@ export const Card = forwardRef<HTMLElement, CardProps>(function Card(
     >
       {title || description ? (
         <header className="ui-card-header">
-          {title ? <h3>{title}</h3> : null}
+          {title ? <Heading>{title}</Heading> : null}
           {description ? <p>{description}</p> : null}
         </header>
       ) : null}

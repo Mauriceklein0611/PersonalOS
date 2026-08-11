@@ -134,7 +134,7 @@
 
 .task-row-actions[open] .task-row-actions-summary {
   border-color: var(--accent-1);
-  color: var(--accent-1);
+  color: var(--accent-text);
 }
 
 /*
@@ -214,7 +214,7 @@
 /* Die Auswahl steht zusätzlich in `aria-current`, nicht nur in der Farbe. */
 .task-week-strip-day[aria-current] {
   border-color: var(--accent-1);
-  color: var(--accent-1);
+  color: var(--accent-text);
   background: var(--accent-soft);
 }
 

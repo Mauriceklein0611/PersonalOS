@@ -17,6 +17,10 @@
  *    Charakter bleiben, nur die Helligkeit sinkt.
  * 4. `--field` ist die deckende Fläche für Eingabefelder. `--glass-strong` ist
  *    die angehobene Glasfläche der Vorlage und für Text zu durchscheinend.
+ * 5. `--accent-1` ist eine Flächen- und Linienfarbe, keine Textfarbe. Als
+ *    Schrift erreicht sie auf der hellsten Glasstelle nur 3,6:1 (light) und
+ *    2,5:1 (dark). Akzentuierte Schrift verwendet deshalb `--accent-text`;
+ *    gefunden im Accessibility-Audit, siehe `docs/audits/accessibility-audit.md`.
  *
  * Die `--dense-*`-Familie (Issue #117) ist die ruhige Arbeitsfläche für
  * datenreiche Listen, Tracker und Tabellen. Sie ist bewusst deckend: Nur eine
@@ -153,6 +157,8 @@
   --accent-contrast: #ffffff;
   --accent-glow: rgb(14 164 114 / 35%);
   --accent-soft: rgb(10 122 85 / 14%);
+  /* Akzentschrift auf Glas und auf `--accent-soft`, geprüft gegen 4,5:1. */
+  --accent-text: #075f42;
   --focus-ring: #0369a1;
 
   --danger: #8f3025;
@@ -258,7 +264,14 @@
   --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
   --accent-contrast: #33130a;
   --accent-glow: rgb(255 178 125 / 55%);
-  --accent-soft: rgb(255 178 125 / 18%);
+  /*
+   * Im dunklen Theme dunkelt die weiche Akzentfläche ab, statt aufzuhellen.
+   * Ein aufhellender Schleier über der hellsten Glasstelle lässt selbst weiße
+   * Schrift nur 4,48:1 erreichen; kein Textwert rettet diese Fläche.
+   */
+  --accent-soft: rgb(51 19 10 / 45%);
+  /* Akzentschrift auf Glas und auf `--accent-soft`, geprüft gegen 4,5:1. */
+  --accent-text: #ffe8dc;
   --focus-ring: #bae6fd;
 
   /*
