@@ -24,6 +24,7 @@ Stand: 07.08.2026. Diese Liste beschreibt bewusst akzeptierte Grenzen des aktuel
 - Die Offline-Anzeige kombiniert Browserereignisse mit einem inhaltsfreien Same-Origin-`HEAD`-Check. Sie ist ein Hinweis, keine Zusicherung.
 - Private und Inkognito-Fenster verwerfen lokale Daten beim Schließen.
 - Die automatisierten Browsertests laufen gegen Chromium. Andere Browser und Geräte sind noch nicht abgedeckt.
+- Das [Accessibility-Audit](audits/accessibility-audit.md) stützt sich auf automatisierte Regelprüfungen und Tastaturtests. Eine Prüfung mit echten Screenreadern und mit Nutzern, die auf Hilfsmittel angewiesen sind, hat nicht stattgefunden.
 
 ## Leistung
 

@@ -118,7 +118,7 @@
 
 .habit-state-done {
   border-color: var(--accent-1);
-  color: var(--accent-1);
+  color: var(--accent-text);
   background: var(--accent-soft);
 }
 
@@ -233,7 +233,7 @@
 .habit-week-analysis[open] .habit-week-analysis-summary {
   margin-bottom: var(--space-3);
   border-color: var(--accent-1);
-  color: var(--accent-1);
+  color: var(--accent-text);
 }
 
 /* Der Verlauf nennt jeden Tag zusätzlich als Text, damit die Kurve nur

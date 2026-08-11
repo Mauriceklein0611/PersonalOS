@@ -56,6 +56,7 @@ Datierte Momentaufnahmen, keine normativen Spezifikationen. Bei Widerspruch gelt
 
 - [Produkt-, UX/UI- und Wettbewerbs-Audit (07.08.2026)](docs/audits/personal-os-product-ux-audit.md)
 - [Umsetzungs-Roadmap zum Audit (07.08.2026)](docs/audits/personal-os-improvement-roadmap.md)
+- [Accessibility-Audit MVP (11.08.2026)](docs/audits/accessibility-audit.md)
 
 ## Mit Codex und Claude Code arbeiten
 

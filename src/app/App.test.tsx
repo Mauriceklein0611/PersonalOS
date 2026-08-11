@@ -108,6 +108,26 @@ describe("App shell", () => {
     ).toBe(true);
   });
 
+  /*
+   * Ein Bereichswechsel tauscht nur den Inhaltsbereich aus. Ohne Titel- und
+   * Fokuswechsel bliebe für Vorlesesoftware alles beim Alten.
+   */
+  it("names the area in the title and moves the focus after a navigation", async () => {
+    const user = userEvent.setup();
+    renderRoute("/");
+
+    await screen.findByRole("heading", { level: 1, name: "Heute" });
+    expect(document.title).toBe("Heute – PersonalOS");
+
+    const tasksLink = screen.getAllByRole("link", { name: "Aufgaben" })[0];
+    tasksLink?.focus();
+    await user.keyboard("{Enter}");
+
+    await screen.findByRole("heading", { level: 1, name: "Aufgaben" });
+    expect(document.title).toBe("Aufgaben – PersonalOS");
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
+
   it("persists and applies a selected theme immediately", async () => {
     const user = userEvent.setup();
     renderRoute("/");

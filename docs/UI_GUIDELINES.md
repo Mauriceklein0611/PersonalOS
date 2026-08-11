@@ -9,7 +9,7 @@ Die globalen Tokens stehen in `src/styles/tokens.css`. Komponenten verwenden aus
 - Radien: `sm`, `md`, `lg`, `xl` und `round`;
 - Schatten: `sm`, `md` und `lg`;
 - Motion: kurze und normale Dauer sowie eine gemeinsame Easing-Kurve;
-- Farben: Glas, Kanten, Text, Akzentverlauf, Danger, Fokus und Skeleton jeweils für Light und Dark;
+- Farben: Glas, Kanten, Text, Akzentverlauf, Akzentschrift (`--accent-text`), Danger, Fokus und Skeleton jeweils für Light und Dark;
 - Glas: `--glass`, `--glass-strong`, `--glass-opaque`, `--field`, `--edge`, `--hairline` und der Nebel `--canvas-*`, siehe „Glas-Ästhetik“;
 - Dichte: `--dense-panel`, `--dense-row`, `--dense-row-active`, `--dense-edge`, `--radius-dense` und `--dense-row-height`, siehe „Quiet Density“;
 - Dashboard: Datenpalette, Diagrammhilfslinien und Verlauf, siehe „Dashboard-Visualisierung“.
@@ -24,7 +24,12 @@ Die Komponenten orientieren sich an [WCAG 2.2](https://www.w3.org/TR/WCAG22/):
 - eigenständige interaktive Ziele sind mindestens 44 × 44 CSS-Pixel groß und übertreffen damit das WCAG-AA-Minimum von 24 × 24 CSS-Pixel;
 - kein Zustand wird ausschließlich über Farbe vermittelt;
 - `prefers-reduced-motion: reduce` deaktiviert dekorative Übergänge, Spinner und Skeleton-Bewegung;
-- native Elemente und Semantik werden vor nachgebauten ARIA-Widgets bevorzugt.
+- native Elemente und Semantik werden vor nachgebauten ARIA-Widgets bevorzugt;
+- Überschriften steigen um höchstens eine Ebene. `Card` nimmt dafür `headingLevel` entgegen: `3` innerhalb eines Abschnitts mit `h2`, `2` direkt unter der Seitenüberschrift;
+- ein Bereichswechsel setzt den Dokumenttitel aus der `h1` der Seite und verschiebt den Fokus in den Inhaltsbereich;
+- zwei Landmarken tragen nie denselben Namen gleichzeitig.
+
+Der Stand dieser Regeln ist im [Accessibility-Audit](audits/accessibility-audit.md) belegt; `e2e/accessibility.spec.ts` hält ihn.
 
 ## Deutsche Labels
 
@@ -133,6 +138,10 @@ Durchscheinende Flächen haben keinen festen Hintergrund. `color-contrast.test.t
 Der Stellhebel ist `brightness()` in `--blur-glass`: Es dunkelt den Nebel **unter** der Karte ab und lässt dessen Farbe und Verlauf sichtbar. Ein deckender Grundton über der Karte würde denselben Kontrast erzeugen, aber genau das zerstören, was die Fläche als Glas lesbar macht. Mehr Glas-Alpha hilft im Dark-Theme nicht: Weißes Glas hellt die Karte weiter auf.
 
 **Text steht immer auf einer Glasfläche, nie auf dem blanken Nebel.** Ausnahme sind Überschriften in `--text`; der Test deckt diesen Fall ausdrücklich ab. Gedämpfter Text, Fehlertext und Datenfarben erreichen ihre Schwelle nur auf Glas — dafür gibt es `.page-section` für Abschnitte und `.page-alert` für seitenweite Meldungen.
+
+**`--accent-1` ist keine Schriftfarbe.** Sie färbt Flächen, Rahmen, Verläufe und Datenreihen. Akzentuierte Schrift — aktiver Navigationslink, aktiver Reiter, gewählte Skalenstufe — verwendet `--accent-text`. Auf `--accent-1` als Schrift kommt der ungünstigste Fleck auf 3,6:1 (light) und 2,5:1 (dark); das Audit vom 11.08.2026 hat den Fund unter A-01 aufgenommen, siehe [Accessibility-Audit](audits/accessibility-audit.md).
+
+`--accent-soft` ist die weiche Fläche unter genau dieser Schrift. Im hellen Theme ist sie ein Akzentschleier, im dunklen Theme dunkelt sie ab: Ein aufhellender Schleier über der hellsten Glasstelle lässt selbst reines Weiß nur 4,48:1 erreichen. Beide Schichten zusammen gehören in die Prüfung, nicht die Schrift allein.
 
 ## Quiet Density
 

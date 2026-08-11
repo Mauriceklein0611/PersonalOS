@@ -87,7 +87,7 @@
 
 .journal-scale-option:has(input:checked) {
   border-color: var(--accent-1);
-  color: var(--accent-1);
+  color: var(--accent-text);
   background: var(--accent-soft);
   font-weight: var(--font-weight-bold);
 }
