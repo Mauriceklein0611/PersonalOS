@@ -209,6 +209,36 @@ test("plans a week and shows exactly one day on mobile", async ({ page }) => {
   ).toBe(false);
 });
 
+/*
+ * #124: Liste und Wochenplan sind die primären Arbeitsflächen der Aufgaben.
+ * Sie zeigen Zustand und Quote über `TrackerCell`, `ProgressBar` und CSS —
+ * die Diagrammbibliothek hat dort nichts zu suchen. Die Gegenprobe, dass der
+ * Chunk überhaupt noch so heißt, steht in `e2e/today.spec.ts`; zusätzlich
+ * fordert `pnpm check:bundle` seine Existenz ein.
+ */
+test("keeps the task views free of the chart library", async ({ page }) => {
+  const requested: string[] = [];
+  page.on("request", (request) => requested.push(request.url()));
+
+  await page.goto("/planen/aufgaben");
+  await page
+    .getByRole("textbox", { name: "Neue Aufgabe" })
+    .fill("Unterlagen sortieren");
+  await page.getByRole("button", { name: "Aufgabe hinzufügen" }).click();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Unterlagen sortieren" }),
+  ).toBeVisible();
+
+  for (const view of [/^Heute/, /^Diese Woche/, /^Wochenplan/, /^Erledigt/]) {
+    await page.getByRole("tab", { name: view }).click();
+  }
+  await page.waitForLoadState("networkidle");
+
+  expect(requested.filter((url) => /ChartCanvas|echarts/i.test(url))).toEqual(
+    [],
+  );
+});
+
 /** Der Kalendertag von heute als `YYYY-MM-DD` für ein Datumsfeld. */
 function isoDay(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

@@ -34,7 +34,9 @@ if (entries !== undefined) {
   const summary = summariseMeasurements(measurements)
     .map(
       (entry) =>
-        `- ${entry.label}: ${formatKilobytes(entry.gzipBytes)} von ${formatKilobytes(entry.maximumGzipBytes)} gzip`,
+        `- ${entry.label}: ${formatKilobytes(entry.gzipBytes)} von ${formatKilobytes(entry.maximumGzipBytes)} gzip${
+          entry.largestFile ? ` (größte Datei: ${entry.largestFile})` : ""
+        }`,
     )
     .join("\n");
   const issues = findBundleBudgetIssues(measurements);
