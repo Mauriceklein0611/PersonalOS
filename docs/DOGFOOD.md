@@ -4,6 +4,24 @@ Stand: 11.08.2026, Issue #146. Dieses Dokument legt fest, wie der 14-tägige Ver
 
 Der Zweck ist eng: Die sieben Erfolgskriterien aus [`PRODUCT.md`](PRODUCT.md), Abschnitt 11, sollen am Ende belegt oder widerlegt sein. Was das Protokoll nicht misst, entscheidet über den Release nicht mit.
 
+## Bevor Tag eins beginnt
+
+```bash
+pnpm install
+pnpm build
+pnpm preview --port 4173 --strictPort
+```
+
+`pnpm dev` ist ungeeignet: Der Service Worker wird nur im Produktionsbuild registriert. Ohne ihn gibt es keinen Offline-Start und damit kein Offline-Kriterium.
+
+Danach `http://localhost:4173` öffnen und warten, bis der Hinweis „Offline bereit" erscheint — erst dann liegt die Anwendung im Cache. Anschließend als Anwendung installieren. Sie startet von da an auch ohne laufenden `preview`-Server, und genau das ist der Offline-Nachweis.
+
+**Der Port ist Teil der Datenbank.** IndexedDB hängt am Origin: `http://localhost:4173` und `http://localhost:4174` sind zwei Anwendungen mit zwei leeren Datenbanken. `vite preview` weicht ohne Weiteres auf den nächsten freien Port aus; `--strictPort` lässt den Start stattdessen laut scheitern. Ein stiller Umzug sähe aus wie Datenverlust und wäre keiner — schlimmer noch, er würde als einer notiert.
+
+Aus demselben Grund läuft während des Versuchs kein `pnpm test:e2e`: Playwright startet seinen eigenen Preview-Server auf 4173.
+
+**Beständigkeit am Tag 0 ablesen.** In den Einstellungen unter „Lokaler Speicher und Datenschutz" steht das Feld „Beständigkeit". Sagt es „Best effort – kann bei Speicherdruck entfernt werden", darf der Browser die Datenbank bei knappem Speicher verwerfen, und das Kriterium „14 Tage ohne Datenverlust" hinge am Zufall. Der Wert gehört in die Notiz von Tag 1.
+
 ## Die sieben Kriterien und ihre Messung
 
 | Kriterium aus `PRODUCT.md` | Wie es gemessen wird | Wo es notiert wird |
@@ -78,7 +96,7 @@ Zweimal während des Versuchs, einmal je Woche. Sie beweist, was der Local-first
 1. In den Einstellungen `Vollständigen Export herunterladen`. Die Datei liegt danach im Downloadordner.
 2. In der Karte „Lokaler Speicher und Datenschutz" die Zahl unter „Lokale Datensätze" notieren.
 3. `Alle lokalen Daten löschen`, im Dialog `Backup herunterladen und endgültig löschen`. Die Anwendung lädt dabei selbst noch einmal einen Export herunter, bevor sie löscht — der aus Schritt 1 bleibt trotzdem die Kopie, auf die man sich verlässt.
-4. Ein **frisches Browserprofil** öffnen und PersonalOS dort starten. Ein neues Fenster desselben Profils genügt nicht: Es teilt denselben Speicher und beweist nichts.
+4. Ein **frisches Browserprofil** öffnen und PersonalOS dort starten. Ein neues Fenster desselben Profils genügt nicht: Es teilt denselben Speicher und beweist nichts. Ein Inkognito-Fenster ebenso wenig — es verwirft IndexedDB beim Schließen. Für diesen Schritt muss `pnpm preview` laufen, denn das frische Profil hat keinen Cache.
 5. `Backup-Datei prüfen` und die Datei aus Schritt 1 wählen. Die Vorschau nennt Format, Datensatzzahl, Exportzeitpunkt und Zeitraum.
 6. Vorschauzahlen mit der Notiz aus Schritt 2 vergleichen, dann `Lokale Daten durch Backup ersetzen` und im Dialog `Sicherheitsbackup laden und ersetzen`.
 7. Stichprobe in der Anwendung: eine Aufgabe mit Zielbezug, ein Sparbeitrag mit der Buchung, die ihn deckt, und ein Journaleintrag mit Stimmungsstufe. Diese drei tragen die jüngsten Verweise des Datenmodells; kommen sie durch, kommt der Rest auch.
