@@ -102,7 +102,6 @@ Der Fortschritt entsteht aus vorhandenen Datensätzen. Gespeichert wird nur der
 Zeitpunkt, an dem die Karte abgeschlossen oder übersprungen wurde. Über die
 Einstellungen kann sie erneut eingeblendet werden. Backup und PWA-Installation
 werden erst erklärt, sobald Aufgabe und Routine vorhanden sind.
-
 ## 5. MVP-Scope
 
 Der MVP ist nicht die komplette ursprüngliche Modulliste. Er ist ein stabiler, installierbarer Tagesbegleiter mit verlässlicher Datenhoheit.
