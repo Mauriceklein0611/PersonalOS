@@ -50,6 +50,7 @@ Eine Meta-CSP wirkt erst ab ihrer Position im Dokument und unterstützt laut CSP
 ## Nicht vertrauenswürdige Daten und Logs
 
 - Importdateien werden vor jedem Schreiben größenbegrenzt, geparst und vollständig mit Zod sowie Referenzprüfungen validiert.
+- Ein Datensatz mit einem Feld, das das Datenmodell nicht kennt, lässt den Import scheitern. Das gilt ausdrücklich auch für den Schlüssel `__proto__`: Die strikte Feldprüfung von Zod erkennt ihn nicht, weil `"__proto__" in shape` wegen der geerbten Eigenschaft immer wahr ist. Eine eigene Prüfung weist die Datei deshalb ab, bevor irgendetwas geschrieben ist.
 - React rendert Nutzertext als Text. HTML-/Markdown-Rendering ist nicht implementiert; `dangerouslySetInnerHTML` ist im App-Code untersagt.
 - Fehlerzustände zeigen stabile, allgemeine Nutzertexte. Fehlerobjekte, Journaltexte, Notizen, Finanzwerte und vollständige Records gelangen weder in UI-Fehlertexte noch in Logs.
 - Globale und Routen-Fehlergrenzen senden keine Telemetrie.
@@ -58,7 +59,17 @@ Eine Meta-CSP wirkt erst ab ihrer Position im Dokument und unterstützt laut CSP
 
 `pnpm check:privacy` läuft lokal und in CI ohne zusätzliche Abhängigkeit. Der Check erkennt typische GitHub-, AWS-, Google-, Slack- und Provider-Token, private Schlüsseldateien/-inhalte, `.env`-Dateien, PersonalOS-Exportnamen und Export-Envelopes. Zusätzlich blockiert er rohe `console.*`-Ausgaben und ungeprüftes HTML-Rendering unter `src/`. Ein Treffer gibt nie den gefundenen Wert aus.
 
-Die Regeln ergänzen GitHubs Push Protection, ersetzen aber keine aktivierte Plattformprüfung oder spätere vollständige Historienanalyse. GitHub dokumentiert unterstützte Provider- und generische Muster in der [Secret-Scanning-Referenz](https://docs.github.com/en/code-security/reference/secret-security/supported-secret-scanning-patterns).
+Die Regeln ergänzen GitHubs Push Protection, ersetzen aber keine aktivierte Plattformprüfung. GitHub dokumentiert unterstützte Provider- und generische Muster in der [Secret-Scanning-Referenz](https://docs.github.com/en/code-security/reference/secret-security/supported-secret-scanning-patterns).
+
+Die Historie wurde am 11.08.2026 einmalig vollständig gegen dieselben Muster geprüft; das Ergebnis steht im [Datenschutz- und Sicherheitsreview](audits/privacy-security-review.md). Der CI-Workflow lädt keine Artefakte hoch.
+
+## Abhängigkeiten
+
+`pnpm audit` läuft nicht in der CI, weil es eine Netzabfrage gegen die Registry ist und einen ansonsten reproduzierbaren Lauf von einem fremden Dienst abhängig machen würde. Er gehört stattdessen zur Prüfung vor einer Freigabe. Stand 11.08.2026: keine bekannten Schwachstellen. Ein Override in `pnpm-workspace.yaml` hebt `nanoid` auf eine Patchversion an; die Begründung steht dort und im Review.
+
+## Datierte Prüfung
+
+Der [Datenschutz- und Sicherheitsreview vom 11.08.2026](audits/privacy-security-review.md) hält Datenfluss, Bedrohungsmodell, Prüfschritte und Funde fest.
 
 ## Technische Referenzen
 
