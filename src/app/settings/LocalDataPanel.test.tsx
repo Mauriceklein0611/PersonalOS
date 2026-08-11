@@ -36,6 +36,94 @@ describe("LocalDataPanel", () => {
     expect(screen.getByText(/nicht zusätzlich verschlüsselt/)).toBeVisible();
   });
 
+  /*
+   * Die Anzeige benannte bis #148 ein Risiko für alle lokalen Daten und bot
+   * nichts dagegen an. Der Browser entscheidet weiterhin; die Oberfläche darf
+   * seine Antwort nur nicht erfinden.
+   */
+  it("asks the browser for durable storage and reports what it answered", async () => {
+    const user = userEvent.setup();
+    const requestPersistence = vi.fn().mockResolvedValue(true);
+    const readStorageStatus = vi
+      .fn()
+      .mockResolvedValueOnce({ persisted: false })
+      .mockResolvedValue({ persisted: true });
+    render(
+      <LocalDataPanel
+        readStorageStatus={readStorageStatus}
+        requestPersistence={requestPersistence}
+        service={createService(1)}
+      />,
+    );
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Dauerhaften Speicher anfordern",
+      }),
+    );
+
+    expect(requestPersistence).toHaveBeenCalledOnce();
+    expect(
+      await screen.findByText("Vom Browser als dauerhaft markiert"),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Dauerhaften Speicher anfordern" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("names a refusal as a refusal and keeps the offer", async () => {
+    const user = userEvent.setup();
+    render(
+      <LocalDataPanel
+        readStorageStatus={() => Promise.resolve({ persisted: false })}
+        requestPersistence={() => Promise.resolve(false)}
+        service={createService(1)}
+      />,
+    );
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Dauerhaften Speicher anfordern",
+      }),
+    );
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Der Browser hat den dauerhaften Speicher nicht gewährt",
+    );
+    expect(screen.getByText(/Best effort/)).toBeVisible();
+  });
+
+  it("offers nothing where the browser already keeps the data or cannot be asked", async () => {
+    const { unmount } = render(
+      <LocalDataPanel
+        readStorageStatus={() => Promise.resolve({ persisted: true })}
+        service={createService(1)}
+      />,
+    );
+
+    expect(
+      await screen.findByText("Vom Browser als dauerhaft markiert"),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Dauerhaften Speicher anfordern" }),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    render(
+      <LocalDataPanel
+        readStorageStatus={() => Promise.resolve({})}
+        service={createService(1)}
+      />,
+    );
+
+    expect(
+      await screen.findByText("Keine Browserangabe verfügbar"),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Dauerhaften Speicher anfordern" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("requires confirmation and downloads a backup before clear", async () => {
     const user = userEvent.setup();
     const service = createService(1);
