@@ -49,6 +49,8 @@ Gemessene ungünstigste Werte nach der Änderung: 5,21:1 (light) und 4,84:1 (dar
 
 `useRouteAnnouncement` setzt nach jeder abgeschlossenen Navigation den Dokumenttitel aus der `h1` der Seite und verschiebt den Fokus in den Inhaltsbereich. Der Titel kommt aus der gerenderten Überschrift, damit keine zweite Liste aus Pfad und Titel entsteht, die veralten kann. Beim ersten Aufruf bewegt sich der Fokus nicht: Es hat niemand navigiert.
 
+Nachtrag (#144): Die Überschrift wird beobachtet und nicht einmalig abgetastet. Wann eine Seite ihre `h1` aufbaut, hängt an ihrem eigenen Laden; ein einzelnes Lesen am Ende der Navigation traf die vorherige Überschrift, sobald sich die Ladereihenfolge verschob, und lief danach nicht erneut.
+
 ### A-04: Doppelte Landmarke
 
 Die Kopfzeile trägt die Nebenbereiche auf schmalen Ansichten. Auf Desktop stehen dieselben Ziele in der Seitenleiste; die Kopfzeilen-Navigation ist dort jetzt ausgeblendet.
