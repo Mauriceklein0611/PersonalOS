@@ -86,7 +86,7 @@ export function TransactionForm({
           error={errors.amount}
           hint="Zum Beispiel 12,50. Die Richtung ergibt sich aus der Art."
           inputMode="decimal"
-          label="Betrag in Euro"
+          label={`Betrag in ${currency}`}
           onChange={(event) => {
             const amount = event.currentTarget.value;
             setValues((current) => ({ ...current, amount }));
