@@ -96,7 +96,7 @@ describe("FinancePage", () => {
       ["Lebensmittel"],
     );
     await user.type(
-      screen.getByRole("textbox", { name: /Budget in Euro/ }),
+      screen.getByRole("textbox", { name: /Budget in EUR/ }),
       "50,00",
     );
     await user.click(screen.getByRole("button", { name: "Budget speichern" }));
@@ -184,6 +184,23 @@ describe("FinancePage", () => {
 
     const [transaction] = await service.listTransactions();
     expect(transaction?.money).toEqual({ amountMinor: 1250, currency: "CHF" });
+
+    // Dasselbe gilt für das Budget: Beschriftung und Buchung teilen die Währung.
+    expect(
+      screen.queryByRole("textbox", { name: /Budget in Euro/ }),
+    ).not.toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /Kategorie für das Budget/ }),
+      ["Lebensmittel"],
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /Budget in CHF/ }),
+      "50,00",
+    );
+    await user.click(screen.getByRole("button", { name: "Budget speichern" }));
+
+    const [budget] = await service.listBudgets("2026-08");
+    expect(budget?.limit).toEqual({ amountMinor: 5000, currency: "CHF" });
   });
 
   it("rejects an unreadable amount with a correction hint", async () => {
@@ -272,7 +289,7 @@ describe("FinancePage", () => {
       ["Lebensmittel"],
     );
     await user.type(
-      screen.getByRole("textbox", { name: /Budget in Euro/ }),
+      screen.getByRole("textbox", { name: /Budget in EUR/ }),
       "50,00",
     );
     await user.click(screen.getByRole("button", { name: "Budget speichern" }));
@@ -296,7 +313,7 @@ describe("FinancePage", () => {
       ["Lebensmittel"],
     );
     await user.type(
-      screen.getByRole("textbox", { name: /Budget in Euro/ }),
+      screen.getByRole("textbox", { name: /Budget in EUR/ }),
       "50,00",
     );
     await user.click(screen.getByRole("button", { name: "Budget speichern" }));

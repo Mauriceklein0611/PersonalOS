@@ -12,9 +12,11 @@ const fixedNow = new Date("2026-08-04T10:00:00.000Z");
 function renderPanel(
   service: SavingsService,
   transactions: readonly Transaction[] = [],
+  currency?: string,
 ) {
   return render(
     <SavingsPanel
+      currency={currency}
       now={() => fixedNow}
       service={service}
       timeZone="Europe/Berlin"
@@ -78,7 +80,7 @@ async function addGoal(target: string, targetDate = "") {
     "Synthetisches Sparziel",
   );
   await user.type(
-    screen.getByRole("textbox", { name: /Zielbetrag in Euro/ }),
+    screen.getByRole("textbox", { name: /Zielbetrag in EUR/ }),
     target,
   );
   if (targetDate.length > 0) {
@@ -102,9 +104,9 @@ async function openHistory() {
 
 async function addContribution(amount: string) {
   const user = userEvent.setup();
-  await user.clear(screen.getByRole("textbox", { name: /Beitrag in Euro/ }));
+  await user.clear(screen.getByRole("textbox", { name: /Beitrag in EUR/ }));
   await user.type(
-    screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+    screen.getByRole("textbox", { name: /Beitrag in EUR/ }),
     amount,
   );
   await user.click(screen.getByRole("button", { name: "Beitrag hinzufügen" }));
@@ -115,6 +117,45 @@ describe("SavingsPanel", () => {
     renderPanel(createMemorySavingsService());
 
     expect(await screen.findByText("Kein Sparziel")).toBeInTheDocument();
+  });
+
+  // Die Beschriftung muss die Währung nennen, in der tatsächlich gespart wird.
+  it("labels both amounts with the configured overview currency", async () => {
+    const user = userEvent.setup();
+    const service = createMemorySavingsService();
+    renderPanel(service, [], "CHF");
+
+    await screen.findByText("Kein Sparziel");
+    expect(
+      screen.queryByRole("textbox", { name: /Zielbetrag in Euro/ }),
+    ).not.toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole("textbox", { name: /Name des Sparziels/ }),
+      "Synthetisches Sparziel",
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: /Zielbetrag in CHF/ }),
+      "1.200,00",
+    );
+    await user.click(screen.getByRole("button", { name: "Sparziel anlegen" }));
+    await screen.findByRole("heading", {
+      level: 3,
+      name: "Synthetisches Sparziel",
+    });
+
+    const [goal] = await service.listGoals();
+    expect(goal?.target).toEqual({ amountMinor: 120_000, currency: "CHF" });
+
+    // Das Beitragsfeld steht im Verlauf des Ziels.
+    await user.click(
+      screen.getByRole("button", {
+        name: "Verlauf von „Synthetisches Sparziel“ anzeigen",
+      }),
+    );
+    expect(
+      await screen.findByRole("textbox", { name: /Beitrag in CHF/ }),
+    ).toBeInTheDocument();
   });
 
   it("derives the current amount from the contributions", async () => {
@@ -237,9 +278,9 @@ describe("SavingsPanel", () => {
     await user.click(
       screen.getByRole("button", { name: /Beitrag vom .* bearbeiten/ }),
     );
-    await user.clear(screen.getByRole("textbox", { name: /Beitrag in Euro/ }));
+    await user.clear(screen.getByRole("textbox", { name: /Beitrag in EUR/ }));
     await user.type(
-      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      screen.getByRole("textbox", { name: /Beitrag in EUR/ }),
       "400,00",
     );
     await user.click(
@@ -299,16 +340,16 @@ describe("SavingsPanel", () => {
     expect(screen.getByText(/Gib zuerst einen Betrag ein/)).toBeInTheDocument();
 
     await user.type(
-      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      screen.getByRole("textbox", { name: /Beitrag in EUR/ }),
       "100,00",
     );
     expect(
       await screen.findByText(/keine passende, noch freie Ausgabe/),
     ).toBeInTheDocument();
 
-    await user.clear(screen.getByRole("textbox", { name: /Beitrag in Euro/ }));
+    await user.clear(screen.getByRole("textbox", { name: /Beitrag in EUR/ }));
     await user.type(
-      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      screen.getByRole("textbox", { name: /Beitrag in EUR/ }),
       "250,00",
     );
     await user.selectOptions(
@@ -335,7 +376,7 @@ describe("SavingsPanel", () => {
     await addGoal("1.000,00");
     await openHistory();
     await user.type(
-      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      screen.getByRole("textbox", { name: /Beitrag in EUR/ }),
       "250,00",
     );
     await user.selectOptions(
@@ -348,7 +389,7 @@ describe("SavingsPanel", () => {
     await screen.findByText(/Mit einer Ausgabe verknüpft/);
 
     await user.type(
-      screen.getByRole("textbox", { name: /Beitrag in Euro/ }),
+      screen.getByRole("textbox", { name: /Beitrag in EUR/ }),
       "250,00",
     );
 

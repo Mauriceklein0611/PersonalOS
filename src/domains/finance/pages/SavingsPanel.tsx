@@ -446,7 +446,7 @@ export function SavingsPanel({
               error={goalErrors.target}
               hint="Zum Beispiel 1.200,00."
               inputMode="decimal"
-              label="Zielbetrag in Euro"
+              label={`Zielbetrag in ${currency}`}
               onChange={(event) => {
                 const target = event.currentTarget.value;
                 setGoalValues((current) => ({ ...current, target }));
@@ -577,7 +577,7 @@ export function SavingsPanel({
                               error={contributionErrors.amount}
                               hint="Zum Beispiel 50,00."
                               inputMode="decimal"
-                              label="Beitrag in Euro"
+                              label={`Beitrag in ${currency}`}
                               onChange={(event) => {
                                 const amount = event.currentTarget.value;
                                 setContributionValues((current) => ({
