@@ -69,19 +69,23 @@ export function createJournalRepository(
         if (from && to && from > to) {
           throw new PersistenceError("validation");
         }
-        const entries = await database
-          .table<JournalEntry>("journalEntries")
-          .orderBy("localDate")
-          .reverse()
-          .toArray();
+        /*
+         * Der Zeitraum steht im Index auf `localDate`. Vorher las jede
+         * Wochen- und Monatsauswertung die vollständige Journalhistorie und
+         * warf den Rest anschließend weg.
+         */
+        const table = database.table<JournalEntry>("journalEntries");
+        const entries =
+          from === undefined && to === undefined
+            ? await table.orderBy("localDate").reverse().toArray()
+            : await table
+                .where("localDate")
+                .between(from ?? "0000-01-01", to ?? "9999-12-31", true, true)
+                .reverse()
+                .sortBy("localDate");
         return entries
           .map((entry) => parse(journalEntrySchema, entry))
-          .filter(
-            (entry) =>
-              entry.archivedAt === undefined &&
-              (from === undefined || entry.localDate >= from) &&
-              (to === undefined || entry.localDate <= to),
-          );
+          .filter((entry) => entry.archivedAt === undefined);
       } catch (error) {
         throw toPersistenceError(error);
       }

@@ -32,6 +32,14 @@ export interface HabitService {
     habitId: string,
     range?: { from?: CalendarDay; to?: CalendarDay },
   ): Promise<HabitEntry[]>;
+  /**
+   * Alle Check-ins eines Zeitraums, nach Routine gruppiert. Eine Ansicht, die
+   * jede Routine einzeln fragt, stellt so viele Abfragen wie es Routinen gibt.
+   */
+  listEntriesByHabit(range?: {
+    from?: CalendarDay;
+    to?: CalendarDay;
+  }): Promise<Map<string, HabitEntry[]>>;
   reopenCheckIn(habitId: string, localDate: CalendarDay): Promise<boolean>;
   restore(id: string): Promise<Habit>;
   updateDetails(id: string, details: HabitDetails): Promise<Habit>;
@@ -80,6 +88,25 @@ export function createHabitService(
     create: (details) => habits.create(normalizeDetails(details)),
     list: (options) => habits.list(options),
     listEntries: (habitId, range) => entries.listForHabit(habitId, range),
+    async listEntriesByHabit(range) {
+      const found = await entries.listInRange(range);
+      const grouped = new Map<string, HabitEntry[]>();
+      for (const entry of found) {
+        const current = grouped.get(entry.habitId);
+        if (current === undefined) {
+          grouped.set(entry.habitId, [entry]);
+        } else {
+          current.push(entry);
+        }
+      }
+      // Die Reihenfolge je Routine ist Teil der Zusage, nicht der Index.
+      for (const list of grouped.values()) {
+        list.sort((left, right) =>
+          left.localDate.localeCompare(right.localDate),
+        );
+      }
+      return grouped;
+    },
     async reopenCheckIn(habitId, localDate) {
       const { validDate } = await requireCheckableHabit(habitId, localDate);
       return entries.clearForDate(habitId, validDate);

@@ -488,6 +488,18 @@ function createMemoryHabitService(
     listEntries: vi.fn(async (habitId) =>
       entries.filter((entry) => entry.habitId === habitId),
     ),
+    listEntriesByHabit: vi.fn(async (range) => {
+      const grouped = new Map<string, HabitEntry[]>();
+      for (const entry of entries) {
+        if (range?.from !== undefined && entry.localDate < range.from) continue;
+        if (range?.to !== undefined && entry.localDate > range.to) continue;
+        grouped.set(entry.habitId, [
+          ...(grouped.get(entry.habitId) ?? []),
+          entry,
+        ]);
+      }
+      return grouped;
+    }),
     reopenCheckIn: vi.fn(async (habitId, localDate) => {
       const remaining = entries.filter(
         (entry) => entry.habitId !== habitId || entry.localDate !== localDate,
