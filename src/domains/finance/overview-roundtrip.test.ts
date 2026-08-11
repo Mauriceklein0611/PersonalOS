@@ -250,18 +250,19 @@ describe("monthly overview with a large local dataset", () => {
   });
 
   /*
-   * Der Budgetpfad war bisher überhaupt nicht gemessen: Der Test übergab
-   * `budgets: []` und `summariseBudgets` kehrte sofort zurück. Dabei sucht
-   * genau dieser Pfad je Ausgabe erneut linear durch die Budgets.
+   * Der Budgetpfad war bis #97 überhaupt nicht gemessen: Der Test übergab
+   * `budgets: []` und `summariseBudgets` kehrte sofort zurück. Dabei suchte
+   * genau dieser Pfad je Ausgabe des Monats erneut linear durch alle Budgets
+   * — 151.360 Zugriffe bei 6.000 Buchungen und 40 Budgets.
    *
-   * Der Test schreibt diesen Stand nicht als Ziel fest, sondern nur seine
-   * Form: Der Aufwand darf mit der Datenmenge wachsen, aber nicht schneller
-   * als sie. Die inhaltlichen Budgets setzt #28.
+   * Seit #113 stehen die budgetierten Kategorien in einer Menge. Der Aufwand
+   * hängt damit nur noch an der Zahl der Budgets, nicht mehr an der Zahl der
+   * Buchungen.
    */
-  it("keeps the budget lookup from growing faster than the data", () => {
+  it("looks a budget up without scanning it for every booking", () => {
     const measure = (transactionCount: number) => {
       const budgets = countingReads(buildBudgets(40));
-      buildMonthlyOverview({
+      const overview = buildMonthlyOverview({
         budgets: budgets.watched,
         contributions: [],
         currency: "EUR",
@@ -269,16 +270,30 @@ describe("monthly overview with a large local dataset", () => {
         savingsGoals: [],
         transactions: buildTransactions(transactionCount, 40),
       });
-      return budgets.reads();
+      return { reads: budgets.reads(), summary: overview.budget };
     };
 
     const small = measure(3_000);
     const large = measure(6_000);
 
-    expect(small).toBeGreaterThan(0);
-    // Doppelte Datenmenge, höchstens doppelter Aufwand mit etwas Reserve für
-    // die feste Grundlast. Ein quadratischer Rückschritt reißt das sofort.
-    expect(large).toBeLessThanOrEqual(small * 2 + 200);
+    expect(small.reads).toBeGreaterThan(0);
+    // Die doppelte Zahl an Buchungen kostet keinen einzigen Zugriff mehr.
+    expect(large.reads).toBe(small.reads);
+    /*
+     * Gemessen sind fünf Zugriffe je Budget: Archivstatus und Monat beim
+     * Filtern, danach je einmal Währung, Betrag und Kategorie. Die Reserve bis
+     * acht lässt Raum für ein weiteres Feld, ohne einen erneuten Durchlauf je
+     * Buchung zu verdecken.
+     */
+    expect(large.reads).toBeLessThanOrEqual(40 * 8);
+
+    // Der Verbrauch bleibt derselbe wie vor der Umstellung.
+    expect(large.summary).toEqual({
+      limitMinor: 2_000_000,
+      remainingMinor: 716_000,
+      spentMinor: 1_284_000,
+      trackedCategoryCount: 40,
+    });
   });
 
   /*
