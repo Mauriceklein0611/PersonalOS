@@ -34,7 +34,7 @@
   line-height: var(--line-height-tight);
 }
 
-.preview-section h2 {
+.preview-section > h2 {
   margin: 0 0 var(--space-6);
   font-size: var(--font-size-xl);
 }
@@ -78,6 +78,24 @@
   display: grid;
   gap: var(--space-4);
   margin-top: var(--space-4);
+}
+
+.preview-surface-patterns {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* Nur die Vorschau stellt die vier Verträge nebeneinander. In echten Routen
+   gibt es genau einen Flächentyp und die Werkzeugleiste nutzt dessen Breite. */
+@media (min-width: 64rem) {
+  .preview-surface-patterns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .preview-surface-patterns > [data-surface="work"] {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Der simulierte Fokusring wird außerhalb der Box gezeichnet und braucht

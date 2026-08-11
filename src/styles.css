@@ -200,7 +200,7 @@ a {
  * Ohne ihn legt sich ein Toast auf kurzen Seiten über die letzten Aktionen.
  */
 .main-content {
-  width: min(100%, 78rem);
+  width: min(100%, 96rem);
   min-height: calc(100vh - 4rem);
   margin: 0 auto;
   padding: 1rem 1rem
@@ -213,9 +213,31 @@ a {
  */
 .route-page {
   display: grid;
+  width: min(100%, 78rem);
   min-height: 24rem;
   align-content: start;
   gap: var(--space-4);
+  margin-inline: auto;
+}
+
+/*
+ * ADR 0018: Datenreiche ArbeitsflÃ¤chen dÃ¼rfen die volle Breite innerhalb der
+ * Shell verwenden. Ãœbersichten bleiben fokussiert; Editor und Konfiguration
+ * erhalten eine lesbare ZeilenlÃ¤nge. Bestehende Seiten ohne Kennzeichnung
+ * behalten bis zu ihrem Domainumbau die bisherige Breite.
+ */
+.route-page[data-surface="work"] {
+  width: 100%;
+  gap: var(--space-3);
+}
+
+.route-page[data-surface="overview"] {
+  width: min(100%, 78rem);
+}
+
+.route-page[data-surface="editor"],
+.route-page[data-surface="settings"] {
+  width: min(100%, 64rem);
 }
 
 /*

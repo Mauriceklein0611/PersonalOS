@@ -54,6 +54,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Überspringen bricht die Serie nicht](docs/decisions/0012-skip-keeps-the-streak.md)
 - [Ersteinrichtungsfortschritt wird abgeleitet](docs/decisions/0016-first-run-progress-is-derived.md)
 - [Statisches Cloudflare-Pages-Hosting](docs/decisions/0017-cloudflare-pages-static-hosting.md)
+- [Flächentypen und Seitenhierarchie](docs/decisions/0018-full-surface-page-patterns.md)
 
 ### Externe Prüfungen
 
