@@ -203,6 +203,26 @@ Eine Wochenplanung zeigt sieben Tagesbereiche aus **einer** Datenquelle — dem 
 - Auf Mobil steht ein Wochentagsstreifen über **genau einem** Tagesbereich; die übrigen Tage sind nicht im Fluss. Sieben Spalten nebeneinander sind erst dort sinnvoll, wo eine Spalte zwei 44-px-Ziele neben einem Titel trägt — darunter bricht die Zeile um, statt die Ziele zu verkleinern.
 - Umgeplant wird dort, wo das Datum gespeichert wird: in der Bearbeitung. Drag & Drop gibt es nicht; es hätte keine Tastaturentsprechung und keinen Zustand, den ein Screenreader ansagen könnte.
 
+### Vier Rollen der Woche
+
+„Woche“ ist ein Zeitraum, keine eigenständige Funktion. Jede Wochenfläche
+beginnt deshalb mit einer sichtbaren Nutzerfrage, einem Ein-Satz-Zweck und dem
+vollständigen Zeitraum:
+
+- **Wochenliste:** offene Aufgaben mit Plan- oder Fristdatum finden; keine
+  Tagesaufteilung;
+- **Wochenplan:** Aufgaben mit Plandatum auf sieben Tage verteilen; Fristen
+  allein planen keinen Tag;
+- **Wochenstatus:** geplante Routinen und Check-ins gegenüberstellen;
+  Überspringen bleibt neutral;
+- **Wochenrückblick:** Geschehenes mit der Vorwoche vergleichen; keine neue
+  Planung und keine Bewertung.
+
+Die Berechnung liest `settings.weekStartsOn` und die gespeicherte Zeitzone.
+Leerzustände nennen die jeweilige fehlende Grundlage statt des allgemeinen
+„Keine Einträge“. Pfade bleiben unverändert; eine neue persistierte
+Wochenentität gibt es nicht.
+
 ### Tabs
 
 Die Ansichten einer Domainseite stehen in `ViewTabs`. Die Bereichsreiter der Kopfzeile bleiben davon unberührt; sie sind Navigation (`AreaLayout`), keine Reiter im ARIA-Sinn.

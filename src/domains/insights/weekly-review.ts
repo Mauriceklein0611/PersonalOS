@@ -1,6 +1,7 @@
 import {
   addCalendarDays,
-  getIsoWeekBounds,
+  getWeekBounds,
+  type WeekStartsOn,
 } from "../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../lib/dates/date-values";
 import { createMoney, formatMoney } from "../../lib/money/money";
@@ -51,9 +52,12 @@ export type WeeklyReviewInput = {
   transactions: readonly Transaction[];
 };
 
-/** Die ISO-Woche, in der der Tag liegt. Montag bis Sonntag. */
-export function getWeekPeriod(day: CalendarDay): InsightPeriod {
-  const [from, to] = getIsoWeekBounds(day);
+/** Die konfigurierte Kalenderwoche, in der der Tag liegt. */
+export function getWeekPeriod(
+  day: CalendarDay,
+  weekStartsOn: WeekStartsOn = 1,
+): InsightPeriod {
+  const [from, to] = getWeekBounds(day, weekStartsOn);
   return { from, to };
 }
 
@@ -61,7 +65,10 @@ export function shiftWeek(
   period: InsightPeriod,
   offset: number,
 ): InsightPeriod {
-  return getWeekPeriod(addCalendarDays(period.from, offset * 7));
+  return {
+    from: addCalendarDays(period.from, offset * 7),
+    to: addCalendarDays(period.to, offset * 7),
+  };
 }
 
 /**

@@ -10,6 +10,7 @@ import {
   getCalendarMonthBounds,
   getIsoWeekBounds,
   getIsoWeekday,
+  getWeekBounds,
   getWeekStart,
 } from "./calendar-days";
 
@@ -106,6 +107,10 @@ describe("calendar day helpers", () => {
     expect(getWeekStart("2026-08-09", 7)).toBe("2026-08-09");
     expect(getWeekStart("2026-08-03", 7)).toBe("2026-08-02");
     expect(getWeekStart("2026-08-08", 7)).toBe("2026-08-02");
+    expect(getWeekBounds("2026-08-09", 7)).toEqual([
+      "2026-08-09",
+      "2026-08-15",
+    ]);
   });
 
   it("names the month of a day", () => {
