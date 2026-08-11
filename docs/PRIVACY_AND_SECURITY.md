@@ -26,7 +26,6 @@ angeforderte Pfade. PersonalOS aktiviert keine Cloudflare Web Analytics,
 Telemetrie, Pages Functions oder serverseitige Fachdatenspeicherung. Die
 versionierten Produktionsheader, der Domainablauf und die Abnahme sind in den
 [Betriebsnotizen](DEPLOYMENT.md) festgehalten.
-
 ## Was local-first schützt
 
 Ohne optionale spätere Integration verlassen Fachinhalte das Gerät nicht automatisch. Ein Ausfall eines fremden Backends kann die Kernfunktionen nicht blockieren, und ein vollständiger Export bleibt unter Kontrolle des Nutzers.
