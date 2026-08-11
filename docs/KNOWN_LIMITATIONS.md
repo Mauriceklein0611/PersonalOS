@@ -12,8 +12,8 @@ Stand: 07.08.2026. Diese Liste beschreibt bewusst akzeptierte Grenzen des aktuel
 
 ## Oberfläche
 
-- Die Wochenansicht der Routinen scrollt bei schmalen Ansichten horizontal in ihrem eigenen Bereich.
-- Zukünftige Wochen lassen sich in der Wochenansicht nicht öffnen; die laufende Woche ist die letzte auswertbare.
+- Der Monatstracker der Routinen scrollt bei schmalen Ansichten horizontal in seinem eigenen Bereich.
+- Zukünftige Monate lassen sich im Routinen-Tracker nicht öffnen; der laufende Monat ist der letzte auswertbare.
 - Die Ausgaben-Schnellerfassung auf dem Dashboard bucht immer auf den heutigen Tag und kennt keine Notiz. Beides steht im Finanzbereich; die Schnellerfassung bleibt bewusst auf Betrag und Kategorie beschränkt.
 - Das Dashboard zeigt höchstens fünf offene Aufgaben. Die Kürzung wird benannt und verlinkt auf die vollständige Liste; eine Sortierung nach eigener Reihenfolge gibt es dort nicht.
 

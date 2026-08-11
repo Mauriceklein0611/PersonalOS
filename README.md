@@ -64,6 +64,7 @@ Datierte Momentaufnahmen, keine normativen Spezifikationen. Bei Widerspruch gelt
 - [Umsetzungs-Roadmap zum Audit (07.08.2026)](docs/audits/personal-os-improvement-roadmap.md)
 - [Accessibility-Audit MVP (11.08.2026)](docs/audits/accessibility-audit.md)
 - [Datenschutz- und Sicherheitsreview MVP (11.08.2026)](docs/audits/privacy-security-review.md)
+- [Neo-Quiet-Density-Routen- und Konsistenzaudit (12.08.2026)](docs/audits/neo-quiet-density-route-audit.md)
 
 ## Mit Codex und Claude Code arbeiten
 
