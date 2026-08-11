@@ -116,7 +116,9 @@ for (const width of [320, 375, 390]) {
 
     for (const [path, listName, tabCount] of [
       ["/planen/aufgaben", "Aufgabenansicht", 4],
-      ["/routinen/uebersicht", "Routinenansicht", 4],
+      // Seit dem Monatsraster (#122) fünf Reiter: Heute, Woche, Monat,
+      // Fortschritt, Archiv. Die Reihe bricht um, statt zu scrollen.
+      ["/routinen/uebersicht", "Routinenansicht", 5],
     ] as const) {
       await page.goto(path);
 

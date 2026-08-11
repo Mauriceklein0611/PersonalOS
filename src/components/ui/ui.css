@@ -524,6 +524,18 @@
   background: var(--accent-soft);
 }
 
+/*
+ * Ab fünf Ansichten kosten zwei Spalten drei Zeilen, und die dritte schiebt
+ * die eigentliche Arbeitsfläche unter den ersten Bildschirm (#122). Ab 22 rem
+ * stehen deshalb drei Reiter nebeneinander; bei 320 px bleiben es zwei, dort
+ * ist für drei Beschriftungen kein Platz.
+ */
+@media (min-width: 22rem) {
+  .ui-view-tab {
+    flex: 1 1 calc(33.333% - var(--space-2));
+  }
+}
+
 @media (min-width: 34rem) {
   .ui-view-tab {
     flex: 1 1 0;

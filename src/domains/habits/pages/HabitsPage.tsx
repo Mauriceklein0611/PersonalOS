@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useTimeZone } from "../../../app/settings/settings-context";
+import {
+  useTimeZone,
+  useWeekStartsOn,
+} from "../../../app/settings/settings-context";
 import {
   Button,
   Chart,
@@ -13,9 +16,12 @@ import {
 } from "../../../components/ui";
 import {
   addCalendarDays,
+  addCalendarMonths,
   calendarDayForInstant,
   enumerateCalendarDays,
+  getCalendarMonth,
   getIsoWeekBounds,
+  type WeekStartsOn,
 } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import {
@@ -25,9 +31,11 @@ import {
 } from "../../goals/link-service";
 import { HabitEditor } from "../components/HabitEditor";
 import { calculateHabitStreak } from "../metrics";
+import { HabitMonthGrid } from "../components/HabitMonthGrid";
 import { HabitProgressCard } from "../components/HabitProgressCard";
 import { HabitTodayCard } from "../components/HabitTodayCard";
 import { HabitWeekGrid } from "../components/HabitWeekGrid";
+import { buildHabitMonthView } from "../month-view";
 import type {
   Habit,
   HabitDetails,
@@ -38,6 +46,8 @@ import { personalOsHabitService, type HabitService } from "../service";
 import {
   formatCalendarDay,
   formatCalendarDayShort,
+  formatCalendarMonth,
+  formatHabitRate,
   formatHabitStreak,
   getHabitActivityState,
   getHabitDayState,
@@ -48,7 +58,7 @@ import {
 } from "../view-model";
 import "./habits-page.css";
 
-type HabitsView = "archive" | "progress" | "today" | "week";
+type HabitsView = "archive" | "month" | "progress" | "today" | "week";
 
 type HabitUndoAction = {
   habitId: string;
@@ -59,6 +69,7 @@ type HabitUndoAction = {
 const habitViews: Array<{ id: HabitsView; label: string }> = [
   { id: "today", label: "Heute" },
   { id: "week", label: "Woche" },
+  { id: "month", label: "Monat" },
   { id: "progress", label: "Fortschritt" },
   { id: "archive", label: "Archiv" },
 ];
@@ -74,6 +85,7 @@ export type HabitsPageProps = {
   now?: () => Date;
   service?: HabitService;
   timeZone?: string;
+  weekStartsOn?: WeekStartsOn;
 };
 
 export function HabitsPage({
@@ -81,8 +93,10 @@ export function HabitsPage({
   now = systemNow,
   service = personalOsHabitService,
   timeZone: timeZoneOverride,
+  weekStartsOn: weekStartsOnOverride,
 }: HabitsPageProps) {
   const timeZone = useTimeZone(timeZoneOverride);
+  const weekStartsOn = useWeekStartsOn(weekStartsOnOverride);
   const [activeView, setActiveView] = useState<HabitsView>("today");
   const [goalOptions, setGoalOptions] = useState<GoalOption[]>([]);
   const [goalTitles, setGoalTitles] = useState<ReadonlyMap<string, string>>(
@@ -101,6 +115,7 @@ export function HabitsPage({
   const [progressPeriod, setProgressPeriod] =
     useState<HabitProgressPeriod>("last28Days");
   const [undo, setUndo] = useState<HabitUndoAction>();
+  const [monthOffset, setMonthOffset] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
   const [isWeekAnalysisOpen, setIsWeekAnalysisOpen] = useState(false);
 
@@ -197,6 +212,19 @@ export function HabitsPage({
     (habit) => habit.archivedAt === undefined,
   );
 
+  const month = addCalendarMonths(getCalendarMonth(today), monthOffset);
+  const monthView = useMemo(
+    () =>
+      buildHabitMonthView({
+        entriesByHabit,
+        habits,
+        month,
+        today,
+        weekStartsOn,
+      }),
+    [entriesByHabit, habits, month, today, weekStartsOn],
+  );
+
   // Der Wochenverlauf zählt nur, was an dem Tag tatsächlich geplant war.
   const weekCourse = weekDays.map((day) => {
     let done = 0;
@@ -226,6 +254,7 @@ export function HabitsPage({
 
   const viewCounts: Record<HabitsView, number> = {
     archive: archivedHabits.length,
+    month: monthView.rows.length,
     progress: trackedHabits.length,
     today: openHabits.length,
     week: weekHabits.length,
@@ -356,6 +385,10 @@ export function HabitsPage({
 
   function toggleWeekDay(habit: Habit, day: CalendarDay, state: HabitDayState) {
     void (state === "done" ? reopen(habit, day) : checkIn(habit, "done", day));
+  }
+
+  function toggleMonthDay(habit: Habit, day: CalendarDay, isDone: boolean) {
+    void (isDone ? reopen(habit, day) : checkIn(habit, "done", day));
   }
 
   return (
@@ -615,6 +648,64 @@ export function HabitsPage({
                   label="Aktive Serien"
                   tone={2}
                 />
+              </>
+            )}
+          </>
+        ) : activeView === "month" ? (
+          <>
+            <h2>{formatCalendarMonth(month)}</h2>
+            <div className="habit-week-nav">
+              <Button
+                onClick={() => setMonthOffset((offset) => offset - 1)}
+                variant="secondary"
+              >
+                Vorheriger Monat
+              </Button>
+              <Button
+                disabled={monthOffset >= 0}
+                onClick={() =>
+                  setMonthOffset((offset) => Math.min(0, offset + 1))
+                }
+                variant="secondary"
+              >
+                Nächster Monat
+              </Button>
+            </div>
+            <p className="habit-view-hint">
+              Check-ins sind bis einschließlich heute möglich.{" "}
+              {monthView.countedTo === undefined
+                ? "Der Monat liegt noch vor dir; eine Quote entsteht ab dem ersten vergangenen Tag."
+                : `Die Quoten zählen vom ${formatCalendarDay(monthView.from)} bis ${formatCalendarDay(monthView.countedTo)}; zukünftige Tage bleiben außen vor. Der Zeitraum je Routine beginnt frühestens an ihrem Startdatum.`}
+            </p>
+            {monthView.rows.length === 0 ? (
+              <EmptyState
+                description="In diesem Monat war keine Routine aktiv."
+                title="Keine Einträge"
+              />
+            ) : (
+              <>
+                {/*
+                  Die Zusammenfassung ist Text aus vorhandenen Werten und steht
+                  deshalb vor dem Raster. Ein Diagramm gibt es hier nicht: Das
+                  Monatsraster ist die Ansicht, nicht ihre Auswertung.
+                */}
+                <p className="habit-month-summary">
+                  {monthView.summary.counted === 0
+                    ? "Für diesen Zeitraum gibt es noch keine zählenden Einheiten."
+                    : `${monthView.summary.done} von ${monthView.summary.counted} zählenden Einheiten erledigt · ${formatHabitRate(monthView.summary.rate)}${
+                        monthView.summary.skipped > 0
+                          ? ` · ${monthView.summary.skipped} übersprungen`
+                          : ""
+                      }`}
+                </p>
+
+                <div className="ui-dense-panel habit-month-panel">
+                  <HabitMonthGrid
+                    busyHabitId={busyHabitId}
+                    onToggle={toggleMonthDay}
+                    view={monthView}
+                  />
+                </div>
               </>
             )}
           </>

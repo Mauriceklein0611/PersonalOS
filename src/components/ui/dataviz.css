@@ -396,6 +396,12 @@ button.ui-tracker-cell:hover:not(:disabled),
   background: transparent;
 }
 
+/* Außerhalb des Zeitraums bleibt die Fläche leer: kein Rahmen, kein Zeichen. */
+.ui-tracker-cell[data-state="outside"] {
+  border-color: transparent;
+  background: transparent;
+}
+
 .ui-tracker-cell[data-state="done"][data-tone="2"] {
   border-color: var(--data-2);
   color: var(--text);

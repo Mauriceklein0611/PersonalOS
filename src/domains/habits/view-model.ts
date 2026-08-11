@@ -1,5 +1,5 @@
 import { addCalendarDays } from "../../lib/dates/calendar-days";
-import type { CalendarDay } from "../../lib/dates/date-values";
+import type { CalendarDay, CalendarMonth } from "../../lib/dates/date-values";
 import type { HabitStreak } from "./metrics";
 import type { Habit, HabitEntry, HabitSchedule } from "./model";
 import { isHabitDueOn, isHabitEligibleOn } from "./schedule";
@@ -146,6 +146,18 @@ export function formatCalendarDayShort(day: CalendarDay): string {
 
 export function formatCalendarWeekday(day: CalendarDay): string {
   return formatWithOptions(day, { weekday: "short" });
+}
+
+/** Nur die Tageszahl, für Spaltenköpfe eines ganzen Monats. */
+export function formatCalendarDayNumber(day: CalendarDay): string {
+  return formatWithOptions(day, { day: "numeric" });
+}
+
+export function formatCalendarMonth(month: CalendarMonth): string {
+  return formatWithOptions(`${month}-01`, {
+    month: "long",
+    year: "numeric",
+  });
 }
 
 function formatWithOptions(

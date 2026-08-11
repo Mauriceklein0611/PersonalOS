@@ -1,7 +1,8 @@
 import { classNames } from "../../lib/class-names";
 import { noDataText, type DataSeriesTone } from "./data-series";
 
-export type TrackerCellState = "done" | "partial" | "skipped" | "open" | "none";
+export type TrackerCellState =
+  "done" | "partial" | "skipped" | "open" | "none" | "outside";
 
 export type TrackerCellProps = {
   /** Beschreibt, worauf sich die Zelle bezieht, etwa „Mo, 3. August“. */
@@ -19,12 +20,18 @@ export type TrackerCellProps = {
   tone?: DataSeriesTone;
 };
 
+/**
+ * `outside` bleibt bewusst ohne Zeichen: Außerhalb des Zeitraums gab es nichts
+ * zu tun. Ein weiteres Zeichen würde in einem Monatsraster eine Erwartung
+ * andeuten, die nie bestand. Der Text in der Zelle nennt den Zustand trotzdem.
+ */
 const stateSigns: Record<TrackerCellState, string> = {
   done: "✓",
   partial: "◐",
   skipped: "–",
   open: "○",
   none: "·",
+  outside: "",
 };
 
 const stateLabels: Record<TrackerCellState, string> = {
@@ -33,6 +40,7 @@ const stateLabels: Record<TrackerCellState, string> = {
   skipped: "Übersprungen",
   open: "Offen",
   none: noDataText,
+  outside: "Außerhalb des Zeitraums",
 };
 
 export function TrackerCell({

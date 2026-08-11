@@ -1,4 +1,12 @@
-import { calendarDaySchema, type CalendarDay } from "./date-values";
+import {
+  calendarDaySchema,
+  calendarMonthSchema,
+  type CalendarDay,
+  type CalendarMonth,
+} from "./date-values";
+
+/** Erster Wochentag: Montag (ISO) oder Sonntag. */
+export type WeekStartsOn = 1 | 7;
 
 /**
  * Ein `Intl.DateTimeFormat` ist teuer im Bau und je Zeitzone unveränderlich.
@@ -42,11 +50,58 @@ export function getIsoWeekday(value: CalendarDay): number {
   return day === 0 ? 7 : day;
 }
 
+/**
+ * Der erste Tag der Woche, in der `value` liegt. Bei Sonntagsstart liegt der
+ * Montag hinter dem Wochenanfang, deshalb rechnet der Rest gegen sieben.
+ */
+export function getWeekStart(
+  value: CalendarDay,
+  weekStartsOn: WeekStartsOn = 1,
+): CalendarDay {
+  const weekday = getIsoWeekday(value);
+  return addCalendarDays(
+    value,
+    -(weekStartsOn === 1 ? weekday - 1 : weekday % 7),
+  );
+}
+
 export function getIsoWeekBounds(
   value: CalendarDay,
 ): [CalendarDay, CalendarDay] {
-  const start = addCalendarDays(value, 1 - getIsoWeekday(value));
+  const start = getWeekStart(value, 1);
   return [start, addCalendarDays(start, 6)];
+}
+
+export function getCalendarMonth(value: CalendarDay): CalendarMonth {
+  return calendarMonthSchema.parse(value.slice(0, 7));
+}
+
+export function addCalendarMonths(
+  value: CalendarMonth,
+  months: number,
+): CalendarMonth {
+  const [year, month] = splitCalendarMonth(value);
+  const index = year * 12 + (month - 1) + months;
+  const nextYear = Math.floor(index / 12);
+  const nextMonth = index - nextYear * 12 + 1;
+  return calendarMonthSchema.parse(
+    `${String(nextYear).padStart(4, "0")}-${String(nextMonth).padStart(2, "0")}`,
+  );
+}
+
+/**
+ * Erster und letzter Kalendertag des Monats. Das Ende entsteht aus dem Tag vor
+ * dem Folgemonat und stimmt damit für 28, 29, 30 und 31 Tage ohne eigene
+ * Schaltjahrregel.
+ */
+export function getCalendarMonthBounds(
+  value: CalendarMonth,
+): [CalendarDay, CalendarDay] {
+  const start = calendarDaySchema.parse(`${value}-01`);
+  const nextStart = calendarDaySchema.parse(
+    `${addCalendarMonths(value, 1)}-01`,
+  );
+  return [start, addCalendarDays(nextStart, -1)];
 }
 
 export function differenceInCalendarDays(
@@ -72,4 +127,8 @@ export function enumerateCalendarDays(
 
 function parseCalendarDayAsUtc(value: CalendarDay): Date {
   return new Date(`${value}T00:00:00.000Z`);
+}
+
+function splitCalendarMonth(value: CalendarMonth): [number, number] {
+  return [Number(value.slice(0, 4)), Number(value.slice(5, 7))];
 }

@@ -173,6 +173,19 @@ describe("TrackerCell", () => {
     expect(screen.getByText("Mi, 5. August: Keine Angabe")).toBeInTheDocument();
   });
 
+  it("keeps a day outside the period empty but named", () => {
+    const { container } = render(
+      <TrackerCell dayLabel="Mo, 3. August" state="outside" />,
+    );
+
+    expect(
+      screen.getByText("Mo, 3. August: Außerhalb des Zeitraums"),
+    ).toBeInTheDocument();
+    expect(container.querySelector(".ui-tracker-cell-sign")).toHaveTextContent(
+      "",
+    );
+  });
+
   it("becomes a button that names state and action", async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();

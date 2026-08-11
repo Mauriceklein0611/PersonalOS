@@ -138,6 +138,80 @@ describe("HabitsPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows the month grid with derived quotas and an untouched future", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryHabitService(
+      [createDailyHabit()],
+      [createEntry("2026-08-01", "done"), createEntry("2026-08-02", "skipped")],
+    );
+    renderPage(service);
+
+    await screen.findByRole("heading", { level: 2, name: "Heute fällig" });
+    await user.click(screen.getByRole("tab", { name: /^Monat/ }));
+
+    expect(
+      await screen.findByRole("heading", { level: 2, name: "August 2026" }),
+    ).toBeInTheDocument();
+    // Vier geplante Tage bis heute, einer übersprungen: 1 von 3.
+    expect(
+      screen.getByText(
+        "1 von 3 zählenden Einheiten erledigt · 33 % · 1 übersprungen",
+      ),
+    ).toBeInTheDocument();
+
+    const grid = screen.getByRole("table", {
+      name: /Zeichen und als Text in der Zelle/,
+    });
+    expect(within(grid).getByText("1 von 3 · 33 %")).toBeInTheDocument();
+    // Der Monat reicht über heute hinaus, die Quote aber nicht.
+    expect(
+      screen.getByText(/Die Quoten zählen vom 01\.08\.2026 bis 04\.08\.2026/),
+    ).toBeInTheDocument();
+    expect(
+      within(grid).getByText("Morgenroutine am 5. August 2026: Später fällig"),
+    ).toBeInTheDocument();
+    expect(
+      within(grid).queryByRole("button", { name: /5\. August 2026/ }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      within(grid).getByRole("button", {
+        name: "Morgenroutine am 3. August 2026: Offen. Als erledigt eintragen",
+      }),
+    );
+    expect(service.checkIn).toHaveBeenCalledWith(
+      dailyHabitId,
+      "2026-08-03",
+      "done",
+    );
+  });
+
+  it("moves to an earlier month and stops at the current one", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryHabitService([createDailyHabit()]);
+    renderPage(service);
+
+    await screen.findByRole("heading", { level: 2, name: "Heute fällig" });
+    await user.click(screen.getByRole("tab", { name: /^Monat/ }));
+
+    expect(
+      await screen.findByRole("button", { name: "Nächster Monat" }),
+    ).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Vorheriger Monat" }));
+
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Juli 2026" }),
+    ).toBeInTheDocument();
+    // Vor dem Startdatum war die Routine nicht aktiv; das ist kein Misserfolg.
+    expect(
+      screen.getByText("In diesem Monat war keine Routine aktiv."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Nächster Monat" }),
+    ).toBeEnabled();
+  });
+
   it("explains streaks, rate, period and calculation basis", async () => {
     const user = userEvent.setup();
     const service = createMemoryHabitService(
