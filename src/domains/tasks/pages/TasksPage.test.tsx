@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -182,6 +182,84 @@ describe("TasksPage", () => {
         "Die Inbox ist leer. Erfasse oben eine Aufgabe mit Titel.",
       ),
     ).not.toBeInTheDocument();
+  });
+
+  it("plans the week from the planned date and keeps the denominator on completion", async () => {
+    const user = userEvent.setup();
+    const { service } = createMemoryTaskService([
+      createDatedTask("05", "Vertrag prüfen", { plannedDate: "2026-08-04" }),
+      createDatedTask("06", "Ablage sortieren", {
+        completedAt: "2026-08-03T10:00:00.000Z",
+        plannedDate: "2026-08-03",
+        status: "completed",
+      }),
+      createDatedTask("07", "Ohne Plandatum", {
+        dueAt: "2026-08-05T10:00:00.000Z",
+      }),
+    ]);
+
+    render(
+      <TasksPage
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    await user.click(await screen.findByRole("tab", { name: /^Wochenplan/ }));
+
+    // Nur Aufgaben mit Plandatum; die Frist allein plant keinen Tag ein.
+    expect(
+      await screen.findByText(
+        /Woche vom 03\.08\.2026 bis 09\.08\.2026: 1 von 2 geplanten Aufgaben erledigt\./,
+      ),
+    ).toBeInTheDocument();
+    const tuesday = screen.getByRole("region", {
+      name: "Dienstag, 04.08.2026 (heute)",
+    });
+    expect(within(tuesday).getByText("0 von 1")).toBeInTheDocument();
+    expect(
+      within(tuesday).queryByRole("heading", { name: "Ohne Plandatum" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      within(tuesday).getByRole("button", {
+        name: "„Vertrag prüfen“ abschließen",
+      }),
+    );
+
+    // Der Nenner bleibt: Abschließen verschiebt nur zwischen den Zählern.
+    expect(await within(tuesday).findByText("1 von 1")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Woche vom 03\.08\.2026 bis 09\.08\.2026: 2 von 2 geplanten Aufgaben erledigt\./,
+      ),
+    ).toBeInTheDocument();
+    expect(service.complete).toHaveBeenCalledWith(
+      "00000000-0000-4000-8000-000000000705",
+    );
+  });
+
+  it("counts the week plan tab like the days below it", async () => {
+    const { service } = createMemoryTaskService([
+      createDatedTask("08", "Geplant", { plannedDate: "2026-08-06" }),
+      createDatedTask("09", "Inbox bleibt Inbox", {}),
+    ]);
+
+    render(
+      <TasksPage
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+      />,
+    );
+
+    expect(
+      await screen.findByRole("tab", { name: "Wochenplan: 1 Aufgaben" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: "Inbox: 1 Aufgaben" }),
+    ).toBeInTheDocument();
   });
 
   it("restores an archived task through the undo action", async () => {

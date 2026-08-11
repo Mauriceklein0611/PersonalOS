@@ -85,6 +85,36 @@ export function describeTaskTiming(
   };
 }
 
+export function formatCalendarDay(day: CalendarDay): string {
+  return formatWithOptions(day, { dateStyle: "medium" });
+}
+
+export function formatCalendarWeekdayLong(day: CalendarDay): string {
+  return formatWithOptions(day, { weekday: "long" });
+}
+
+export function formatCalendarWeekdayShort(day: CalendarDay): string {
+  return formatWithOptions(day, { weekday: "short" });
+}
+
+export function formatCalendarDayNumber(day: CalendarDay): string {
+  return formatWithOptions(day, { day: "numeric" });
+}
+
+/**
+ * Ein Kalendertag ist ein Datum ohne Uhrzeit. Er wird deshalb in UTC
+ * formatiert; die Zeitzone des Nutzers gilt für Zeitpunkte, nicht für Tage.
+ */
+function formatWithOptions(
+  day: CalendarDay,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  return new Intl.DateTimeFormat("de-DE", {
+    ...options,
+    timeZone: "UTC",
+  }).format(new Date(`${day}T00:00:00.000Z`));
+}
+
 function resolveState({
   deadlineDay,
   deadlineElapsed,

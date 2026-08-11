@@ -194,6 +194,15 @@ Ein Monatsraster zeigt Einträge × reale Kalendertage des gewählten Monats. Es
 - Die Tageszusammenfassung steht als Fußzeile unter ihren Spalten und nennt Zähler und Nenner. Ohne zählende Einheit steht dort `Keine Angabe`.
 - Eine kompakte Legende steht **hinter** dem Raster: Sie erklärt, was dort schon zu sehen ist.
 
+### Wochenplan
+
+Eine Wochenplanung zeigt sieben Tagesbereiche aus **einer** Datenquelle — dem Plandatum des Datensatzes. Sie ersetzt keine Liste und speichert keine eigene Woche.
+
+- Der Nenner eines Tages sind alle Datensätze mit diesem Plandatum, offene wie abgeschlossene. Ein Abschluss verschiebt zwischen den Zählern und lässt den Nenner unberührt; ein schrumpfender Nenner ließe den Fortschritt springen.
+- Ein Tag ohne Plandatum zeigt `Keine Angabe`. Ein Datensatz ohne Plandatum bleibt in der Inbox und wird keinem Tag zugeordnet.
+- Auf Mobil steht ein Wochentagsstreifen über **genau einem** Tagesbereich; die übrigen Tage sind nicht im Fluss. Sieben Spalten nebeneinander sind erst dort sinnvoll, wo eine Spalte zwei 44-px-Ziele neben einem Titel trägt — darunter bricht die Zeile um, statt die Ziele zu verkleinern.
+- Umgeplant wird dort, wo das Datum gespeichert wird: in der Bearbeitung. Drag & Drop gibt es nicht; es hätte keine Tastaturentsprechung und keinen Zustand, den ein Screenreader ansagen könnte.
+
 ### Tabs
 
 Die Ansichten einer Domainseite stehen in `ViewTabs`. Die Bereichsreiter der Kopfzeile bleiben davon unberührt; sie sind Navigation (`AreaLayout`), keine Reiter im ARIA-Sinn.
