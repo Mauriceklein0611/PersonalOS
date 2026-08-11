@@ -107,14 +107,39 @@ export function createTransactionRepository(
     }
   };
 
+  /*
+   * Ein Monat über den Index auf `bookedOn`. `YYYY-MM-DD` sortiert
+   * lexikografisch wie chronologisch, deshalb umschließt der erste bis
+   * einunddreißigste Tag jeden Tag des Monats. Vorher las jede Monatsansicht
+   * die vollständige Buchungshistorie und warf den Rest weg.
+   */
+  const listForMonth = async (month: string): Promise<Transaction[]> => {
+    try {
+      const rows = await database
+        .table<Transaction>("transactions")
+        .where("bookedOn")
+        .between(`${month}-01`, `${month}-31`, true, true)
+        .reverse()
+        .sortBy("bookedOn");
+      return rows.map((row) => parse(transactionSchema, row));
+    } catch (error) {
+      throw toPersistenceError(error);
+    }
+  };
+
   return Object.assign(records, {
     async countForCategory(categoryId: string) {
       const validCategoryId = parse(entityIdSchema, categoryId);
-      const rows = await listAll();
-      return rows.filter(
-        (row) =>
-          row.categoryId === validCategoryId && row.archivedAt === undefined,
-      ).length;
+      try {
+        const rows = await database
+          .table<Transaction>("transactions")
+          .where("categoryId")
+          .equals(validCategoryId)
+          .toArray();
+        return rows.filter((row) => row.archivedAt === undefined).length;
+      } catch (error) {
+        throw toPersistenceError(error);
+      }
     },
     async listFiltered(filter: TransactionFilter = {}) {
       const month = filter.month
@@ -123,7 +148,8 @@ export function createTransactionRepository(
       const categoryId = filter.categoryId
         ? parse(entityIdSchema, filter.categoryId)
         : undefined;
-      const rows = await listAll();
+      const rows =
+        month === undefined ? await listAll() : await listForMonth(month);
 
       return rows.filter((row) => {
         if (row.archivedAt !== undefined) return false;

@@ -24,18 +24,27 @@ import {
 
 export type HabitRepository = Repository<Habit, HabitDetails>;
 
+export type HabitEntryRange = { from?: CalendarDay; to?: CalendarDay };
+
 export type HabitEntryRepository = {
   clearForDate(habitId: string, localDate: CalendarDay): Promise<boolean>;
   getForDate(
     habitId: string,
     localDate: CalendarDay,
   ): Promise<HabitEntry | undefined>;
-  listForHabit(
-    habitId: string,
-    range?: { from?: CalendarDay; to?: CalendarDay },
-  ): Promise<HabitEntry[]>;
+  listForHabit(habitId: string, range?: HabitEntryRange): Promise<HabitEntry[]>;
+  /** Alle Routinen auf einmal; die Zuordnung übernimmt der Aufrufer. */
+  listInRange(range?: HabitEntryRange): Promise<HabitEntry[]>;
   setForDate(details: HabitEntryDetails): Promise<HabitEntry>;
 };
+
+/**
+ * Die Grenzen eines Kalendertages als Zeichenkette. `YYYY-MM-DD` sortiert
+ * lexikografisch wie chronologisch; damit deckt der Bereich jeden gültigen
+ * Wert ab, wenn nur eine Seite angegeben ist.
+ */
+const minimumCalendarDay = "0000-01-01";
+const maximumCalendarDay = "9999-12-31";
 
 export function createHabitRepository(
   database: PersonalOsDatabase,
@@ -100,29 +109,65 @@ export function createHabitEntryRepository(
       });
     },
     getForDate,
+    /*
+     * Der zusammengesetzte Index `[habitId+localDate]` grenzt den Zeitraum
+     * bereits in der Datenbank ein. Vorher las die Abfrage die gesamte
+     * Historie einer Routine und warf sie anschließend in JavaScript weg: Für
+     * sieben Tage nach drei Jahren Nutzung waren das rund 1.000 gelesene
+     * Datensätze statt sieben.
+     */
     async listForHabit(habitId, range = {}) {
       try {
         const validHabitId = parse(entityIdSchema, habitId);
-        const from = range.from
-          ? parse(calendarDaySchema, range.from)
-          : undefined;
-        const to = range.to ? parse(calendarDaySchema, range.to) : undefined;
-        if (from && to && from > to) {
-          throw new PersistenceError("validation");
-        }
-        const entries = await database
-          .table<HabitEntry>("habitEntries")
-          .where("habitId")
-          .equals(validHabitId)
-          .sortBy("localDate");
+        const { from, to } = validRange(range);
+        const table = database.table<HabitEntry>("habitEntries");
+        const entries =
+          from === undefined && to === undefined
+            ? await table
+                .where("habitId")
+                .equals(validHabitId)
+                .sortBy("localDate")
+            : await table
+                .where("[habitId+localDate]")
+                .between(
+                  [validHabitId, from ?? minimumCalendarDay],
+                  [validHabitId, to ?? maximumCalendarDay],
+                  true,
+                  true,
+                )
+                .sortBy("localDate");
         return entries
           .map((entry) => parse(habitEntrySchema, entry))
-          .filter(
-            (entry) =>
-              entry.archivedAt === undefined &&
-              (from === undefined || entry.localDate >= from) &&
-              (to === undefined || entry.localDate <= to),
-          );
+          .filter((entry) => entry.archivedAt === undefined);
+      } catch (error) {
+        throw toPersistenceError(error);
+      }
+    },
+    /*
+     * Ein Zeitraum über **alle** Routinen. Die Tagesübersicht und die
+     * Routinenseite fragten vorher je Routine einzeln nach; bei 40 Routinen
+     * waren das 40 Abfragen für eine Ansicht. Der Index auf `localDate`
+     * beantwortet dieselbe Frage mit einer.
+     */
+    async listInRange(range = {}) {
+      try {
+        const { from, to } = validRange(range);
+        const table = database.table<HabitEntry>("habitEntries");
+        const entries =
+          from === undefined && to === undefined
+            ? await table.toArray()
+            : await table
+                .where("localDate")
+                .between(
+                  from ?? minimumCalendarDay,
+                  to ?? maximumCalendarDay,
+                  true,
+                  true,
+                )
+                .toArray();
+        return entries
+          .map((entry) => parse(habitEntrySchema, entry))
+          .filter((entry) => entry.archivedAt === undefined);
       } catch (error) {
         throw toPersistenceError(error);
       }
@@ -143,6 +188,19 @@ export function createHabitEntryRepository(
       });
     },
   };
+}
+
+/** Prüft beide Grenzen und weist einen umgekehrten Zeitraum ab. */
+function validRange(range: HabitEntryRange): {
+  from?: CalendarDay;
+  to?: CalendarDay;
+} {
+  const from = range.from ? parse(calendarDaySchema, range.from) : undefined;
+  const to = range.to ? parse(calendarDaySchema, range.to) : undefined;
+  if (from && to && from > to) {
+    throw new PersistenceError("validation");
+  }
+  return { from, to };
 }
 
 function parse<TValue>(schema: z.ZodType<TValue>, value: unknown): TValue {

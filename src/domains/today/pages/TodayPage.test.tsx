@@ -636,6 +636,21 @@ function createServices(
     listEntries: vi.fn(async (habitId: string) =>
       habitEntries.filter((entry) => entry.habitId === habitId),
     ),
+    listEntriesByHabit: vi.fn(
+      async (range?: { from?: string; to?: string }) => {
+        const grouped = new Map<string, HabitEntry[]>();
+        for (const entry of habitEntries) {
+          if (range?.from !== undefined && entry.localDate < range.from)
+            continue;
+          if (range?.to !== undefined && entry.localDate > range.to) continue;
+          grouped.set(entry.habitId, [
+            ...(grouped.get(entry.habitId) ?? []),
+            entry,
+          ]);
+        }
+        return grouped;
+      },
+    ),
     reopenCheckIn: vi.fn(async (habitId: string, localDate: string) => {
       const remaining = habitEntries.filter(
         (entry) => entry.habitId !== habitId || entry.localDate !== localDate,

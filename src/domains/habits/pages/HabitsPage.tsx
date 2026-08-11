@@ -877,14 +877,12 @@ async function readHabitSnapshot(service: HabitService): Promise<{
   entries: Map<string, HabitEntry[]>;
   habits: Habit[];
 }> {
-  const habits = await service.list({ includeArchived: true });
-  const entries = await Promise.all(
-    habits.map((habit) => service.listEntries(habit.id)),
-  );
-  return {
-    entries: new Map(habits.map((habit, index) => [habit.id, entries[index]])),
-    habits,
-  };
+  // Eine Abfrage für alle Check-ins statt einer je Routine.
+  const [habits, entries] = await Promise.all([
+    service.list({ includeArchived: true }),
+    service.listEntriesByHabit(),
+  ]);
+  return { entries, habits };
 }
 
 export function Component() {

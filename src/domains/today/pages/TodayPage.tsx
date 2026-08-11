@@ -677,24 +677,20 @@ async function readTodaySnapshot(
   },
   today: CalendarDay,
 ): Promise<TodayInput> {
-  const [tasks, habits, journalEntries] = await Promise.all([
+  const [weekStart] = getIsoWeekBounds(today);
+  /*
+   * Eine Abfrage für alle Check-ins der Woche. Je Routine einzeln zu fragen
+   * kostete eine Abfrage pro Routine, und das ausgerechnet auf der Seite, die
+   * beim Start als Erste lädt.
+   */
+  const [tasks, habits, journalEntries, entriesByHabit] = await Promise.all([
     services.taskService.list(),
     services.habitService.list(),
     services.journalService.list(),
+    services.habitService.listEntriesByHabit({ from: weekStart, to: today }),
   ]);
-  const [weekStart] = getIsoWeekBounds(today);
-  const entries = await Promise.all(
-    habits.map((habit) =>
-      services.habitService.listEntries(habit.id, {
-        from: weekStart,
-        to: today,
-      }),
-    ),
-  );
   return {
-    entriesByHabit: new Map(
-      habits.map((habit, index) => [habit.id, entries[index]]),
-    ),
+    entriesByHabit,
     habits,
     journalEntries,
     tasks,
