@@ -12,7 +12,6 @@ Stand: 07.08.2026. Diese Liste beschreibt bewusst akzeptierte Grenzen des aktuel
 
 ## Oberfläche
 
-- Die Ansichtswechsel in Aufgaben und Routinen sind als `tablist` ausgezeichnet, unterstützen aber noch keine Pfeiltastennavigation zwischen den Tabs. Jeder Tab ist einzeln über die Tabulatortaste erreichbar.
 - Die Wochenansicht der Routinen scrollt bei schmalen Ansichten horizontal in ihrem eigenen Bereich.
 - Zukünftige Wochen lassen sich in der Wochenansicht nicht öffnen; die laufende Woche ist die letzte auswertbare.
 - Die Ausgaben-Schnellerfassung auf dem Dashboard bucht immer auf den heutigen Tag und kennt keine Notiz. Beides steht im Finanzbereich; die Schnellerfassung bleibt bewusst auf Betrag und Kategorie beschränkt.

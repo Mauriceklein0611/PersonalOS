@@ -17,6 +17,7 @@ Dieses Dokument ist die Prüfmatrix und der Befundbericht. Es ist keine WCAG-Kon
 | 320 px ohne waagerechten Überlauf | bestehende Prüfungen | `e2e/app.spec.ts`, `e2e/today.spec.ts`, `e2e/weekly-review.spec.ts` |
 | 44 × 44 px Ziele in Kopfzeile und Band | bestehende Prüfung | `e2e/app.spec.ts` |
 | Textalternative für Diagramme | bestehende Prüfung: jedes Diagramm trägt dieselben Werte als Tabelle | `src/components/ui/charts/Chart.test.tsx` |
+| Tastaturbedienung der Ansichtsreiter | bestehende Prüfung: Pfeiltasten, `Pos1`/`Ende` und genau ein Tabstopp je Reiterreihe | `src/components/ui/ViewTabs.test.tsx` |
 
 Die automatisierte Prüfung blockiert bei jedem Verstoß der Stufen `serious` und `critical`. Zwei Regeln unterhalb dieser Schwelle sind zusätzlich scharf geschaltet, weil das Audit sie behoben hat: `heading-order` und `landmark-unique`.
 
@@ -71,6 +72,5 @@ Diese Schritte sind reproduzierbar und decken das ab, was eine Regelprüfung nic
 ## Bewusst offen
 
 - Eine Prüfung mit echten Screenreadern (NVDA, VoiceOver, TalkBack) und mit Nutzern, die auf Hilfsmittel angewiesen sind, hat nicht stattgefunden. Automatisierte Regeln und Tastaturtests ersetzen das nicht.
-- Die Ansichtsreiter unterstützen keine Pfeiltastennavigation zwischen den Reitern; jeder Reiter ist einzeln über die Tabulatortaste erreichbar. Siehe [Bekannte Einschränkungen](../KNOWN_LIMITATIONS.md).
 - Getestet wird ausschließlich Chromium. Andere Browser-Engines und mobile Hilfsmittel sind nicht abgedeckt.
 - Die dichten Raster erzeugen bei schmalen Ansichten waagerechten Überlauf **innerhalb** ihres eigenen Bereichs. Das ist beabsichtigt und fokussierbar, bleibt aber eine Bedienhürde gegenüber einer Darstellung ohne Scrollen.
