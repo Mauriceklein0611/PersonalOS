@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -124,8 +124,10 @@ describe("App shell", () => {
     await user.keyboard("{Enter}");
 
     await screen.findByRole("heading", { level: 1, name: "Aufgaben" });
-    expect(document.title).toBe("Aufgaben – PersonalOS");
-    expect(screen.getByRole("main")).toHaveFocus();
+    await waitFor(() => {
+      expect(document.title).toBe("Aufgaben – PersonalOS");
+      expect(screen.getByRole("main")).toHaveFocus();
+    });
   });
 
   it("persists and applies a selected theme immediately", async () => {
