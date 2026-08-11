@@ -32,9 +32,8 @@
   display: grid;
   gap: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-tile);
-  background: var(--glass-strong);
+  border-bottom: 1px solid var(--dense-edge);
+  background: var(--dense-row);
   justify-items: start;
 }
 
@@ -102,7 +101,11 @@
 
 .insights-weight-list {
   display: grid;
-  gap: var(--space-3);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-panel);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -112,9 +115,12 @@
   display: grid;
   gap: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-tile);
-  background: var(--glass-strong);
+  border-bottom: 1px solid var(--dense-edge);
+  background: var(--dense-row);
+}
+
+.insights-weight-row:last-child {
+  border-bottom: 0;
 }
 
 .insights-preview {
@@ -147,7 +153,11 @@
 
 .insights-observation-list {
   display: grid;
-  gap: var(--space-3);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-panel);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -158,9 +168,12 @@
   display: grid;
   gap: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-tile);
-  background: var(--glass-strong);
+  border-bottom: 1px solid var(--dense-edge);
+  background: var(--dense-row);
+}
+
+.insights-observation-list li:last-child .insights-observation {
+  border-bottom: 0;
 }
 
 .insights-observation-strength {

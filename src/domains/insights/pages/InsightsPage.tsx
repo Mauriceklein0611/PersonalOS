@@ -11,6 +11,7 @@ import {
   EmptyState,
   Input,
   MetricTile,
+  PageToolbar,
   ProgressBar,
   ProgressRing,
   Toast,
@@ -193,19 +194,17 @@ export function InsightsPage({
   );
 
   return (
-    <section aria-labelledby="page-title" className="route-page insights-page">
-      <header className="page-header">
-        <div className="page-header-copy">
-          <p className="page-eyebrow">Nachvollziehbar</p>
-          <h1 id="page-title">Auswertung</h1>
-          <p className="page-description">
-            Deine Woche aus deinen eigenen Einträgen – keine Bewertung deines
-            Lebens und kein Vergleich mit anderen. Der Life Score ist eine
-            persönliche Orientierung; du entscheidest, welche Bereiche
-            einfließen und wie stark.
-          </p>
-        </div>
-      </header>
+    <section
+      aria-labelledby="page-title"
+      className="route-page insights-page"
+      data-surface="overview"
+    >
+      <PageToolbar
+        description="Deine Woche aus deinen eigenen Einträgen – keine Bewertung deines Lebens und kein Vergleich mit anderen. Zeitraum, Vollständigkeit und Berechnungsweg bleiben sichtbar."
+        eyebrow="Nachvollziehbar"
+        surface="overview"
+        title="Auswertung"
+      />
 
       {error ? (
         <p className="page-alert insights-error" role="alert">

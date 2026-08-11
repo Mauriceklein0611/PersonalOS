@@ -155,7 +155,7 @@ function ChartTable({ categories, formatValue, series, title }: TableProps) {
         </thead>
         <tbody>
           {categories.map((category, index) => (
-            <tr key={category}>
+            <tr key={`${category}-${index}`}>
               <th scope="row">{category}</th>
               {series.map((entry) => {
                 const value = entry.values[index];

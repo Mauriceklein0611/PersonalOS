@@ -4,7 +4,12 @@ import {
   useTimeZone,
   useWeekStartsOn,
 } from "../../../app/settings/settings-context";
-import { Button, MetricTile, ViewPurpose } from "../../../components/ui";
+import {
+  Button,
+  MetricTile,
+  PageToolbar,
+  ViewPurpose,
+} from "../../../components/ui";
 import {
   calendarDayForInstant,
   type WeekStartsOn,
@@ -104,20 +109,15 @@ export function WeeklyReviewPage({
     <section
       aria-labelledby="page-title"
       className="route-page weekly-review-page"
+      data-surface="overview"
     >
-      <header className="page-header">
-        <div className="page-header-copy">
-          <p className="page-eyebrow">Reflexion · ohne Bewertung</p>
-          <h1 id="page-title">Wochenrückblick</h1>
-          <p className="page-description">
-            Dieser Rückblick schaut auf eine abgeschlossene oder laufende
-            Kalenderwoche. Er plant nichts neu, sondern stellt Aufgaben,
-            Routinen, Journal, Ziele und Ausgaben derselben Vorwoche gegenüber.
-            Aus dem Journal geht nur die Anzahl der Tage mit einem Eintrag ein,
-            kein Freitext.
-          </p>
-        </div>
-      </header>
+      <PageToolbar
+        description="Aufgaben, Routinen, Journal, Ziele und Ausgaben im neutralen Vergleich mit derselben Vorwoche. Er plant nichts neu und bewertet dich nicht. Aus dem Journal geht nur die Anzahl der Tage mit einem Eintrag ein, kein Freitext."
+        eyebrow="Reflexion · ohne Bewertung"
+        period={currentPeriodText}
+        surface="overview"
+        title="Wochenrückblick"
+      />
 
       {error ? (
         <p className="page-alert weekly-review-error" role="alert">
