@@ -4,7 +4,7 @@ import {
   sumMoney,
   type Money,
 } from "../../lib/money/money";
-import { findBudget, monthOfDay, shiftMonth } from "./budget";
+import { monthOfDay, shiftMonth } from "./budget";
 import { MixedCurrencyError } from "./mixed-currency";
 import type {
   FinanceCategory,
@@ -335,11 +335,22 @@ function summariseBudgets(
     (total, budget) => total + budget.limit.amountMinor,
     0,
   );
+
+  /*
+   * Die Kategorien der Budgets stehen einmal in einer Menge. Vorher suchte
+   * jede Ausgabe des Monats erneut linear durch alle Budgets — der Aufwand
+   * wuchs damit als Buchungen × Budgets, obwohl höchstens ein Budget je
+   * Kategorie gilt und `relevant` bereits auf Monat und Aktivstatus gefiltert
+   * ist. Siehe Issue #113.
+   */
+  const budgetedCategories = new Set(
+    relevant.map((budget) => budget.categoryId),
+  );
   const spentMinor = transactions
     .filter(
       (transaction) =>
         transaction.kind === "expense" &&
-        findBudget(relevant, month, transaction.categoryId) !== undefined,
+        budgetedCategories.has(transaction.categoryId),
     )
     .reduce((total, transaction) => total + transaction.money.amountMinor, 0);
 
