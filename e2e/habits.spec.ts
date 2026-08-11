@@ -120,7 +120,7 @@ test("puts the check-in grid before the evaluation in the week view", async ({
 
   // Das Raster beginnt im ersten Bildschirm, ohne an einem Diagramm vorbei.
   const gridBox = await grid.boundingBox();
-  expect(gridBox!.y).toBeLessThan(844);
+  expect(gridBox!.y).toBeLessThan(page.viewportSize()!.height);
 
   const analysis = page.getByText("Auswertung dieser Woche");
   const analysisBox = await analysis.boundingBox();

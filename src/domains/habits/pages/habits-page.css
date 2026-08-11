@@ -427,6 +427,28 @@
   width: min(38rem, calc(100vw - 2rem));
 }
 
+/*
+ * Im mobilen Wochenstatus ersetzt die konkrete Zweckzeile die allgemeine
+ * Seitenbeschreibung. Doppelte Einordnung und zusätzliche Außenabstände
+ * würden das erste Check-in-Raster unter den sichtbaren Bereich schieben.
+ */
+@media (max-width: 34rem) {
+  .habits-page[data-active-view="week"] .page-description {
+    display: none;
+  }
+
+  .habits-page[data-active-view="week"] .habit-page-actions,
+  .habits-page[data-active-view="week"] .habit-view-tabs,
+  .habits-page[data-active-view="week"] .habit-view-panel {
+    margin-top: 0;
+  }
+
+  .habits-page[data-active-view="week"] .ui-view-purpose {
+    margin-block-end: var(--space-2);
+    padding-block: var(--space-2);
+  }
+}
+
 @media (min-width: 40rem) {
   .habit-editor-dates,
   .habit-weekday-options {

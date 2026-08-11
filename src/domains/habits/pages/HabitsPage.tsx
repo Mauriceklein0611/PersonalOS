@@ -394,7 +394,11 @@ export function HabitsPage({
   }
 
   return (
-    <section aria-labelledby="page-title" className="route-page habits-page">
+    <section
+      aria-labelledby="page-title"
+      className="route-page habits-page"
+      data-active-view={activeView}
+    >
       <header className="page-header">
         <div className="page-header-copy">
           <p className="page-eyebrow">Routinen</p>
