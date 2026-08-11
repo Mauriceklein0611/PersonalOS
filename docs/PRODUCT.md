@@ -114,7 +114,8 @@ Der MVP ist nicht die komplette ursprüngliche Modulliste. Er ist ein stabiler, 
 - versionierter Komplett-Export, validierter Import und Wiederherstellung;
 - Dashboard/Heute mit offenen Aufgaben, Habits und Quick Actions;
 - Aufgaben mit Inbox, Heute, Woche und Erledigt;
-- Habits mit Tagesstatus, Frequenz, Streak und einfacher Wochenansicht;
+- Routinen als durchgehender Monatstracker mit Tagesstatus, Rhythmus, Serie,
+  Fortschritt und Archivfilter auf einer Arbeitsfläche;
 - tägliches Journal mit Stimmung, Stress, Energie, Highlight und Freitext;
 - Ziele mit Meilensteinen sowie Verknüpfungen zu Aufgaben und Habits;
 - Einnahmen/Ausgaben, Kategorien, Monatsbudget und Sparziele;

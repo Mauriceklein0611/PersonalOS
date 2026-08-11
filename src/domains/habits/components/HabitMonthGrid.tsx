@@ -1,4 +1,10 @@
-import { TrackerCell, type TrackerCellState } from "../../../components/ui";
+import { useEffect, useRef, type MouseEvent } from "react";
+
+import {
+  Button,
+  TrackerCell,
+  type TrackerCellState,
+} from "../../../components/ui";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import {
   habitMonthActionLabels,
@@ -17,14 +23,21 @@ import {
 
 type HabitMonthGridProps = {
   busyHabitId?: string;
+  goalTitles?: ReadonlyMap<string, string>;
+  onArchive: (habit: Habit) => void;
+  onEdit: (habit: Habit) => void;
+  onRestore: (habit: Habit) => void;
+  onSkipToday: (habit: Habit) => void;
   onToggle: (habit: Habit, day: CalendarDay, isDone: boolean) => void;
+  streaks?: ReadonlyMap<string, string>;
+  today: CalendarDay;
   view: HabitMonthView;
 };
 
-/**
- * Zukünftige und nicht fällige Tage teilen sich die leere Zelle: In beiden
- * Fällen liegt nichts vor. Der Text der Zelle unterscheidet sie trotzdem.
- */
+function closeRowMenu(event: MouseEvent<HTMLButtonElement>) {
+  event.currentTarget.closest("details")?.removeAttribute("open");
+}
+
 const trackerStates: Record<HabitMonthCellState, TrackerCellState> = {
   done: "done",
   future: "none",
@@ -36,46 +49,76 @@ const trackerStates: Record<HabitMonthCellState, TrackerCellState> = {
 
 export function HabitMonthGrid({
   busyHabitId,
+  goalTitles = new Map(),
+  onArchive,
+  onEdit,
+  onRestore,
+  onSkipToday,
   onToggle,
+  streaks = new Map(),
+  today,
   view,
 }: HabitMonthGridProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  /*
+   * Der Monatsraum bleibt eine Oberfläche. Beim Einstieg rückt deshalb die
+   * heutige Spalte in den sichtbaren Ausschnitt, statt eine zweite
+   * „Heute“-Ansicht zu öffnen. Frühere Monate beginnen am Monatsanfang.
+   */
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const todayHeader = scroller.querySelector<HTMLElement>(
+      'thead [data-today="true"]',
+    );
+    if (!todayHeader) {
+      scroller.scrollLeft = 0;
+      return;
+    }
+    scroller.scrollLeft = Math.max(
+      0,
+      todayHeader.offsetLeft -
+        scroller.clientWidth / 2 +
+        todayHeader.offsetWidth / 2,
+    );
+  }, [view.month]);
+
   return (
     <>
       <div
-        aria-label="Monatsstatus, horizontal scrollbar"
+        aria-label="Routinen-Tracker, horizontal scrollbar"
         className="ui-tracker-scroller habit-month-scroll"
+        ref={scrollerRef}
         role="region"
         tabIndex={0}
       >
         <table className="ui-tracker-grid habit-month-table">
-          {/*
-            Die Beschriftung ist so breit wie die Tabelle und damit breiter als
-            der Viewport. Sichtbar stünde sie angeschnitten hinter dem Rand;
-            ihre Aussage trägt die Legende unter dem Raster.
-          */}
           <caption className="visually-hidden">
-            Erledigt, offen, übersprungen, nicht fällig, später fällig und
-            außerhalb des Zeitraums stehen jeweils als Zeichen und als Text in
-            der Zelle.
+            Routinen stehen in Zeilen, reale Kalendertage in Spalten. Erledigt,
+            offen, übersprungen, nicht fällig, später fällig und außerhalb des
+            Zeitraums werden als Zeichen und Text genannt.
           </caption>
           <thead>
             <tr>
               <td className="habit-month-corner" />
-              {view.weeks.map((week) => (
+              {view.weeks.map((week, index) => (
                 <th
+                  className={`habit-month-week-tone-${(index % 6) + 1}`}
                   colSpan={week.days.length}
                   data-week-start="true"
                   key={week.start}
                   scope="colgroup"
                 >
                   <span aria-hidden="true">
-                    ab {formatCalendarDayShort(week.start)}
+                    Woche ab {formatCalendarDayShort(week.start)}
                   </span>
                   <span className="visually-hidden">
                     Woche ab {formatCalendarDayLong(week.start)}
                   </span>
                 </th>
               ))}
+              <td className="habit-month-summary-corner" />
             </tr>
             <tr>
               <th scope="col">Routine</th>
@@ -98,63 +141,139 @@ export function HabitMonthGrid({
                   </span>
                 </th>
               ))}
+              <th className="habit-month-summary-heading" scope="col">
+                Fortschritt
+              </th>
             </tr>
           </thead>
           <tbody>
-            {view.rows.map((row) => (
-              <tr key={row.habit.id}>
-                <th scope="row">
-                  <span className="habit-month-row-name">{row.habit.name}</span>
-                  {/*
-                    Ohne zählende Einheit gibt es keinen Nenner. „0 von 0“
-                    stünde dort als Zahl, die nichts misst.
-                  */}
-                  <span className="habit-month-row-rate">
-                    {row.fulfillment && row.fulfillment.counted > 0
-                      ? `${row.fulfillment.done} von ${row.fulfillment.counted} · ${formatHabitRate(row.fulfillment.rate)}`
-                      : formatHabitRate(null)}
-                  </span>
-                </th>
-                {row.cells.map((cell, index) => (
-                  <td
-                    data-week-start={view.days[index].isWeekStart}
-                    key={cell.day}
-                  >
-                    <TrackerCell
-                      actionLabel={
-                        cell.interactive
-                          ? habitMonthActionLabels[cell.state]
-                          : undefined
-                      }
-                      dayLabel={`${row.habit.name} am ${formatCalendarDayLong(cell.day)}`}
-                      disabled={
-                        cell.interactive
-                          ? busyHabitId === row.habit.id
-                          : undefined
-                      }
-                      onClick={
-                        cell.interactive
-                          ? () =>
-                              onToggle(
-                                row.habit,
-                                cell.day,
-                                cell.state === "done",
-                              )
-                          : undefined
-                      }
-                      state={trackerStates[cell.state]}
-                      stateLabel={habitMonthStateLabels[cell.state]}
-                    />
+            {view.rows.map((row) => {
+              const isArchived = row.habit.archivedAt !== undefined;
+              const todayCell = row.cells.find((cell) => cell.day === today);
+              const goalTitle = row.habit.goalId
+                ? goalTitles.get(row.habit.goalId)
+                : undefined;
+              return (
+                <tr key={row.habit.id}>
+                  <th scope="row">
+                    <div className="habit-month-row-heading">
+                      <span className="habit-month-row-name">
+                        {row.habit.name}
+                      </span>
+                      <details className="habit-month-row-menu">
+                        <summary
+                          aria-label={`„${row.habit.name}“ verwalten`}
+                          role="button"
+                        >
+                          •••
+                        </summary>
+                        <div className="habit-month-row-menu-actions">
+                          {isArchived ? (
+                            <Button
+                              disabled={busyHabitId === row.habit.id}
+                              onClick={(event) => {
+                                closeRowMenu(event);
+                                onRestore(row.habit);
+                              }}
+                              variant="ghost"
+                            >
+                              Wiederherstellen
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                onClick={(event) => {
+                                  closeRowMenu(event);
+                                  onEdit(row.habit);
+                                }}
+                                variant="ghost"
+                              >
+                                Bearbeiten
+                              </Button>
+                              {todayCell?.interactive &&
+                              (todayCell.state === "open" ||
+                                todayCell.state === "skipped") ? (
+                                <Button
+                                  disabled={busyHabitId === row.habit.id}
+                                  onClick={(event) => {
+                                    closeRowMenu(event);
+                                    onSkipToday(row.habit);
+                                  }}
+                                  variant="ghost"
+                                >
+                                  {todayCell.state === "skipped"
+                                    ? "Heute doch erledigen"
+                                    : "Heute überspringen"}
+                                </Button>
+                              ) : null}
+                              <Button
+                                disabled={busyHabitId === row.habit.id}
+                                onClick={(event) => {
+                                  closeRowMenu(event);
+                                  onArchive(row.habit);
+                                }}
+                                variant="ghost"
+                              >
+                                Archivieren
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </details>
+                    </div>
+                  </th>
+                  {row.cells.map((cell, index) => (
+                    <td
+                      data-week-start={view.days[index].isWeekStart}
+                      key={cell.day}
+                    >
+                      <TrackerCell
+                        actionLabel={
+                          cell.interactive
+                            ? habitMonthActionLabels[cell.state]
+                            : undefined
+                        }
+                        dayLabel={`${row.habit.name} am ${formatCalendarDayLong(cell.day)}`}
+                        disabled={
+                          cell.interactive
+                            ? busyHabitId === row.habit.id
+                            : undefined
+                        }
+                        onClick={
+                          cell.interactive
+                            ? () =>
+                                onToggle(
+                                  row.habit,
+                                  cell.day,
+                                  cell.state === "done",
+                                )
+                            : undefined
+                        }
+                        state={trackerStates[cell.state]}
+                        stateLabel={habitMonthStateLabels[cell.state]}
+                      />
+                    </td>
+                  ))}
+                  <td className="habit-month-row-summary">
+                    <strong>
+                      {row.fulfillment && row.fulfillment.counted > 0
+                        ? formatHabitRate(row.fulfillment.rate)
+                        : formatHabitRate(null)}
+                    </strong>
+                    {row.fulfillment && row.fulfillment.counted > 0 ? (
+                      <span>
+                        {row.fulfillment.done} von {row.fulfillment.counted}
+                      </span>
+                    ) : null}
+                    {!isArchived && streaks.get(row.habit.id) ? (
+                      <span>Serie: {streaks.get(row.habit.id)}</span>
+                    ) : null}
+                    {goalTitle ? <span>Ziel: {goalTitle}</span> : null}
                   </td>
-                ))}
-              </tr>
-            ))}
+                </tr>
+              );
+            })}
           </tbody>
-          {/*
-          Die Tageszusammenfassung steht als Fußzeile unter ihren Spalten.
-          Zähler und Nenner stehen sichtbar, der ganze Satz für assistive
-          Technik daneben.
-        */}
           <tfoot>
             <tr>
               <th scope="row">Erledigt je Tag</th>
@@ -171,16 +290,19 @@ export function HabitMonthGrid({
                   </span>
                 </td>
               ))}
+              <td className="habit-month-summary-total">
+                {view.summary.counted === 0
+                  ? formatHabitRate(null)
+                  : `${view.summary.done}/${view.summary.counted}`}
+              </td>
             </tr>
           </tfoot>
         </table>
       </div>
 
-      {/* Die Legende steht hinter dem Raster: Sie erklärt, was dort steht. */}
       <ul className="habit-month-legend">
         {legendStates.map((state) => (
           <li key={state}>
-            {/* Das Zeichen steht neben seinem Text; einmal genannt genügt. */}
             <span aria-hidden="true">
               <TrackerCell
                 dayLabel="Beispieltag"

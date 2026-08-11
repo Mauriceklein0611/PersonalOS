@@ -23,7 +23,17 @@ function renderGrid(onToggle = vi.fn()) {
     month: "2026-08",
     today: "2026-08-05",
   });
-  render(<HabitMonthGrid onToggle={onToggle} view={view} />);
+  render(
+    <HabitMonthGrid
+      onArchive={vi.fn()}
+      onEdit={vi.fn()}
+      onRestore={vi.fn()}
+      onSkipToday={vi.fn()}
+      onToggle={onToggle}
+      today="2026-08-05"
+      view={view}
+    />,
+  );
   return { onToggle, view };
 }
 
@@ -66,7 +76,8 @@ describe("HabitMonthGrid", () => {
     renderGrid();
 
     // 2. bis 5. August: vier geplante Tage, einer übersprungen, einer erledigt.
-    expect(screen.getByText("1 von 3 · 33 %")).toBeInTheDocument();
+    expect(screen.getByText("33 %")).toBeInTheDocument();
+    expect(screen.getByText("1 von 3")).toBeInTheDocument();
     expect(
       screen.getByText("2. August 2026: 1 von 1 zählenden Einheiten, 100 %"),
     ).toBeInTheDocument();
@@ -89,11 +100,21 @@ describe("HabitMonthGrid", () => {
       month: "2026-08",
       today: "2026-08-04",
     });
-    render(<HabitMonthGrid onToggle={vi.fn()} view={view} />);
+    render(
+      <HabitMonthGrid
+        onArchive={vi.fn()}
+        onEdit={vi.fn()}
+        onRestore={vi.fn()}
+        onSkipToday={vi.fn()}
+        onToggle={vi.fn()}
+        today="2026-08-04"
+        view={view}
+      />,
+    );
 
     // Ein übersprungener Tag nimmt sich aus dem Nenner: „0 von 0“ wäre eine
     // Zahl, die nichts misst.
-    expect(screen.getByText("Keine Angabe")).toBeInTheDocument();
+    expect(screen.getAllByText("Keine Angabe").length).toBeGreaterThan(0);
     expect(screen.queryByText(/0 von 0/)).not.toBeInTheDocument();
   });
 

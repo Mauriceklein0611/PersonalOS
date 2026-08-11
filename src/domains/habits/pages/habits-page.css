@@ -2,334 +2,221 @@
   position: relative;
 }
 
-.habit-page-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  /* Dichter als eine Heroeinleitung: Darunter beginnt die Arbeit. */
-  margin-top: var(--space-6);
-}
-
 .habit-page-error,
 .habit-form-error {
   color: var(--danger);
   font-weight: var(--font-weight-medium);
 }
 
-/* Der Baustein bringt seine Gestalt mit; hier steht nur die Einordnung. */
-.habit-view-tabs {
-  margin-top: var(--space-4);
-}
-
-.habit-view-panel {
-  min-width: 0;
-  min-height: 13rem;
-  margin-top: var(--space-3);
-}
-
-.habit-view-panel h2 {
-  margin: var(--space-6) 0 var(--space-2);
-  font-size: var(--font-size-lg);
-}
-
-.habit-view-panel h2:first-child {
-  margin-top: var(--space-2);
-}
-
-/*
- * Der Hinweis liegt zwischen den Karten direkt auf dem Nebel. Gedämpfte
- * Schrift erreicht dort die 4,5:1 nicht, deshalb steht er in Textfarbe.
- */
-.habit-view-hint {
-  max-width: 46rem;
-  margin: 0 0 var(--space-3);
-  color: var(--text);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-normal);
-}
-
-.habit-view-status {
-  padding: var(--space-6);
-  color: var(--text-muted);
-}
-
-.habit-card-list {
+.habit-work-controls {
   display: grid;
   min-width: 0;
+  align-items: end;
   gap: var(--space-3);
 }
 
-/* Karten liegen als oberste Ebene über dem Nebel und tragen deshalb Blur. */
-.habit-card,
-.habit-progress-card,
-.habit-view-status {
-  display: grid;
+.habit-work-controls .ui-field {
+  width: min(100%, 18rem);
+}
+
+.habit-month-summary {
+  display: flex;
   min-width: 0;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border: 1px solid var(--edge);
-  border-radius: var(--radius-xl);
-  background: var(--glass);
-  box-shadow: var(--glass-highlight), var(--shadow-sm);
-}
-
-@supports not (backdrop-filter: blur(1px)) {
-  .habit-card,
-  .habit-progress-card,
-  .habit-view-status {
-    background: var(--glass-opaque);
-    backdrop-filter: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .habit-card,
-  .habit-progress-card,
-  .habit-view-status {
-    background: var(--glass-opaque);
-    backdrop-filter: none;
-  }
-}
-
-.habit-card-copy {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.habit-card-copy h2 {
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-size: var(--font-size-lg);
-}
-
-.habit-state {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  gap: var(--space-1);
-  margin: 0;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--radius-round);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-}
-
-.habit-state-done {
-  border-color: var(--accent-1);
-  color: var(--accent-text);
-  background: var(--accent-soft);
-}
-
-.habit-state-open {
-  border-style: dashed;
-  color: var(--text);
-}
-
-.habit-state-skipped,
-.habit-state-not-due {
-  color: var(--text-muted);
-  background: var(--glass-strong);
-}
-
-.habit-schedule,
-.habit-description {
-  margin: 0;
-  color: var(--text-muted);
-  line-height: var(--line-height-normal);
-  overflow-wrap: anywhere;
-}
-
-.habit-primary-actions,
-.habit-manage-actions {
-  display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   gap: var(--space-2);
-}
-
-.habit-primary-actions:empty {
-  display: none;
-}
-
-.habit-primary-actions .ui-button {
-  flex: 1 1 auto;
-}
-
-.habit-plain-list {
-  display: grid;
   margin: 0;
-  padding: 0;
-  gap: var(--space-2);
-  list-style: none;
-}
-
-.habit-plain-list li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--glass-strong);
-}
-
-.habit-plain-list h3 {
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-size: var(--font-size-md);
-}
-
-.habit-plain-list p {
-  margin: 0;
-  color: var(--text-muted);
   font-size: var(--font-size-sm);
-}
-
-.habit-state-list {
-  margin-top: var(--space-6);
-}
-
-.habit-week-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
-}
-
-/*
- * Das Raster liegt als dichte Fläche in der Seite, nicht in einer eigenen
- * Karte: Eine zusätzliche Fläche um ein Raster kostet Rahmen, Radius und
- * Innenabstand, ohne etwas zu gruppieren, was nicht ohnehin zusammengehört.
- */
-.habit-week-panel {
-  margin-bottom: var(--space-4);
-}
-
-/*
- * Die Auswertung klappt auf. Geschlossen steht ihr Inhalt nicht im Baum,
- * und damit lädt die Wochenansicht die Diagrammbibliothek gar nicht erst.
- */
-.habit-week-analysis {
-  margin-bottom: var(--space-4);
-}
-
-.habit-week-analysis-summary {
-  display: inline-flex;
-  min-height: var(--control-height);
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--edge-strong);
-  border-radius: var(--radius-round);
-  color: var(--text);
-  background: var(--glass-strong);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-}
-
-.habit-week-analysis[open] .habit-week-analysis-summary {
-  margin-bottom: var(--space-3);
-  border-color: var(--accent-1);
-  color: var(--accent-text);
-}
-
-/* Der Verlauf nennt jeden Tag zusätzlich als Text, damit die Kurve nur
-   ergänzt und nicht die einzige Aussage trägt. */
-.habit-week-course {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  margin: 0 0 var(--space-3);
-  padding: 0;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  list-style: none;
-}
-
-/* Eine Zeile je Tag, nicht zwei: Die Reihe steht vor dem Raster. */
-.habit-week-course li {
-  display: inline-flex;
-  gap: var(--space-1);
   font-variant-numeric: tabular-nums;
 }
 
-.habit-week-scroll,
+.habit-month-summary strong {
+  color: var(--data-1);
+  font-size: var(--font-size-xl);
+}
+
+.habit-month-summary span {
+  color: var(--text-muted);
+}
+
+.habit-workspace {
+  min-width: 0;
+  min-height: 13rem;
+}
+
+.habit-view-status {
+  margin: 0;
+  padding: var(--space-6);
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  color: var(--text-muted);
+  background: var(--dense-panel);
+}
+
+.habit-month-panel {
+  min-width: 0;
+}
+
 .habit-month-scroll {
   padding-bottom: var(--space-2);
 }
 
-/* Das Diagramm nennt jeden Tag zusätzlich als Text neben der Kurve. */
-.habit-week-chart {
-  display: grid;
-  min-width: 0;
-  gap: var(--space-2);
+.habit-month-table {
+  min-width: 100%;
 }
 
-.habit-week-caption {
-  margin-bottom: var(--space-2);
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  text-align: left;
-}
-
-.habit-week-table thead th span,
 .habit-month-table thead th span {
   display: block;
 }
 
-/*
- * Die Routinenspalte bleibt beim waagerechten Scrollen stehen. Ohne sie
- * weiß nach zwei Spalten niemand mehr, welche Zeile er antippt. Nur links
- * klebend, nicht oben: Der Scroller scrollt ausschließlich waagerecht, ein
- * oben klebender Kopf hinge an der Seitenscrollung und verdeckte dort
- * Zellen und Fokusring.
- */
-.habit-week-table tbody th,
-.habit-week-table thead th:first-child,
+/* Name und Kontext bleiben links stehen. Die Kennzahlspalte wird erst auf
+   großen Flächen rechts sticky, damit Mobil zwischen beiden noch Platz für
+   eine vollständige 44-px-Tageszelle behält. */
 .habit-month-table tbody th,
 .habit-month-table tfoot th,
 .habit-month-table thead th:first-child,
 .habit-month-corner {
   position: sticky;
-  z-index: 1;
+  z-index: 3;
   left: 0;
-  min-width: 7rem;
-  max-width: 10rem;
+  min-width: 9rem;
+  max-width: 12rem;
   overflow-wrap: anywhere;
   background: var(--dense-panel);
   text-align: left;
 }
 
-.habit-month-panel {
-  margin-bottom: var(--space-4);
+.habit-month-corner,
+.habit-month-summary-corner {
+  height: 2rem;
 }
 
-/*
- * Ein ganzer Monat passt auf keiner Breite ohne Scroller. Die Routinenspalte
- * trägt deshalb die Quote gleich mit: Sie bleibt links stehen, während die
- * Tage darunter durchlaufen, und ist damit ohne Scrollen ablesbar.
- */
-.habit-month-row-name,
-.habit-month-row-rate {
-  display: block;
+.habit-month-summary-heading,
+.habit-month-row-summary,
+.habit-month-summary-corner,
+.habit-month-summary-total {
+  min-width: 9rem;
+  background: var(--dense-row);
 }
 
-.habit-month-row-rate {
+.habit-month-row-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.habit-month-row-name {
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.habit-month-row-menu {
+  position: relative;
+}
+
+.habit-month-row-menu summary {
+  display: grid;
+  width: var(--control-height);
+  height: var(--control-height);
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-cell);
   color: var(--text-muted);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  list-style: none;
 }
 
-/* Die Wochengrenze steht zusätzlich zur Farbe als Linie im Raster. */
+.habit-month-row-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.habit-month-row-menu summary:hover,
+.habit-month-row-menu[open] summary {
+  border-color: var(--edge-strong);
+  color: var(--accent-text);
+  background: var(--dense-row-active);
+}
+
+.habit-month-row-menu summary:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: -3px;
+}
+
+.habit-month-row-menu-actions {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: var(--space-1);
+  padding-top: var(--space-1);
+}
+
+.habit-month-row-menu-actions .ui-button {
+  justify-content: flex-start;
+  white-space: normal;
+}
+
+.habit-month-row-summary {
+  padding: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.habit-month-row-summary strong,
+.habit-month-row-summary span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.habit-month-row-summary strong {
+  color: var(--data-1);
+  font-size: var(--font-size-md);
+}
+
+.habit-month-row-summary span {
+  color: var(--text-muted);
+}
+
 .habit-month-table [data-week-start="true"] {
   border-left: 1px solid var(--dense-edge);
 }
 
 .habit-month-table thead th[scope="colgroup"] {
-  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-cell);
+  font-weight: var(--font-weight-bold);
   white-space: nowrap;
+}
+
+.habit-month-week-tone-1 {
+  color: var(--data-1) !important;
+  background: var(--data-1-soft);
+}
+
+.habit-month-week-tone-2 {
+  color: var(--data-2) !important;
+  background: var(--data-2-soft);
+}
+
+.habit-month-week-tone-3 {
+  color: var(--data-3) !important;
+  background: var(--data-3-soft);
+}
+
+.habit-month-week-tone-4 {
+  color: var(--data-4) !important;
+  background: var(--data-4-soft);
+}
+
+.habit-month-week-tone-5 {
+  color: var(--data-5) !important;
+  background: var(--data-5-soft);
+}
+
+.habit-month-week-tone-6 {
+  color: var(--data-6) !important;
+  background: var(--data-6-soft);
 }
 
 .habit-month-table tfoot td {
@@ -343,18 +230,16 @@
   min-width: var(--control-height);
 }
 
-.habit-month-summary {
-  margin: var(--space-3) 0;
-  color: var(--text);
-  font-size: var(--font-size-sm);
-  font-variant-numeric: tabular-nums;
+.habit-month-summary-total {
+  color: var(--data-1) !important;
+  font-weight: var(--font-weight-bold);
 }
 
 .habit-month-legend {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  margin: var(--space-3) 0 0;
+  margin: var(--space-3);
   padding: 0;
   color: var(--text-muted);
   font-size: var(--font-size-sm);
@@ -367,38 +252,96 @@
   gap: var(--space-2);
 }
 
-.habit-progress-card h3 {
-  margin: 0;
-  overflow-wrap: anywhere;
-  font-size: var(--font-size-md);
+.habit-management,
+.habit-period-analysis {
+  min-width: 0;
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-panel);
 }
 
-.habit-progress-schedule,
-.habit-progress-period,
-.habit-progress-basis,
-.habit-progress-hint {
-  margin: 0;
+.habit-management > summary,
+.habit-period-analysis > summary {
+  display: flex;
+  min-height: var(--control-height);
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  color: var(--text);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.habit-management[open],
+.habit-period-analysis[open] {
+  padding-bottom: var(--space-4);
+}
+
+.habit-management[open] > summary,
+.habit-period-analysis[open] > summary {
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--hairline);
+  color: var(--accent-text);
+}
+
+.habit-period-analysis > :not(summary),
+.habit-management > :not(summary) {
+  margin-inline: var(--space-4);
+}
+
+.habit-view-hint {
+  max-width: 46rem;
+  margin: 0 0 var(--space-3);
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
 }
 
-.habit-progress-figures {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-6);
-  margin: 0;
+.habit-state-list + .habit-state-list {
+  margin-top: var(--space-6);
 }
 
-.habit-progress-figures dt {
-  color: var(--text-muted);
-  font-size: var(--font-size-xs);
-}
-
-.habit-progress-figures dd {
-  margin: 0;
+.habit-state-list h2 {
+  margin: 0 0 var(--space-1);
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
+}
+
+.habit-plain-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-dense);
+  list-style: none;
+  overflow: hidden;
+}
+
+.habit-plain-list li {
+  display: flex;
+  min-height: var(--dense-row-height);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--dense-row);
+}
+
+.habit-plain-list li + li {
+  border-top: 1px solid var(--hairline);
+}
+
+.habit-plain-list h3,
+.habit-plain-list p {
+  margin: 0;
+}
+
+.habit-plain-list h3 {
+  font-size: var(--font-size-md);
+}
+
+.habit-plain-list p {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
 }
 
 .habit-editor-form,
@@ -427,29 +370,11 @@
   width: min(38rem, calc(100vw - 2rem));
 }
 
-/*
- * Im mobilen Wochenstatus ersetzt die konkrete Zweckzeile die allgemeine
- * Seitenbeschreibung. Doppelte Einordnung und zusätzliche Außenabstände
- * würden das erste Check-in-Raster unter den sichtbaren Bereich schieben.
- */
-@media (max-width: 34rem) {
-  .habits-page[data-active-view="week"] .page-description {
-    display: none;
-  }
-
-  .habits-page[data-active-view="week"] .habit-page-actions,
-  .habits-page[data-active-view="week"] .habit-view-tabs,
-  .habits-page[data-active-view="week"] .habit-view-panel {
-    margin-top: 0;
-  }
-
-  .habits-page[data-active-view="week"] .ui-view-purpose {
-    margin-block-end: var(--space-2);
-    padding-block: var(--space-2);
-  }
-}
-
 @media (min-width: 40rem) {
+  .habit-work-controls {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
   .habit-editor-dates,
   .habit-weekday-options {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -459,5 +384,16 @@
 @media (min-width: 52rem) {
   .habit-toast-region {
     bottom: 1rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .habit-month-summary-heading,
+  .habit-month-row-summary,
+  .habit-month-summary-corner,
+  .habit-month-summary-total {
+    position: sticky;
+    z-index: 2;
+    right: 0;
   }
 }

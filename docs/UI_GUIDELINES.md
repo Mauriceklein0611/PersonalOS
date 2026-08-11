@@ -224,12 +224,23 @@ und erzeugt weder eine neue Route noch persistierten Zustand.
 
 ### Monatsraster
 
-Ein Monatsraster zeigt Einträge × reale Kalendertage des gewählten Monats. Es ist die Ansicht selbst, nicht ihre Auswertung, und trägt deshalb kein Diagramm.
+Ein Monatsraster zeigt Einträge × reale Kalendertage des gewählten Monats. Im
+Routinenbereich ist es die einzige primäre Arbeitsfläche: Heute, Woche,
+Monatsübersicht, Fortschritt und Archiv werden nicht als getrennte Reiter
+wiederholt. Der Tracker trägt deshalb kein Diagramm.
 
 - Sechs Zustände je Zelle: erledigt, offen (vergangener fälliger Tag ohne Eintrag), übersprungen, nicht fällig, später fällig und außerhalb des Zeitraums. `offen` und `später fällig` bleiben getrennt — nur der vergangene Tag geht in eine Quote ein.
 - Der Nenner bleibt `counted = max(done, target − skipped)` aus der Fachlogik. `Einträge × Kalendertage` gibt es nicht, und die Quote endet am heutigen Tag, nicht am Monatsende.
 - Der Wochenanfang folgt `settings.weekStartsOn`. Die Woche ist zusätzlich strukturell markiert: ein Wochenkopf über den Spalten und eine Linie an der Grenze, nicht nur eine Farbe.
-- Ein ganzer Monat passt auf keiner Breite ohne Scroller. Die stehende erste Spalte trägt deshalb Name **und** Quote, damit die Zahl ohne waagerechtes Scrollen lesbar bleibt.
+- Ein ganzer Monat passt auf keiner Breite ohne Scroller. Die stehende erste
+  Spalte trägt Name und Rhythmus; eine ebenfalls stehende Abschlussspalte zeigt
+  Quote, Zähler, aktuelle Serie und Zielbezug direkt in derselben Zeile.
+- Beim Öffnen wird der heutige Tag automatisch in den sichtbaren Ausschnitt
+  gerückt. Die aktuelle Spalte bleibt zusätzlich textlich und farblich
+  gekennzeichnet.
+- Monat, aktive oder archivierte Routinen und sekundäre Auswertung sind
+  Steuerungen derselben Arbeitsfläche. Archivieren und Wiederherstellen liegen
+  als benannte Zeilenaktionen am jeweiligen Datensatz.
 - Die Tageszusammenfassung steht als Fußzeile unter ihren Spalten und nennt Zähler und Nenner. Ohne zählende Einheit steht dort `Keine Angabe`.
 - Eine kompakte Legende steht **hinter** dem Raster: Sie erklärt, was dort schon zu sehen ist.
 
@@ -242,7 +253,7 @@ Eine Wochenplanung zeigt sieben Tagesbereiche aus **einer** Datenquelle — dem 
 - Auf Mobil steht ein Wochentagsstreifen über **genau einem** Tagesbereich; die übrigen Tage sind nicht im Fluss. Sieben Spalten nebeneinander sind erst dort sinnvoll, wo eine Spalte zwei 44-px-Ziele neben einem Titel trägt — darunter bricht die Zeile um, statt die Ziele zu verkleinern.
 - Umgeplant wird dort, wo das Datum gespeichert wird: in der Bearbeitung. Drag & Drop gibt es nicht; es hätte keine Tastaturentsprechung und keinen Zustand, den ein Screenreader ansagen könnte.
 
-### Vier Rollen der Woche
+### Rollen der Woche
 
 „Woche“ ist ein Zeitraum, keine eigenständige Funktion. Jede Wochenfläche
 beginnt deshalb mit einer sichtbaren Nutzerfrage, einem Ein-Satz-Zweck und dem
@@ -252,8 +263,9 @@ vollständigen Zeitraum:
   Tagesaufteilung;
 - **Wochenplan:** Aufgaben mit Plandatum auf sieben Tage verteilen; Fristen
   allein planen keinen Tag;
-- **Wochenstatus:** geplante Routinen und Check-ins gegenüberstellen;
-  Überspringen bleibt neutral;
+- **Routinen-Tracker:** geplante Routinen und Check-ins im Monatskontext
+  gegenüberstellen; Wochengrenzen strukturieren den Tracker und Überspringen
+  bleibt neutral, ohne eine eigene Wochenansicht zu erzeugen;
 - **Wochenrückblick:** Geschehenes mit der Vorwoche vergleichen; keine neue
   Planung und keine Bewertung.
 
