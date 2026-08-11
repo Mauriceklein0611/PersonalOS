@@ -12,6 +12,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "check:bundle": "node --test scripts/bundle-budgets.test.mjs && node scripts/check-bundle-budgets.mjs",
+    "check:deployment": "node --test scripts/cloudflare-pages.test.mjs",
     "check:privacy": "node --test scripts/repository-hygiene.test.mjs && node scripts/check-repository-hygiene.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",

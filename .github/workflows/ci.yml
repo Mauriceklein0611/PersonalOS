@@ -53,6 +53,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Check deployment configuration
+        run: pnpm check:deployment
+
       # Direkt nach dem Build: Die Prüfung misst die erzeugten Chunks gegen
       # die in ADR 0008 dokumentierten Budgets.
       - name: Check bundle budgets
