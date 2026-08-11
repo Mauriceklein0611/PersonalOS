@@ -9,9 +9,15 @@ import {
 import { Link } from "react-router";
 
 import {
+  useAppSettings,
   useDailyCapacityMinutes,
   useTimeZone,
 } from "../../../app/settings/settings-context";
+import {
+  FirstRunCard,
+  type FirstRunOutcome,
+} from "../../../app/onboarding/FirstRunCard";
+import { deriveFirstRunProgress } from "../../../app/onboarding/first-run";
 import {
   Button,
   EmptyState,
@@ -23,6 +29,7 @@ import {
 } from "../../../components/ui";
 import { getIsoWeekBounds } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
+import { createIsoInstant } from "../../../lib/dates/date-values";
 import type {
   FinanceCategory,
   MonthlyBudget,
@@ -138,6 +145,10 @@ export type TodayPageProps = {
   habitService?: HabitService;
   journalService?: JournalService;
   now?: () => Date;
+  onboarding?: {
+    dismissedAt?: string;
+    onDismiss: (outcome: FirstRunOutcome) => Promise<void>;
+  };
   savingsService?: SavingsService;
   scoreService?: ScoreService;
   taskService?: TaskService;
@@ -150,6 +161,7 @@ export function TodayPage({
   habitService = personalOsHabitService,
   journalService = personalOsJournalService,
   now = systemNow,
+  onboarding,
   savingsService = personalOsSavingsService,
   scoreService = personalOsScoreService,
   taskService = personalOsTaskService,
@@ -263,6 +275,15 @@ export function TodayPage({
   const remainingBudget = useMemo(
     () => describeRemainingBudget(finance, context),
     [context, finance],
+  );
+  const firstRunProgress = useMemo(
+    () =>
+      deriveFirstRunProgress({
+        financeCategoryCount: finance.categories.length,
+        habitCount: input.habits.length,
+        taskCount: input.tasks.length,
+      }),
+    [finance.categories.length, input.habits.length, input.tasks.length],
   );
 
   async function runAction(
@@ -437,6 +458,7 @@ export function TodayPage({
 
             <form
               className="today-quick-capture"
+              id="today-quick-task"
               onSubmit={(event) => void quickCreateTask(event)}
             >
               <Input
@@ -470,6 +492,13 @@ export function TodayPage({
               today={context.today}
             />
           </section>
+
+          {onboarding && onboarding.dismissedAt === undefined ? (
+            <FirstRunCard
+              onDismiss={onboarding.onDismiss}
+              progress={firstRunProgress}
+            />
+          ) : null}
 
           {/*
             Genau vier Kennzahlen, mehr nicht. Die vierte erscheint nur mit
@@ -750,7 +779,18 @@ function formatDay(day: CalendarDay): string {
 }
 
 export function Component() {
-  return <TodayPage />;
+  const { settings, update } = useAppSettings();
+
+  return (
+    <TodayPage
+      onboarding={{
+        dismissedAt: settings.onboardingDismissedAt,
+        onDismiss: async () => {
+          await update({ onboardingDismissedAt: createIsoInstant(new Date()) });
+        },
+      }}
+    />
+  );
 }
 
 function systemNow() {

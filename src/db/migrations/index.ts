@@ -7,6 +7,7 @@ import {
   personalOsSchemaV4,
   personalOsSchemaV5,
   personalOsSchemaV6,
+  personalOsSchemaV7,
 } from "../schema";
 import { migrateToVersion2 } from "./v2-add-week-start";
 import { migrateToVersion3 } from "./v3-normalize-habit-schedules";
@@ -27,4 +28,7 @@ export function registerDatabaseMigrations(database: Dexie): void {
   // das Feld nicht; sein Fehlen heißt „von Hand erfasst". Es gibt deshalb
   // keinen Bestand zu überführen.
   database.version(6).stores(personalOsSchemaV6);
+  // Version 7 ergänzt ein optionales Settings-Feld. Bestehende Datensätze
+  // bleiben unverändert; die neue Validierung akzeptiert dessen Fehlen.
+  database.version(7).stores(personalOsSchemaV7);
 }

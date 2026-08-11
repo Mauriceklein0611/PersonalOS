@@ -22,7 +22,7 @@ Die gemeinsamen Werte werden in `src/db/types.ts` und `src/lib/` mit Zod validie
 
 ## Persistenzvertrag v6
 
-Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`. Version `3` dedupliziert und sortiert bestehende Wochentagpläne; ein historisch akzeptiertes `endDate` vor `startDate` wird entfernt. Version `4` legt den Store `hiddenInsights` an. Version `5` ergänzt den eindeutigen Index `&sourceTransactionId` auf `savingsContributions`; bestehende Beiträge tragen kein Quellfeld und bleiben unverändert gültig. Version `6` legt den Store `recurringTransactions` an und ergänzt den nicht eindeutigen Index `recurringTransactionId` auf `transactions`; bestehende Buchungen tragen das Feld nicht und bleiben unverändert gültig. Alle Aufstiege sind vorwärtsgerichtet. Die Versionsnummer der Datenbank ist unabhängig von der Exportformat-Version.
+Die interne Dexie-Version `1` legt die folgenden Stores und die für bekannte Queries notwendigen Indizes an. Version `2` ergänzt für bestehende Settings-Datensätze deterministisch `weekStartsOn: 1`. Version `3` dedupliziert und sortiert bestehende Wochentagpläne; ein historisch akzeptiertes `endDate` vor `startDate` wird entfernt. Version `4` legt den Store `hiddenInsights` an. Version `5` ergänzt den eindeutigen Index `&sourceTransactionId` auf `savingsContributions`; bestehende Beiträge tragen kein Quellfeld und bleiben unverändert gültig. Version `6` legt den Store `recurringTransactions` an und ergänzt den nicht eindeutigen Index `recurringTransactionId` auf `transactions`; bestehende Buchungen tragen das Feld nicht und bleiben unverändert gültig. Version `7` erweitert den validierten Settings-Datensatz um den optionalen Ausblendzeitpunkt der Ersteinrichtung; Stores und Indizes bleiben unverändert. Alle Aufstiege sind vorwärtsgerichtet. Die Versionsnummer der Datenbank ist unabhängig von der Exportformat-Version.
 
 | Store | Datensätze |
 |---|---|
@@ -53,10 +53,18 @@ type Settings = EntityMeta & {
   baseCurrency: string;
   weekStartsOn: 1;
   dailyCapacityMinutes?: number; // 1 bis 1440, ganzzahlig
+  onboardingDismissedAt?: string; // ISO-8601-Zeitpunkt
 };
 ```
 
 `dailyCapacityMinutes` ist ein freiwilliges Tagesbudget. Fehlt das Feld, ist kein Budget gesetzt — das ist ausdrücklich nicht dasselbe wie null Minuten, und es gibt keine Vorgabe: Ein erfundenes Budget wäre eine Aussage über den Nutzer, die er nie getroffen hat. Weil das Feld optional ist, bleiben alle vor seiner Einführung geschriebenen Datensätze ohne Migration gültig; die Dexie-Version bleibt unverändert.
+
+`onboardingDismissedAt` speichert ausschließlich, dass die lokale
+Ersteinrichtung bewusst ausgeblendet wurde. Der Fortschritt der Schritte wird
+aus Aufgaben, Routinen und Finanzkategorien abgeleitet und nicht im
+Settings-Datensatz kopiert. Das optionale Feld hält ältere Datensätze
+rückwärtskompatibel; Version 7 ändert deshalb keine Dexie-Indizes. Siehe
+[ADR 0016](decisions/0016-first-run-progress-is-derived.md).
 
 Es gibt genau einen Settings-Datensatz. Er entsteht beim ersten erfolgreichen Öffnen der Datenbank (`seedSettingsRecord` in `src/db/settings/repository.ts`) mit `locale: "de-DE"`, `theme: "system"`, `baseCurrency: "EUR"`, `weekStartsOn: 1` und der erkannten Zeitzone; ohne belastbare Angabe des Browsers ist das `UTC`. Der Seed ist idempotent und läuft in einer Transaktion, ein zweiter Start legt also keinen zweiten Datensatz an. Ein vorhandener, aber archivierter Datensatz zählt ebenfalls als vorhanden.
 

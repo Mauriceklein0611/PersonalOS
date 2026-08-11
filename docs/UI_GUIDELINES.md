@@ -73,6 +73,25 @@ Der Import konnte nicht gelesen werden. Wähle einen gültigen PersonalOS-Export
 
 Formfehler sind über `aria-describedby` mit dem Feld verbunden und setzen `aria-invalid`. Kritische Laufzeitfehler verwenden `role="alert"`; neutrale Bestätigungen und Ladehinweise verwenden `role="status"`.
 
+## Ersteinrichtung
+
+- Die First-Run-Karte steht auf „Heute“ direkt nach der Erfassungsfläche. Sie
+  verdrängt die erste Aufgabe und die schnelle Ausgabe nicht aus dem ersten
+  mobilen Viewport.
+- Der erste Absatz unterscheidet statisches Hosting ausdrücklich von
+  Synchronisation. Es gibt kein Konto, keine Telemetrie und keine
+  automatisch erzeugten Beispieldaten.
+- Zwei Grundlagen sind erforderlich: mindestens eine Aufgabe und eine Routine.
+  Eine Finanzkategorie ist sichtbar als optional markiert.
+- Schrittzustände stammen aus Fachdatensätzen. Nur die bewusste
+  Ausblendentscheidung wird im Settings-Datensatz gespeichert.
+- „Überspringen“ bleibt jederzeit verfügbar. „Einrichtung abschließen“ wird
+  erst nach beiden Grundlagen aktiv; die restliche App ist nie blockiert.
+- Nach beiden Grundlagen nennt die Karte Export und Installation als nächsten
+  freiwilligen Schritt. Eine Berechtigungs- oder Installationsaufforderung
+  öffnet sie nicht selbst.
+- Die Einstellungen bieten „Ersteinrichtung erneut anzeigen“.
+
 ## Destruktive Aktionen, Bestätigung und Undo
 
 Für den Tagesablauf gilt eine einheitliche Regel. Sie richtet sich danach, was eine Aktion mit den Daten tut, nicht danach, wie gefährlich sie klingt.

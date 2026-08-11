@@ -1,6 +1,6 @@
 import { useMemo, useState, type ChangeEvent, type FocusEvent } from "react";
 
-import { Card, Input, Select } from "../../components/ui";
+import { Button, Card, Input, Select } from "../../components/ui";
 import { useAppSettings } from "./settings-context";
 import "./app-preferences-panel.css";
 
@@ -177,6 +177,34 @@ export function AppPreferencesPanel() {
           </dd>
         </div>
       </dl>
+
+      <section
+        aria-labelledby="app-onboarding-setting-title"
+        className="app-onboarding-setting"
+      >
+        <h3 id="app-onboarding-setting-title">Ersteinrichtung</h3>
+        <p>
+          Die Karte auf „Heute“ erklärt lokale Speicherung und sinnvolle erste
+          Schritte. Ihr Fortschritt entsteht aus deinen vorhandenen Datensätzen.
+        </p>
+        {settings.onboardingDismissedAt ? (
+          <Button
+            onClick={() =>
+              void save(
+                { onboardingDismissedAt: undefined },
+                "Die Ersteinrichtung wird auf „Heute“ wieder angezeigt.",
+              )
+            }
+            variant="secondary"
+          >
+            Ersteinrichtung erneut anzeigen
+          </Button>
+        ) : (
+          <p className="app-preferences-note" role="status">
+            Die Ersteinrichtung ist auf „Heute“ sichtbar.
+          </p>
+        )}
+      </section>
 
       {error ? (
         <p className="app-preferences-error" role="alert">

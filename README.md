@@ -51,6 +51,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Deterministische Insights v1](docs/decisions/0010-deterministic-insights-v1.md)
 - [Sparbeitrag verweist auf seine Ausgabe](docs/decisions/0011-savings-contribution-links-a-transaction.md)
 - [Überspringen bricht die Serie nicht](docs/decisions/0012-skip-keeps-the-streak.md)
+- [Ersteinrichtungsfortschritt wird abgeleitet](docs/decisions/0016-first-run-progress-is-derived.md)
 
 ### Externe Prüfungen
 

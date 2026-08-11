@@ -24,6 +24,7 @@ import { PersonalOsDatabase } from "../database";
 import {
   personalOsSchemaV1,
   personalOsSchemaV2,
+  personalOsSchemaV6,
   personalOsSchemaVersion,
 } from "../schema";
 import {
@@ -218,6 +219,26 @@ describe("database migrations", () => {
       await database.table("transactions").get(transactionV5Fixture.id),
     ).toEqual(transactionV5Fixture);
 
+    database.close();
+  });
+
+  it("keeps version 6 settings valid without an onboarding decision", async () => {
+    const name = createDatabaseName();
+    const legacyDatabase = new Dexie(name);
+    legacyDatabase.version(6).stores(personalOsSchemaV6);
+    await legacyDatabase.open();
+    await legacyDatabase.table("settings").add(settingsV3Fixture);
+    legacyDatabase.close();
+
+    const database = new PersonalOsDatabase(name);
+    await database.open();
+    const settings = settingsSchema.parse(
+      await database.table("settings").get(settingsV3Fixture.id),
+    );
+
+    expect(database.verno).toBe(personalOsSchemaVersion);
+    expect(settings).toEqual(settingsV3Fixture);
+    expect(settings.onboardingDismissedAt).toBeUndefined();
     database.close();
   });
 

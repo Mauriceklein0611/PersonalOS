@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { detectTimeZone, timeZoneSchema } from "../../lib/dates/date-values";
+import {
+  detectTimeZone,
+  isoInstantSchema,
+  timeZoneSchema,
+} from "../../lib/dates/date-values";
 import { currencyCodeSchema } from "../../lib/money/money";
 import { entityMetaSchema } from "../types";
 
@@ -17,6 +21,11 @@ const settingsFields = {
    * Planungshilfe mehr.
    */
   dailyCapacityMinutes: z.int().positive().max(1_440).optional(),
+  /**
+   * Nur die Entscheidung, die First-Run-Karte auszublenden. Der Fortschritt
+   * selbst wird aus vorhandenen Fachdatensätzen abgeleitet und nicht kopiert.
+   */
+  onboardingDismissedAt: isoInstantSchema.optional(),
 } as const;
 
 export const settingsV1Schema = entityMetaSchema.safeExtend({
@@ -45,6 +54,7 @@ export function toSettingsDetails(settings: Settings): SettingsDetails {
     baseCurrency: settings.baseCurrency,
     dailyCapacityMinutes: settings.dailyCapacityMinutes,
     locale: settings.locale,
+    onboardingDismissedAt: settings.onboardingDismissedAt,
     theme: settings.theme,
     timeZone: settings.timeZone,
     weekStartsOn: settings.weekStartsOn,
