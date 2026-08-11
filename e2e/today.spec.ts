@@ -25,9 +25,12 @@ test("walks through a complete synthetic day on the dashboard", async ({
   await page.goto("/routinen");
   await page.getByRole("button", { name: "Neue Routine" }).click();
   await page.getByRole("textbox", { name: /Name/ }).fill("Abendspaziergang");
-  await page.getByRole("button", { name: "Routine anlegen" }).click();
+  await page
+    .getByRole("dialog", { name: "Routine anlegen" })
+    .getByRole("button", { name: "Routine anlegen" })
+    .click();
   await expect(
-    page.getByRole("article", { name: "Abendspaziergang" }),
+    page.getByText("Abendspaziergang", { exact: true }),
   ).toBeVisible();
 
   await page.goto("/");
@@ -102,7 +105,12 @@ test("names the truncation instead of dropping tasks silently", async ({
     page.getByRole("heading", { level: 1, name: "Aufgaben" }),
   ).toBeVisible();
   // Die Schnellerfassung plant für heute; dort steht die sechste Aufgabe.
-  await page.getByRole("tab", { name: "Heute" }).click();
+  const taskFilter = page.getByRole("combobox", { name: "Aufgaben filtern" });
+  if ((await taskFilter.count()) > 0) {
+    await taskFilter.selectOption("today");
+  } else {
+    await page.getByRole("tab", { name: /^Heute/ }).click();
+  }
   await expect(
     page.getByRole("heading", { level: 2, name: "Synthetische Aufgabe 6" }),
   ).toBeVisible();

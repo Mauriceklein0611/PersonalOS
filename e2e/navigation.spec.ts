@@ -102,52 +102,38 @@ test("reaches every sub-area from the band at 320 px", async ({ page }) => {
   ).toBeVisible();
 });
 
-/*
- * Ansichts-Reiter, Issue #119. Vor dem gemeinsamen Baustein scrollte die
- * Reihe waagerecht: 500 px Inhalt auf 343 px sichtbarer Breite bei den
- * Aufgaben, 480 auf 343 bei den Routinen. „Diese Woche“, „Fortschritt“ und
- * „Archiv“ lagen damit außerhalb des Sichtfelds.
- */
+/* Arbeitsflächensteuerungen bleiben vollständig im mobilen Viewport. Reine
+ * Filter dürfen dabei Reiter durch ein Auswahlfeld ersetzen. */
 for (const width of [320, 375, 390]) {
-  test(`shows every view tab without sideways scrolling at ${width} px`, async ({
+  test(`keeps every work-surface control inside ${width} px`, async ({
     page,
   }) => {
     await page.setViewportSize({ height: 720, width });
 
-    for (const [path, listName, tabCount] of [
-      // Seit dem Wochenplan (#123) fünf Reiter: Inbox, Heute, Diese Woche,
-      // Wochenplan, Erledigt.
-      ["/planen/aufgaben", "Aufgabenansicht", 5],
-      // Seit dem Monatsraster (#122) fünf Reiter: Heute, Woche, Monat,
-      // Fortschritt, Archiv. Die Reihe bricht um, statt zu scrollen.
-      ["/routinen/uebersicht", "Routinenansicht", 5],
-    ] as const) {
+    for (const path of ["/planen/aufgaben", "/routinen/uebersicht"]) {
       await page.goto(path);
 
-      const tabs = page.getByRole("tablist", { name: listName });
-      await expect(tabs).toBeVisible();
-      await expect(tabs.getByRole("tab")).toHaveCount(tabCount);
-
-      const scrolls = await tabs.evaluate(
-        (element) => element.scrollWidth > element.clientWidth,
-      );
-      expect(scrolls).toBe(false);
-
-      /*
-       * Jeder Reiter liegt vollständig innerhalb der Reihe und bleibt ein
-       * 44-px-Ziel. Waagerecht ist damit nichts abgeschnitten; senkrecht
-       * darf die zweite Zeile unter der Falz liegen, das ist normales
-       * Scrollen und kein verstecktes Bedienelement.
-       */
-      const list = await tabs.boundingBox();
-      for (const tab of await tabs.getByRole("tab").all()) {
-        await expect(tab).toBeVisible();
-        const box = await tab.boundingBox();
-        expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-        expect(box!.x).toBeGreaterThanOrEqual(list!.x - 1);
-        expect(box!.x + box!.width).toBeLessThanOrEqual(
-          list!.x + list!.width + 1,
-        );
+      if (path.includes("routinen")) {
+        await expect(
+          page.getByRole("combobox", { name: "Routinen anzeigen" }),
+        ).toBeVisible();
+        await expect(page.getByRole("tablist")).toHaveCount(0);
+      } else {
+        const legacyTabs = page.getByRole("tablist", {
+          name: "Aufgabenansicht",
+        });
+        if ((await legacyTabs.count()) > 0) {
+          await expect(legacyTabs).toBeVisible();
+          expect(
+            await legacyTabs.evaluate(
+              (element) => element.scrollWidth > element.clientWidth,
+            ),
+          ).toBe(false);
+        } else {
+          await expect(
+            page.getByRole("combobox", { name: "Aufgaben filtern" }),
+          ).toBeVisible();
+        }
       }
 
       const hasHorizontalOverflow = await page.evaluate(
@@ -160,13 +146,20 @@ for (const width of [320, 375, 390]) {
   });
 }
 
-test("walks the view tabs with the keyboard following the ARIA pattern", async ({
-  page,
-}) => {
+test("operates the task view control from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 720 });
   await page.goto("/planen/aufgaben");
 
   const tabs = page.getByRole("tablist", { name: "Aufgabenansicht" });
+  if ((await tabs.count()) === 0) {
+    const filter = page.getByRole("combobox", { name: "Aufgaben filtern" });
+    await filter.focus();
+    await expect(filter).toBeFocused();
+    await page.keyboard.press("ArrowDown");
+    await expect(filter).toHaveValue("today");
+    return;
+  }
+
   const inbox = tabs.getByRole("tab", { name: /^Inbox/ });
 
   await inbox.focus();

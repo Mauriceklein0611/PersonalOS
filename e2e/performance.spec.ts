@@ -96,14 +96,18 @@ test("keeps a check-in responsive with several years of data", async ({
 
   // Eine offene Routine des Tages; die Beschriftung nennt sie beim Namen.
   const checkIn = page
-    .getByRole("button", { name: /heute (erledigen|doch erledigen)$/ })
+    .getByRole("button", {
+      name: /: Offen\. Als erledigt eintragen$/,
+    })
     .first();
   await expect(checkIn).toBeVisible();
 
   const started = Date.now();
   await checkIn.click();
   await expect(
-    page.getByRole("button", { name: /heute wieder öffnen$/ }).first(),
+    page
+      .getByRole("button", { name: /: Erledigt\. Check-in entfernen$/ })
+      .first(),
   ).toBeVisible();
   const elapsed = Date.now() - started;
 

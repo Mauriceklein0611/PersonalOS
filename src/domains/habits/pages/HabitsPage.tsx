@@ -433,6 +433,7 @@ export function HabitsPage({
                   ? "Lege eine Routine an, um deinen Tagesrhythmus zu begleiten."
                   : "In diesem Monat war keine aktive Routine eingeplant."
             }
+            headingLevel={2}
             title={
               visibility === "archived"
                 ? "Nichts archiviert"
