@@ -26,6 +26,21 @@
   line-height: var(--line-height-normal);
 }
 
+.local-data-persistence {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  margin: calc(-1 * var(--space-3)) 0 var(--space-5);
+}
+
+/*
+ * Die Beschriftung ist lang. Bei 320 px bricht sie um, statt die Seite
+ * waagerecht zu schieben.
+ */
+.local-data-persistence .ui-button {
+  max-width: 100%;
+}
+
 .local-data-hint {
   margin: calc(-1 * var(--space-3)) 0 var(--space-5);
   color: var(--text-muted);

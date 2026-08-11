@@ -10,8 +10,10 @@ import { clearThemePreference } from "../theme/theme-preference";
 import {
   formatStorageBytes,
   readBrowserStorageStatus,
+  requestBrowserPersistence,
   type BrowserStorageStatus,
   type ReadBrowserStorageStatus,
+  type RequestBrowserPersistence,
 } from "./browser-storage-status";
 import { downloadBackup } from "./download-backup";
 import "./local-data-panel.css";
@@ -20,6 +22,7 @@ export type LocalDataPanelProps = {
   download?: (backup: PersonalOsBackup) => void;
   readStorageStatus?: ReadBrowserStorageStatus;
   reloadAfterClear?: () => void;
+  requestPersistence?: RequestBrowserPersistence;
   service?: LocalDataService;
 };
 
@@ -27,6 +30,7 @@ export function LocalDataPanel({
   download = downloadBackup,
   readStorageStatus = readBrowserStorageStatus,
   reloadAfterClear = reloadPage,
+  requestPersistence = requestBrowserPersistence,
   service = personalOsLocalDataService,
 }: LocalDataPanelProps) {
   const [recordCount, setRecordCount] = useState<number>();
@@ -36,6 +40,8 @@ export function LocalDataPanel({
   const [clearComplete, setClearComplete] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+  const [isRequestingPersistence, setIsRequestingPersistence] = useState(false);
+  const [persistenceRefused, setPersistenceRefused] = useState(false);
 
   useEffect(() => {
     let isCurrent = true;
@@ -57,6 +63,24 @@ export function LocalDataPanel({
       isCurrent = false;
     };
   }, [readStorageStatus, service]);
+
+  /*
+   * Der Browser entscheidet, nicht die Anwendung. Deshalb wird der Status
+   * danach neu gelesen, statt das erhoffte Ergebnis anzunehmen.
+   */
+  async function askForPersistence() {
+    setIsRequestingPersistence(true);
+    setPersistenceRefused(false);
+    try {
+      const granted = await requestPersistence();
+      setStorageStatus(await readStorageStatus());
+      setPersistenceRefused(granted !== true);
+    } catch {
+      setPersistenceRefused(true);
+    } finally {
+      setIsRequestingPersistence(false);
+    }
+  }
 
   async function clearLocalData() {
     setIsClearing(true);
@@ -100,6 +124,27 @@ export function LocalDataPanel({
           <dd>{formatPersistence(storageStatus.persisted)}</dd>
         </div>
       </dl>
+
+      {storageStatus.persisted === false ? (
+        <div className="local-data-persistence">
+          <Button
+            isLoading={isRequestingPersistence}
+            loadingLabel="Anfrage läuft …"
+            onClick={() => void askForPersistence()}
+            variant="secondary"
+          >
+            Dauerhaften Speicher anfordern
+          </Button>
+          {persistenceRefused ? (
+            <p className="local-data-message" role="status">
+              Der Browser hat den dauerhaften Speicher nicht gewährt. Er
+              entscheidet das selbst; eine installierte App und regelmäßige
+              Nutzung machen es wahrscheinlicher. Ein aktueller Export bleibt
+              der verlässlichere Schutz.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <p className="local-data-hint">
         Die App-Einstellungen zählen als eigener Datensatz mit. Sie entstehen

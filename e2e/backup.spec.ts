@@ -147,3 +147,39 @@ test("rejects invalid backup files without offering replacement", async ({
     page.getByRole("button", { name: "Lokale Daten durch Backup ersetzen" }),
   ).toHaveCount(0);
 });
+
+/*
+ * Ob der Browser den Speicher von sich aus als dauerhaft führt, entscheidet er
+ * nach eigenen Heuristiken. Der Fall, der die Aktion überhaupt zeigt, wird
+ * deshalb gesetzt statt abgewartet — sonst hinge die Prüfung am Zufall.
+ */
+test("offers durable storage at 320 pixels without pushing the page sideways", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator.storage, "persisted", {
+      configurable: true,
+      value: () => Promise.resolve(false),
+    });
+  });
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/einstellungen");
+
+  await expect(page.getByText(/Best effort/)).toBeVisible();
+  const request = page.getByRole("button", {
+    name: "Dauerhaften Speicher anfordern",
+  });
+  await expect(request).toBeVisible();
+
+  const width = await request.evaluate(
+    (node) => node.getBoundingClientRect().width,
+  );
+  expect(width).toBeLessThanOrEqual(320);
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+});

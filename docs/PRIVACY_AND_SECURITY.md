@@ -31,6 +31,8 @@ Die lokale Datenbank besitzt keine zusätzliche Anwendungsverschlüsselung. Ger�
 
 Unter „Einstellungen → Lokaler Speicher und Datenschutz“ zeigt PersonalOS Datensatzanzahl, ungefähren Origin-Speicher und den vom Browser gemeldeten Beständigkeitsstatus.
 
+Meldet der Browser „Best effort“, bietet dieselbe Karte die Aktion „Dauerhaften Speicher anfordern“ an. Sie ruft `StorageManager.persist()` auf und liest den Status danach neu. Die Entscheidung liegt beim Browser: Er darf ablehnen, und die Oberfläche benennt das als Ablehnung statt als Fehler. PersonalOS fragt nicht von selbst beim Start — eine unerklärte Berechtigungsabfrage im ersten Moment der Anwendung wäre genau die stille Nebenwirkung, die diese Datei ausschließt. Ein aktueller Export bleibt der verlässlichere Schutz.
+
 Die Aktion „Alle lokalen Daten löschen“:
 
 1. öffnet einen eindeutigen Bestätigungsdialog;

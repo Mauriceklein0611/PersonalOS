@@ -20,7 +20,7 @@ Danach `http://localhost:4173` öffnen und warten, bis der Hinweis „Offline be
 
 Aus demselben Grund läuft während des Versuchs kein `pnpm test:e2e`: Playwright startet seinen eigenen Preview-Server auf 4173.
 
-**Beständigkeit am Tag 0 ablesen.** In den Einstellungen unter „Lokaler Speicher und Datenschutz" steht das Feld „Beständigkeit". Sagt es „Best effort – kann bei Speicherdruck entfernt werden", darf der Browser die Datenbank bei knappem Speicher verwerfen, und das Kriterium „14 Tage ohne Datenverlust" hinge am Zufall. Der Wert gehört in die Notiz von Tag 1.
+**Beständigkeit am Tag 0 herstellen.** In den Einstellungen unter „Lokaler Speicher und Datenschutz" steht das Feld „Beständigkeit". Sagt es „Best effort – kann bei Speicherdruck entfernt werden", darf der Browser die Datenbank bei knappem Speicher verwerfen, und das Kriterium „14 Tage ohne Datenverlust" hinge am Zufall. In dem Fall steht dort die Aktion „Dauerhaften Speicher anfordern"; sie wird vor Tag 1 ausgelöst. Bleibt es bei einer Ablehnung, gehört das in die Notiz von Tag 1 — der Versuch läuft dann unter dieser Einschränkung.
 
 ## Die sieben Kriterien und ihre Messung
 
