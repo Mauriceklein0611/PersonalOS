@@ -112,6 +112,12 @@ for (const width of [320, 375, 390]) {
 
     for (const path of ["/planen/aufgaben", "/routinen/uebersicht"]) {
       await page.goto(path);
+      await expect(
+        page.getByRole("heading", {
+          level: 1,
+          name: path.includes("routinen") ? "Routinen" : "Aufgaben",
+        }),
+      ).toBeVisible();
 
       if (path.includes("routinen")) {
         await expect(
@@ -149,6 +155,9 @@ for (const width of [320, 375, 390]) {
 test("operates the task view control from the keyboard", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 720 });
   await page.goto("/planen/aufgaben");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Aufgaben" }),
+  ).toBeVisible();
 
   const tabs = page.getByRole("tablist", { name: "Aufgabenansicht" });
   if ((await tabs.count()) === 0) {
