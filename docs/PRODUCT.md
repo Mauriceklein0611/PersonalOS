@@ -91,6 +91,17 @@ Alle vier Flächen zeigen ihren Zeitraum ausdrücklich und leiten ihn aus
 Zeitzone und konfiguriertem Wochenanfang ab. Sie teilen keine neue persistierte
 „Woche“: Jede Ansicht liest weiterhin ihre fachliche Quelle.
 
+### Erster Start: lokal einrichten
+
+Eine neue Installation zeigt nach der ersten Erfassungsfläche eine
+überspringbare Einrichtungskarte. Sie erklärt ausdrücklich, dass die
+bereitgestellte Website keine Daten synchronisiert, und bietet drei Einstiege:
+erste Aufgabe, erste Routine und eine optionale Finanzkategorie.
+
+Der Fortschritt entsteht aus vorhandenen Datensätzen. Gespeichert wird nur der
+Zeitpunkt, an dem die Karte abgeschlossen oder übersprungen wurde. Über die
+Einstellungen kann sie erneut eingeblendet werden. Backup und PWA-Installation
+werden erst erklärt, sobald Aufgabe und Routine vorhanden sind.
 ## 5. MVP-Scope
 
 Der MVP ist nicht die komplette ursprüngliche Modulliste. Er ist ein stabiler, installierbarer Tagesbegleiter mit verlässlicher Datenhoheit.

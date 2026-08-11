@@ -1,4 +1,4 @@
-export const personalOsSchemaVersion = 6;
+export const personalOsSchemaVersion = 7;
 
 /**
  * Die Tabellen der Versionen 1 bis 3. Sie stehen getrennt, damit eine neue
@@ -107,4 +107,13 @@ export const personalOsSchemaV6 = {
     "id, kind, bookedOn, categoryId, money.currency, recurringTransactionId, archivedAt, updatedAt",
   recurringTransactions:
     "id, kind, dayOfMonth, categoryId, money.currency, archivedAt, updatedAt",
+} satisfies Record<PersonalOsTableName, string>;
+
+/**
+ * Version 7 erweitert nur den validierten Settings-Datensatz um das optionale
+ * `onboardingDismissedAt`. Dexie-Indizes ändern sich nicht; ältere Datensätze
+ * bleiben ohne ergänzten Wert gültig.
+ */
+export const personalOsSchemaV7 = {
+  ...personalOsSchemaV6,
 } satisfies Record<PersonalOsTableName, string>;

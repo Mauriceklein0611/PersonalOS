@@ -46,6 +46,30 @@ describe("AppPreferencesPanel", () => {
     expect(screen.getByText(/Montag/)).toBeInTheDocument();
   });
 
+  it("makes a dismissed first-run guide available again", async () => {
+    const repository = createSettingsRepository(database);
+    await repository.save({
+      onboardingDismissedAt: "2026-08-11T20:30:00.000Z",
+    });
+    const user = userEvent.setup();
+    renderPanel(repository);
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Ersteinrichtung erneut anzeigen",
+      }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Die Ersteinrichtung wird auf „Heute“ wieder angezeigt.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      (await repository.loadOrCreate()).onboardingDismissedAt,
+    ).toBeUndefined();
+  });
+
   it("stores a changed base currency", async () => {
     const repository = createSettingsRepository(database);
     await repository.loadOrCreate();

@@ -8,10 +8,17 @@ PersonalOS ist im MVP eine backendfreie, local-first PWA für genau ein Browserp
 
 - Fachliche Datensätze liegen in der IndexedDB-Datenbank `personalos`.
 - Die Theme-Präferenz liegt unter dem versionierten Schlüssel `personalos.theme.v1` in `localStorage`.
+- Die Entscheidung, die Ersteinrichtung auszublenden, liegt als optionaler
+  Zeitpunkt im lokalen Settings-Datensatz. Schrittfortschritt oder
+  Nutzungsereignisse werden dafür nicht zusätzlich gespeichert.
 - Der Service Worker cached nur App-Shell, gehashte Build-Dateien, Manifest und Icons. Er cached keine IndexedDB-Inhalte, Importe oder JSON-Exporte.
 - Ein manueller Export wird als JSON-Datei in den vom Browser gewählten Downloadordner geschrieben. Diese Datei liegt anschließend außerhalb von PersonalOS und wird durch eine Löschung in der App nicht entfernt.
 
 Die App verwendet im MVP keine Cookies, Analytics, Telemetrie, externen Fonts, Konten oder Cloud-Synchronisation. Der Netzwerkstatus nutzt ausschließlich einen inhaltsfreien `HEAD`-Request an denselben Origin mit aktuellem Zeitpunkt als Cache-Buster. Es werden dabei keine Nutzereinträge übertragen.
+
+Eine öffentlich erreichbare Domain stellt nur die statische App bereit. Sie
+überträgt weder IndexedDB-Inhalte noch den Stand der Ersteinrichtung und ist
+keine Synchronisation zwischen Browserprofilen oder Geräten.
 
 ## Was local-first schützt
 

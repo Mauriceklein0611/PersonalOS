@@ -71,3 +71,30 @@ describe("settings schema — dailyCapacityMinutes", () => {
     ).toBeUndefined();
   });
 });
+
+describe("settings schema — onboarding", () => {
+  it("keeps records from before onboarding valid", () => {
+    const parsed = settingsSchema.parse(buildSettings());
+
+    expect(parsed.onboardingDismissedAt).toBeUndefined();
+    expect(toSettingsDetails(parsed).onboardingDismissedAt).toBeUndefined();
+  });
+
+  it("keeps a valid local dismissal instant through the settings round trip", () => {
+    const parsed = settingsSchema.parse(
+      buildSettings({ onboardingDismissedAt: "2026-08-11T20:30:00.000Z" }),
+    );
+
+    expect(toSettingsDetails(parsed).onboardingDismissedAt).toBe(
+      "2026-08-11T20:30:00.000Z",
+    );
+  });
+
+  it("rejects a calendar day without an exact instant", () => {
+    expect(
+      settingsSchema.safeParse(
+        buildSettings({ onboardingDismissedAt: "2026-08-11" }),
+      ).success,
+    ).toBe(false);
+  });
+});
