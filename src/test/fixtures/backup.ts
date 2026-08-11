@@ -12,6 +12,8 @@ const goalId = id("000000000101");
 const habitId = id("000000000102");
 const financeCategoryId = id("000000000103");
 const savingsGoalId = id("000000000104");
+const transactionId = id("000000000114");
+const recurringTransactionId = id("000000000120");
 
 export const backupDataFixture: BackupData = {
   settings: [
@@ -92,6 +94,20 @@ export const backupDataFixture: BackupData = {
       bookedOn: "2026-01-15",
       description: "Synthetische Buchung",
     },
+    /*
+     * Eine bestätigte Buchung aus einer Vorlage. Sie steht hier, damit der
+     * Roundtrip auch den jüngsten Verweis trägt: Ginge er verloren, gälte die
+     * Vorlage im Wiederherstellungsmonat erneut als offen.
+     */
+    {
+      ...meta("000000000121"),
+      kind: "expense",
+      money: { amountMinor: 95_000, currency: "EUR" },
+      categoryId: financeCategoryId,
+      bookedOn: "2026-01-01",
+      description: "Synthetische Miete für Januar",
+      recurringTransactionId,
+    },
   ],
   monthlyBudgets: [
     {
@@ -110,11 +126,17 @@ export const backupDataFixture: BackupData = {
     },
   ],
   savingsContributions: [
+    /*
+     * Mit Beleg: Der Beitrag verweist auf die Buchung, die ihn deckt. Der
+     * Verweis ist eindeutig indiziert und muss den Roundtrip überstehen —
+     * ohne ihn zählte derselbe Betrag zweimal.
+     */
     {
       ...meta("000000000116"),
       savingsGoalId,
       money: { amountMinor: 5_000, currency: "EUR" },
       bookedOn: "2026-01-15",
+      sourceTransactionId: transactionId,
     },
   ],
   scoreSettings: [

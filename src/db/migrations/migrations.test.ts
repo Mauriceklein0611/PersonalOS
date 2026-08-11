@@ -7,6 +7,11 @@ import {
   settingsV1Fixture,
 } from "../../test/fixtures/database-v1";
 import {
+  createVersion3Database,
+  habitV3Fixture,
+  settingsV3Fixture,
+} from "../../test/fixtures/database-v3";
+import {
   createVersion4Database,
   savingsContributionV4Fixture,
   transactionV4Fixture,
@@ -116,6 +121,36 @@ describe("database migrations", () => {
     expect(migrated.schedule).toEqual({ kind: "weekdays", days: [1, 5] });
     expect(migrateHabitRecordToV3(migrated)).toEqual(migrated);
     currentDatabase.close();
+  });
+
+  /**
+   * Version 3 ist die einzige Vorgängerversion, deren Aufstieg keine
+   * Datenumformung enthält: v4, v5 und v6 legen nur Tabellen und Indizes an.
+   * Genau deshalb muss er geprüft sein — ein Fehler darin fiele sonst nur
+   * dort auf, wo zusätzlich eine Umformung läuft.
+   */
+  it("carries a version 3 database through the additive upgrades", async () => {
+    const name = createDatabaseName();
+    await createVersion3Database(name);
+
+    const database = new PersonalOsDatabase(name);
+    await database.open();
+
+    expect(database.verno).toBe(personalOsSchemaVersion);
+    // Unverändert: Der Rhythmus war auf Version 3 bereits normalisiert.
+    expect(
+      habitSchema.parse(await database.table("habits").get(habitV3Fixture.id)),
+    ).toEqual(habitV3Fixture);
+    expect(
+      settingsSchema.parse(
+        await database.table("settings").get(settingsV3Fixture.id),
+      ),
+    ).toEqual(settingsV3Fixture);
+    // Die neuen Tabellen stehen bereit und sind leer, nicht erfunden.
+    expect(await database.table("hiddenInsights").count()).toBe(0);
+    expect(await database.table("recurringTransactions").count()).toBe(0);
+
+    database.close();
   });
 
   it("keeps existing savings contributions when v5 adds the link index", async () => {
