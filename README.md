@@ -36,6 +36,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [UI- und Textleitlinien](docs/UI_GUIDELINES.md)
 - [Entwicklungsablauf](docs/DEVELOPMENT.md)
 - [Datenschutz- und Sicherheitsbasis](docs/PRIVACY_AND_SECURITY.md)
+- [Cloudflare-Pages-Betrieb](docs/DEPLOYMENT.md)
 - [Leistungsbudgets](docs/PERFORMANCE.md)
 - [Dogfood-Protokoll](docs/DOGFOOD.md)
 - [Bekannte Einschränkungen](docs/KNOWN_LIMITATIONS.md)
@@ -52,6 +53,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Sparbeitrag verweist auf seine Ausgabe](docs/decisions/0011-savings-contribution-links-a-transaction.md)
 - [Überspringen bricht die Serie nicht](docs/decisions/0012-skip-keeps-the-streak.md)
 - [Ersteinrichtungsfortschritt wird abgeleitet](docs/decisions/0016-first-run-progress-is-derived.md)
+- [Statisches Cloudflare-Pages-Hosting](docs/decisions/0017-cloudflare-pages-static-hosting.md)
 
 ### Externe Prüfungen
 
@@ -85,6 +87,7 @@ Die vollständigen Qualitätsprüfungen sind:
 
 ```bash
 pnpm format:check
+pnpm check:deployment
 pnpm check:privacy
 pnpm lint
 pnpm typecheck

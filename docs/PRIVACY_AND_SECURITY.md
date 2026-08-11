@@ -20,6 +20,12 @@ Eine öffentlich erreichbare Domain stellt nur die statische App bereit. Sie
 überträgt weder IndexedDB-Inhalte noch den Stand der Ersteinrichtung und ist
 keine Synchronisation zwischen Browserprofilen oder Geräten.
 
+Beim Abruf verarbeitet der Hostinganbieter dennoch die für eine Website
+üblichen Verbindungsmetadaten, etwa IP-Adresse, Zeitpunkt, User-Agent und
+angeforderte Pfade. PersonalOS aktiviert keine Cloudflare Web Analytics,
+Telemetrie, Pages Functions oder serverseitige Fachdatenspeicherung. Die
+versionierten Produktionsheader, der Domainablauf und die Abnahme sind in den
+[Betriebsnotizen](DEPLOYMENT.md) festgehalten.
 ## Was local-first schützt
 
 Ohne optionale spätere Integration verlassen Fachinhalte das Gerät nicht automatisch. Ein Ausfall eines fremden Backends kann die Kernfunktionen nicht blockieren, und ein vollständiger Export bleibt unter Kontrolle des Nutzers.
@@ -54,7 +60,12 @@ Der statische PWA-Cache bleibt bestehen, damit die App offline starten kann; er 
 
 Die früh im HTML gesetzte CSP begrenzt standardmäßig alle Ressourcen auf den eigenen Origin. `connect-src 'self'` sperrt unerwartete Fetch-, Beacon-, EventSource- und WebSocket-Ziele; Worker und Manifest bleiben für die Offline-PWA vom eigenen Origin erlaubt. Frames, Medien und Objekte sind gesperrt. Inline-Skripte sind nicht erlaubt. Inline-Styles bleiben vorerst für dynamische UI-Maße und die Vite-Entwicklung erlaubt.
 
-Eine Meta-CSP wirkt erst ab ihrer Position im Dokument und unterstützt laut CSP-Spezifikation weder `frame-ancestors` noch Report-Only. Ein späteres Produktionshosting soll dieselbe Policy zusätzlich als HTTP-Header und `frame-ancestors 'none'` ausliefern. Externe Links laufen ausschließlich über `ExternalLink`: HTTPS, keine eingebetteten Zugangsdaten, neues Fenster ohne Opener und ohne Referrer.
+Eine Meta-CSP wirkt erst ab ihrer Position im Dokument und unterstützt laut CSP-Spezifikation weder `frame-ancestors` noch Report-Only. Das Produktionshosting liefert dieselbe Policy deshalb zusätzlich als HTTP-Header und mit `frame-ancestors 'none'` aus. Externe Links laufen ausschließlich über `ExternalLink`: HTTPS, keine eingebetteten Zugangsdaten, neues Fenster ohne Opener und ohne Referrer.
+
+Cloudflare Pages liest die Policy aus `public/_headers` und liefert sie für
+alle statischen Antworten einschließlich `frame-ancestors 'none'` aus. Die
+Meta-CSP bleibt als frühe, hostunabhängige zweite Grenze bestehen. Beide Werte
+werden durch `pnpm check:deployment` gegeneinander geprüft.
 
 ## Nicht vertrauenswürdige Daten und Logs
 
