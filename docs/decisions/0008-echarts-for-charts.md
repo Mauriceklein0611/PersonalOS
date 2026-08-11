@@ -87,3 +87,27 @@ Ein Diagramm ist eine Darstellung, keine Datenquelle. Sein Ausfall bleibt deshal
 - Die Zusicherung aus dem Hauptteil, dass Rahmen, Wertetabelle und Leerzustand ohne die Bibliothek funktionieren, gilt damit auch dann, wenn die Bibliothek zwar geladen ist, aber scheitert.
 
 Diese Entscheidung ändert nichts an der Wahl der Bibliothek, an den registrierten Bausteinen oder an den Budgets.
+
+## Nachtrag 2026-08-11 (Issue #124)
+
+### Zwei Budgets bewachten die dichten Ansichten nicht
+
+Startroute und Diagramm-Chunk haben je ein Budget. Alles dazwischen — jede Route, jedes Domänenmodul — hatte keines. Ein statischer Import der Diagrammbibliothek in einer Route hätte deren Chunk um ein Vielfaches wachsen lassen, ohne eine der beiden Prüfungen zu berühren: Die Startroute bliebe klein, und der `ChartCanvas`-Chunk existierte weiter.
+
+Mit dem Monatsraster (#122) und dem Wochenplan (#123) sind zwei dichte Ansichten dazugekommen, die bewusst **kein** Diagramm zeigen. Genau dort wäre der Griff zur Bibliothek naheliegend gewesen.
+
+### Entscheidung
+
+Ergänzend zu den beiden bestehenden Budgets gilt ein drittes, **je Datei** statt als Summe:
+
+| Bereich | Gemessen am 11.08.2026 | Budget |
+| --- | --- | --- |
+| Diagramm-Chunk (`ChartCanvas-*.js`) | 177,25 kB gzip | 190 kB gzip |
+| Startroute (`index-*.js` + `index-*.css`) | 156,86 kB gzip | 165 kB gzip |
+| Größter einzelner Routen-Chunk | 12,89 kB gzip (`FinancePage-*.js`) | 25 kB gzip je Datei |
+
+Die Summe aller Routen wäre als Budget wertlos: Sie wächst mit jeder neuen Ansicht und sagt nichts darüber, ob eine einzelne aus dem Rahmen fällt. Das Budget je Datei schlägt dagegen sofort an, wenn eine Bibliothek in einer Route landet.
+
+Dazu kommt eine Quelltextprüfung (`echarts-boundary.test.ts`): `echarts` wird in genau einem Modul importiert, und die Zeichenfläche ist nur über den dynamischen Import in `Chart.tsx` erreichbar. Der Netzwerktest in den E2E-Läufen beweist das Verhalten im Browser, kann aber erst anschlagen, wenn der Fehler bereits gebaut ist; die Quelltextprüfung schlägt vorher an.
+
+Diese Entscheidung ändert weder die Bibliothekswahl noch die registrierten Bausteine noch die beiden bestehenden Budgets.

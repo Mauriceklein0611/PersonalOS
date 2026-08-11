@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  countPropertyReads,
+  createAccessCounter,
+} from "../../test/access-counter";
+import { addCalendarDays } from "../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../lib/dates/date-values";
 import { buildHabitMonthView, type HabitMonthCellState } from "./month-view";
 import type { Habit, HabitEntry } from "./model";
@@ -248,5 +253,63 @@ describe("buildHabitMonthView", () => {
       .map((cell) => cell.day);
     // Nur vergangene Montage: der 3. und der 10. August 2026.
     expect(interactive).toEqual(["2026-08-03", "2026-08-10"]);
+  });
+});
+
+/*
+ * Arbeitsbudget, Issue #124. Das Monatsraster ist die dichteste Ansicht der
+ * Routinen: 31 Spalten je aktiver Routine. Gemessen wird die Zahl der
+ * Feldzugriffe auf die Check-ins, nicht die Wanduhrzeit.
+ */
+describe("buildHabitMonthView – Arbeitsbudget", () => {
+  function measure(habitCount: number, historyDays: number): number {
+    const counter = createAccessCounter();
+    const habits = Array.from({ length: habitCount }, (_, index) =>
+      createHabit({
+        id: `00000000-0000-4000-8000-00000000${String(2000 + index).padStart(4, "0")}`,
+        startDate: "2020-01-01",
+      }),
+    );
+    const entriesByHabit = new Map(
+      habits.map((habit) => [
+        habit.id,
+        countPropertyReads(
+          Array.from({ length: historyDays }, (_, day) =>
+            createHabitEntry(addCalendarDays("2026-08-31", -day), "done", {
+              habitId: habit.id,
+            }),
+          ),
+          counter,
+        ),
+      ]),
+    );
+
+    buildHabitMonthView({
+      entriesByHabit,
+      habits,
+      month: "2026-08",
+      today: "2026-08-31",
+    });
+    return counter.reads;
+  }
+
+  it("touches the history once, not once per column", () => {
+    const short = measure(1, 400);
+    const long = measure(1, 1_200);
+
+    /*
+     * Der Ausschnitt auf den Monat läuft einmal über die Historie; alles
+     * danach arbeitet auf dem Ausschnitt. Wenige Zugriffe je zusätzlichem
+     * Eintrag sind dieser eine Lauf. Ohne den Ausschnitt wüchse die Differenz
+     * um den Faktor der 31 Spalten.
+     */
+    // Gemessen: zwei Zugriffe je zusätzlichem Eintrag.
+    expect(long - short).toBeLessThanOrEqual(800 * 3);
+  });
+
+  it("stays inside the documented budget for a dense month", () => {
+    // 30 Routinen mit je zwei Jahren täglicher Check-ins: gemessen 82.530
+    // Zugriffe, dokumentiert in `docs/KNOWN_LIMITATIONS.md`.
+    expect(measure(30, 730)).toBeLessThan(120_000);
   });
 });

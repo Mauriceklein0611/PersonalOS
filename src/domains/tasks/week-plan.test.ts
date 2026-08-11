@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import { addCalendarDays } from "../../lib/dates/calendar-days";
+import {
+  countPropertyReads,
+  createAccessCounter,
+} from "../../test/access-counter";
 import type { Task } from "./model";
 import { buildTaskWeekPlan } from "./week-plan";
 
@@ -139,6 +144,47 @@ describe("buildTaskWeekPlan", () => {
 
     expect(plan.days.filter((day) => day.isToday)).toHaveLength(1);
     expect(plan.days[2].isToday).toBe(true);
+  });
+});
+
+/*
+ * Arbeitsbudget, Issue #124. Der Wochenplan liest die gesamte Aufgabenliste;
+ * gemessen wird die Zahl der Feldzugriffe, nicht die Wanduhrzeit.
+ */
+describe("buildTaskWeekPlan – Arbeitsbudget", () => {
+  function measure(taskCount: number): number {
+    const counter = createAccessCounter();
+    const tasks = Array.from({ length: taskCount }, (_, index) =>
+      createTask(String(index).padStart(2, "0"), {
+        id: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+        // Zwei Wochen Plandaten: Die Hälfte fällt in die gezeigte Woche.
+        plannedDate: addCalendarDays(monday, index % 14),
+      }),
+    );
+
+    buildTaskWeekPlan({
+      tasks: countPropertyReads(tasks, counter),
+      today: monday,
+    });
+    return counter.reads;
+  }
+
+  it("stays inside the documented budget for a large list", () => {
+    // 3.000 Aufgaben: gemessen 38.976 Zugriffe, dokumentiert in
+    // `docs/KNOWN_LIMITATIONS.md`.
+    expect(measure(3_000)).toBeLessThan(60_000);
+  });
+
+  it("grows linearly with the list, not with the days times the list", () => {
+    const single = measure(3_000);
+    const double = measure(6_000);
+
+    /*
+     * Der Tagesaufbau arbeitet auf der bereits gefilterten Woche. Verdoppelt
+     * sich die Liste, verdoppelt sich die Arbeit — sie vervierzehnfacht sich
+     * nicht.
+     */
+    expect(double).toBeLessThanOrEqual(single * 2.2);
   });
 });
 

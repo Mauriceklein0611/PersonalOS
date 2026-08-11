@@ -29,7 +29,22 @@ Stand: 07.08.2026. Diese Liste beschreibt bewusst akzeptierte Grenzen des aktuel
 
 - Die Verdichtung des Tagesablaufs wurde mit rund 3.000 Aufgaben, 40 Routinen und 730 Journaleinträgen gemessen und liegt bei etwa 33 Millisekunden. Der zugehörige Test sichert nur die Größenordnung ab.
 - Listen werden noch nicht virtualisiert. Das ist erst ab einer nachgewiesenen Schwelle vorgesehen.
-- Der Diagramm-Chunk liegt bei 177,17 kB von 190 kB gzip, die Startroute bei 154,35 kB von 165 kB gzip (gemessen am 07.08.2026 mit `pnpm check:bundle`). Beide Budgets sind in [ADR 0008](decisions/0008-echarts-for-charts.md) begründet und werden in der CI geprüft. Ein weiterer Diagrammtyp ist darin nicht mehr vorgesehen, ohne die Entscheidung neu zu bewerten.
+- Der Diagramm-Chunk liegt bei 177,25 kB von 190 kB gzip, die Startroute bei 156,86 kB von 165 kB gzip, der größte einzelne Routen-Chunk bei 12,89 kB von 25 kB gzip je Datei (gemessen am 11.08.2026 mit `pnpm check:bundle`). Alle drei Budgets sind in [ADR 0008](decisions/0008-echarts-for-charts.md) begründet und werden in der CI geprüft. Ein weiterer Diagrammtyp ist darin nicht mehr vorgesehen, ohne die Entscheidung neu zu bewerten.
+- Die dichten Raster zeigen kein Diagramm und laden die Diagrammbibliothek nicht. Geprüft wird das doppelt: im Quelltext (`echarts-boundary.test.ts`) und im Browser über den Netzverkehr der Tagesübersicht, der Routinen- und der Aufgabenansichten.
+
+### Arbeitsbudgets der dichten Ansichten
+
+Gemessen wird die Zahl der Feldzugriffe auf die Datensätze, nicht die Wanduhrzeit: Eine Zeitmessung schwankt auf einem geteilten CI-Läufer so stark, dass sie eine zusätzliche Schleife über alle Datensätze nicht mehr bemerkt. Stand 11.08.2026, synthetische Daten:
+
+| Ansicht | Datenmenge | Gemessen | Budget |
+| --- | --- | --- | --- |
+| Monatsraster der Routinen | 30 Routinen × 730 Check-ins | 82.530 Zugriffe | 120.000 |
+| Wochenplan der Aufgaben | 3.000 Aufgaben | 38.976 Zugriffe | 60.000 |
+
+Zwei Eigenschaften sichern die Tests zusätzlich ab, weil sie mehr aussagen als der Absolutwert:
+
+- Das Monatsraster fasst die Historie **einmal** an, nicht einmal je Spalte: 800 zusätzliche Check-ins außerhalb des Monats kosten rund 1.600 Zugriffe, nicht das 31-Fache.
+- Der Wochenplan wächst linear mit der Aufgabenliste, nicht mit Liste × sieben Tagen.
 
 ## Offene Punkte
 
