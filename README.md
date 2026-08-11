@@ -37,6 +37,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Entwicklungsablauf](docs/DEVELOPMENT.md)
 - [Datenschutz- und Sicherheitsbasis](docs/PRIVACY_AND_SECURITY.md)
 - [Leistungsbudgets](docs/PERFORMANCE.md)
+- [Dogfood-Protokoll](docs/DOGFOOD.md)
 - [Bekannte Einschränkungen](docs/KNOWN_LIMITATIONS.md)
 - [Local-first-Entscheidung](docs/decisions/0001-local-first-pwa.md)
 - [Theme-Bootstrap-Spiegel](docs/decisions/0002-theme-bootstrap-mirror.md)
