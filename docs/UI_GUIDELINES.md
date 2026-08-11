@@ -181,6 +181,18 @@ Der Grundgedanke in einem Satz: **Glas ist der Rahmen, das dichte Panel ist der 
 - Zeilen sind Einträge, Spalten sind Tage — wie unter „Tracker-Raster“. Innerhalb eines dichten Panels gilt zusätzlich: keine Fläche je Zelle außer für Zustand, kein eigener Radius über `--radius-cell` hinaus.
 - Fehlende oder zukünftige Tage bleiben `Keine Angabe`. Ein Nenner aus Kalendertagen erzeugt sonst ein `0 %`, das niemand erfasst hat.
 - Das Raster scrollt in seinem eigenen Container. Auf Mobil stehen nie sieben schmale Spalten nebeneinander, nur weil die Woche sieben Tage hat.
+- `TrackerCell` kennt `outside` für Tage außerhalb des Zeitraums eines Eintrags. Die Zelle bleibt dort ohne Zeichen und ohne Rahmen: Es gab nichts zu tun, und ein weiteres Zeichen würde eine Erwartung andeuten, die nie bestand. Der Text der Zelle nennt den Zustand trotzdem.
+
+### Monatsraster
+
+Ein Monatsraster zeigt Einträge × reale Kalendertage des gewählten Monats. Es ist die Ansicht selbst, nicht ihre Auswertung, und trägt deshalb kein Diagramm.
+
+- Sechs Zustände je Zelle: erledigt, offen (vergangener fälliger Tag ohne Eintrag), übersprungen, nicht fällig, später fällig und außerhalb des Zeitraums. `offen` und `später fällig` bleiben getrennt — nur der vergangene Tag geht in eine Quote ein.
+- Der Nenner bleibt `counted = max(done, target − skipped)` aus der Fachlogik. `Einträge × Kalendertage` gibt es nicht, und die Quote endet am heutigen Tag, nicht am Monatsende.
+- Der Wochenanfang folgt `settings.weekStartsOn`. Die Woche ist zusätzlich strukturell markiert: ein Wochenkopf über den Spalten und eine Linie an der Grenze, nicht nur eine Farbe.
+- Ein ganzer Monat passt auf keiner Breite ohne Scroller. Die stehende erste Spalte trägt deshalb Name **und** Quote, damit die Zahl ohne waagerechtes Scrollen lesbar bleibt.
+- Die Tageszusammenfassung steht als Fußzeile unter ihren Spalten und nennt Zähler und Nenner. Ohne zählende Einheit steht dort `Keine Angabe`.
+- Eine kompakte Legende steht **hinter** dem Raster: Sie erklärt, was dort schon zu sehen ist.
 
 ### Tabs
 

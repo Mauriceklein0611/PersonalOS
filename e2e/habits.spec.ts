@@ -130,6 +130,109 @@ test("puts the check-in grid before the evaluation in the week view", async ({
     .toBeGreaterThan(0);
 });
 
+/*
+ * #122: Das Monatsraster rechnet nach der bestehenden Semantik und lädt keine
+ * Diagrammbibliothek. Es ist die Ansicht selbst, nicht ihre Auswertung.
+ */
+test("tracks a month without a chart and keeps it available offline", async ({
+  context,
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+
+  const chartRequests: string[] = [];
+  page.on("request", (request) => {
+    if (/ChartCanvas|echarts/i.test(request.url())) {
+      chartRequests.push(request.url());
+    }
+  });
+
+  await page.goto("/routinen/uebersicht");
+  await page.getByRole("button", { name: "Neue Routine" }).click();
+  await page.getByRole("textbox", { name: /Name/ }).fill("Abendspaziergang");
+  await page.getByRole("button", { name: "Routine anlegen" }).click();
+  await expect(
+    page.getByRole("article", { name: "Abendspaziergang" }),
+  ).toBeVisible();
+
+  // Überspringen bleibt neutral und wird im Raster als eigener Zustand geführt.
+  await page
+    .getByRole("button", { name: "„Abendspaziergang“ heute überspringen" })
+    .click();
+  await page
+    .getByRole("button", { name: "„Abendspaziergang“ heute doch erledigen" })
+    .click();
+
+  await page.getByRole("tab", { name: /^Monat/ }).click();
+  const grid = page.getByRole("region", {
+    name: "Monatsstatus, horizontal scrollbar",
+  });
+  await expect(grid).toBeVisible();
+
+  const today = new Intl.DateTimeFormat("de-DE", { dateStyle: "long" }).format(
+    new Date(),
+  );
+  const todayCell = page.getByRole("button", {
+    name: `Abendspaziergang am ${today}: Erledigt. Check-in entfernen`,
+  });
+  await expect(todayCell).toBeVisible();
+
+  // Das Raster scrollt in sich selbst; das Dokument bleibt schmal.
+  expect(
+    await grid.evaluate((element) => element.scrollWidth > element.clientWidth),
+  ).toBe(true);
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+  await grid.focus();
+  await expect(grid).toBeFocused();
+
+  // Ein Monat ohne Routine zeigt keine erfundene Nullquote.
+  await page.getByRole("button", { name: "Vorheriger Monat" }).click();
+  await expect(
+    page.getByText("In diesem Monat war keine Routine aktiv."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Nächster Monat" }).click();
+  await expect(todayCell).toBeVisible();
+
+  await page.reload();
+  await page.getByRole("tab", { name: /^Monat/ }).click();
+  await expect(todayCell).toBeVisible();
+
+  expect(chartRequests).toHaveLength(0);
+
+  await waitForServiceWorker(page);
+  await context.setOffline(true);
+  try {
+    await page.reload();
+    await page.getByRole("tab", { name: /^Monat/ }).click();
+    await expect(todayCell).toBeVisible();
+  } finally {
+    await context.setOffline(false);
+  }
+});
+
+async function waitForServiceWorker(page: import("@playwright/test").Page) {
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const registration = await navigator.serviceWorker.getRegistration();
+        return Boolean(registration?.active);
+      }),
+    )
+    .toBe(true);
+  await page.reload();
+  await expect
+    .poll(() =>
+      page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+    )
+    .toBe(true);
+}
+
 test("keeps the week grid scrolling inside itself at 320 pixels", async ({
   page,
 }) => {

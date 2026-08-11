@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 
 import type { SettingsDetails } from "../../db/schemas/settings";
+import type { WeekStartsOn } from "../../lib/dates/calendar-days";
 import { detectTimeZone } from "../../lib/dates/date-values";
 
 export type AppSettingsContextValue = {
@@ -43,6 +44,16 @@ export function useAppSettings(): AppSettingsContextValue {
 export function useTimeZone(override?: string): string {
   const value = useContext(AppSettingsContext);
   return override ?? value?.settings.timeZone ?? detectTimeZone();
+}
+
+/**
+ * Der erste Wochentag aus den Einstellungen. Das Schema kennt bisher nur den
+ * Montag; Ansichten fragen den Wert trotzdem hier ab, statt ihn fest zu
+ * verdrahten. Siehe `weekStartsOn` in `src/db/schemas/settings.ts`.
+ */
+export function useWeekStartsOn(override?: WeekStartsOn): WeekStartsOn {
+  const value = useContext(AppSettingsContext);
+  return override ?? value?.settings.weekStartsOn ?? 1;
 }
 
 /** Die Übersichtswährung aus den Einstellungen. */

@@ -397,6 +397,7 @@ export function Component() {
                 ["skipped", "Übersprungen"],
                 ["open", "Offen"],
                 ["none", "Keine Angabe"],
+                ["outside", "Außerhalb des Zeitraums"],
               ] as Array<[TrackerCellState, string]>
             ).map(([state, label]) => (
               <li key={state}>

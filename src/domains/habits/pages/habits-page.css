@@ -256,7 +256,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.habit-week-scroll {
+.habit-week-scroll,
+.habit-month-scroll {
   padding-bottom: var(--space-2);
 }
 
@@ -274,7 +275,8 @@
   text-align: left;
 }
 
-.habit-week-table thead th span {
+.habit-week-table thead th span,
+.habit-month-table thead th span {
   display: block;
 }
 
@@ -286,7 +288,11 @@
  * Zellen und Fokusring.
  */
 .habit-week-table tbody th,
-.habit-week-table thead th:first-child {
+.habit-week-table thead th:first-child,
+.habit-month-table tbody th,
+.habit-month-table tfoot th,
+.habit-month-table thead th:first-child,
+.habit-month-corner {
   position: sticky;
   z-index: 1;
   left: 0;
@@ -295,6 +301,71 @@
   overflow-wrap: anywhere;
   background: var(--dense-panel);
   text-align: left;
+}
+
+.habit-month-panel {
+  margin-bottom: var(--space-4);
+}
+
+/*
+ * Ein ganzer Monat passt auf keiner Breite ohne Scroller. Die Routinenspalte
+ * trägt deshalb die Quote gleich mit: Sie bleibt links stehen, während die
+ * Tage darunter durchlaufen, und ist damit ohne Scrollen ablesbar.
+ */
+.habit-month-row-name,
+.habit-month-row-rate {
+  display: block;
+}
+
+.habit-month-row-rate {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Die Wochengrenze steht zusätzlich zur Farbe als Linie im Raster. */
+.habit-month-table [data-week-start="true"] {
+  border-left: 1px solid var(--dense-edge);
+}
+
+.habit-month-table thead th[scope="colgroup"] {
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.habit-month-table tfoot td {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+.habit-month-day-total {
+  display: block;
+  min-width: var(--control-height);
+}
+
+.habit-month-summary {
+  margin: var(--space-3) 0;
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.habit-month-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  list-style: none;
+}
+
+.habit-month-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .habit-progress-card h3 {
