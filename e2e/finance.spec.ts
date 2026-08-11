@@ -85,7 +85,7 @@ test("records income and expenses and protects used categories", async ({
   await page
     .getByRole("combobox", { name: /Kategorie für das Budget/ })
     .selectOption({ label: "Sonstige Ausgaben" });
-  await page.getByRole("textbox", { name: /Budget in Euro/ }).fill("20,00");
+  await page.getByRole("textbox", { name: /Budget in EUR/ }).fill("20,00");
   await page.getByRole("button", { name: "Budget speichern" }).click();
   await expect(page.getByText("Das Budget wurde gespeichert.")).toBeVisible();
   await expect(
@@ -147,7 +147,7 @@ test("counts a linked contribution once and names the bound amount", async ({
     .getByRole("textbox", { name: /Name des Sparziels/ })
     .fill("Synthetische Rücklage");
   await page
-    .getByRole("textbox", { name: /Zielbetrag in Euro/ })
+    .getByRole("textbox", { name: /Zielbetrag in EUR/ })
     .fill("1.000,00");
   await page.getByRole("button", { name: "Sparziel anlegen" }).click();
   await page
@@ -156,7 +156,7 @@ test("counts a linked contribution once and names the bound amount", async ({
     })
     .click();
 
-  await page.getByRole("textbox", { name: /Beitrag in Euro/ }).fill("250,00");
+  await page.getByRole("textbox", { name: /Beitrag in EUR/ }).fill("250,00");
   await page
     .getByRole("combobox", { name: /Belegende Ausgabe/ })
     .selectOption({ index: 1 });
@@ -207,7 +207,7 @@ test("tracks a savings goal only through its contributions", async ({
     .getByRole("textbox", { name: /Name des Sparziels/ })
     .fill("Synthetische Rücklage");
   await page
-    .getByRole("textbox", { name: /Zielbetrag in Euro/ })
+    .getByRole("textbox", { name: /Zielbetrag in EUR/ })
     .fill("1.000,00");
   await page.getByRole("button", { name: "Sparziel anlegen" }).click();
   await expect(page.getByText("Das Sparziel wurde angelegt.")).toBeVisible();
@@ -218,7 +218,7 @@ test("tracks a savings goal only through its contributions", async ({
       name: "Verlauf von „Synthetische Rücklage“ anzeigen",
     })
     .click();
-  await page.getByRole("textbox", { name: /Beitrag in Euro/ }).fill("250,00");
+  await page.getByRole("textbox", { name: /Beitrag in EUR/ }).fill("250,00");
   await page.getByRole("button", { name: "Beitrag hinzufügen" }).click();
 
   // Zweimal: als Gesamtstand über alle Ziele und am Ziel selbst.
@@ -304,9 +304,7 @@ test("stays operable while two charts are drawn at once", async ({ page }) => {
   await page
     .getByRole("textbox", { name: /Name des Sparziels/ })
     .fill("Synthetische Rücklage");
-  await page
-    .getByRole("textbox", { name: /Zielbetrag in Euro/ })
-    .fill("500,00");
+  await page.getByRole("textbox", { name: /Zielbetrag in EUR/ }).fill("500,00");
   await page.getByRole("button", { name: "Sparziel anlegen" }).click();
   await expect(page.getByText("Das Sparziel wurde angelegt.")).toBeVisible();
   await page
@@ -314,7 +312,7 @@ test("stays operable while two charts are drawn at once", async ({ page }) => {
       name: "Verlauf von „Synthetische Rücklage“ anzeigen",
     })
     .click();
-  await page.getByRole("textbox", { name: /Beitrag in Euro/ }).fill("100,00");
+  await page.getByRole("textbox", { name: /Beitrag in EUR/ }).fill("100,00");
   await page.getByRole("button", { name: "Beitrag hinzufügen" }).click();
   await expect(page.getByText("Der Beitrag wurde gespeichert.")).toBeVisible();
 

@@ -124,7 +124,7 @@ export function BudgetSection({
           error={error}
           hint="Monatlicher Betrag, zum Beispiel 250,00."
           inputMode="decimal"
-          label="Budget in Euro"
+          label={`Budget in ${currency}`}
           onChange={(event) => {
             setAmount(event.currentTarget.value);
             setError(undefined);
