@@ -48,6 +48,82 @@ test("blocks unexpected external connections with the production CSP", async ({
   ).toBeVisible();
 });
 
+/**
+ * Netzwerkanalyse über einen vollständigen Tagesablauf, Issue #29.
+ *
+ * Der erste Seitenaufruf beweist wenig: Fachdaten entstehen erst beim
+ * Erfassen. Diese Prüfung schreibt Aufgabe, Check-in, Journal und Buchung und
+ * hört dabei jeder Anfrage zu, die der Browser stellt.
+ */
+test("sends nothing to the network while a full day is captured", async ({
+  page,
+}) => {
+  const requests: { method: string; url: string; body: string | null }[] = [];
+  page.on("request", (request) => {
+    requests.push({
+      body: request.postData(),
+      method: request.method(),
+      url: request.url(),
+    });
+  });
+
+  await page.goto("/");
+  await page
+    .getByRole("textbox", { name: "Aufgabe für heute" })
+    .fill("Synthetische Aufgabe");
+  await page.getByRole("button", { name: "Aufgabe hinzufügen" }).click();
+  await expect(
+    page.getByRole("heading", { level: 3, name: "Synthetische Aufgabe" }),
+  ).toBeVisible();
+
+  await page.goto("/routinen/journal");
+  await page
+    .getByRole("textbox", { name: /Highlight/ })
+    .fill("Synthetischer Eintrag");
+  await page
+    .getByRole("button", { name: /speichern/ })
+    .first()
+    .click();
+
+  await page.goto("/geld");
+  await page.getByRole("textbox", { name: /Betrag in/ }).fill("12,50");
+  await page
+    .getByRole("combobox", { name: /Kategorie der Buchung/ })
+    .selectOption({ label: "Lebensmittel" });
+  await page.getByRole("button", { name: "Buchung speichern" }).click();
+  await expect(page.getByRole("table").first()).toBeVisible();
+
+  await page.goto("/auswertung/ueberblick");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Auswertung" }),
+  ).toBeVisible();
+
+  const foreign = requests.filter(
+    (request) => new URL(request.url).origin !== "http://127.0.0.1:4173",
+  );
+  expect(foreign).toEqual([]);
+
+  // Kein Request trägt einen Rumpf; damit kann keiner Fachdaten mitnehmen.
+  expect(requests.filter((request) => request.body !== null)).toEqual([]);
+  expect(
+    requests.filter((request) => !["GET", "HEAD"].includes(request.method)),
+  ).toEqual([]);
+
+  /*
+   * Die einzige Anfrage, die keine Datei holt, ist der inhaltsfreie
+   * Erreichbarkeitstest. Sein Pfad existiert nicht; er fragt nur, ob der
+   * eigene Origin antwortet.
+   */
+  const nonAssetPaths = requests
+    .map((request) => new URL(request.url).pathname)
+    .filter((path) => !/\.[a-z0-9]+$/i.test(path))
+    .filter((path) => !["/", "/geld"].includes(path))
+    .filter((path) => !path.startsWith("/routinen"))
+    .filter((path) => !path.startsWith("/auswertung"))
+    .filter((path) => !path.startsWith("/planen"));
+  expect([...new Set(nonAssetPaths)]).toEqual(["/__personalos-online-check__"]);
+});
+
 test("downloads a safety backup before clearing local data", async ({
   page,
 }) => {

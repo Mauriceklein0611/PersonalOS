@@ -61,6 +61,7 @@ export function createBackupService(
         throw new BackupIntegrityError({ cause: error });
       }
 
+      assertNoPrototypeKeys(input);
       const backup = personalOsBackupSchema.parse(input);
       assertCounts(backup);
       assertBackupIntegrity(backup.data);
@@ -112,6 +113,37 @@ async function readAllTables(
     ),
   );
   return backupDataSchema.parse(rawData);
+}
+
+/**
+ * `__proto__` überlebt die strikte Feldprüfung: Zod fragt die Feldliste mit
+ * `in` ab, und `"__proto__" in shape` ist wegen der geerbten Eigenschaft immer
+ * wahr. Der Schlüssel gilt dadurch als bekannt und landet als eigene
+ * Eigenschaft im Datensatz.
+ *
+ * Der Prototyp bleibt dabei unverändert — `JSON.parse` legt eine eigene
+ * Eigenschaft an und verschiebt nichts. Das Feld überlebte aber Import,
+ * Datenbank und jeden späteren Export, und genau das darf ein Import nicht
+ * können. Die Datei wird deshalb abgelehnt, bevor irgendetwas geschrieben ist.
+ * Gefunden im Datenschutz- und Sicherheitsreview, siehe
+ * `docs/audits/privacy-security-review.md`.
+ */
+function assertNoPrototypeKeys(value: unknown): void {
+  if (value === null || typeof value !== "object") {
+    return;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      assertNoPrototypeKeys(item);
+    }
+    return;
+  }
+  if (Object.hasOwn(value, "__proto__")) {
+    throw new BackupIntegrityError();
+  }
+  for (const item of Object.values(value)) {
+    assertNoPrototypeKeys(item);
+  }
 }
 
 /**
