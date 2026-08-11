@@ -68,7 +68,15 @@ export function getWeekStart(
 export function getIsoWeekBounds(
   value: CalendarDay,
 ): [CalendarDay, CalendarDay] {
-  const start = getWeekStart(value, 1);
+  return getWeekBounds(value, 1);
+}
+
+/** Erster und letzter Tag der konfigurierten Kalenderwoche. */
+export function getWeekBounds(
+  value: CalendarDay,
+  weekStartsOn: WeekStartsOn = 1,
+): [CalendarDay, CalendarDay] {
+  const start = getWeekStart(value, weekStartsOn);
   return [start, addCalendarDays(start, 6)];
 }
 

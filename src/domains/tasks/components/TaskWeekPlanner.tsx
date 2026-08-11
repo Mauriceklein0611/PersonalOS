@@ -1,4 +1,4 @@
-import { ProgressBar } from "../../../components/ui";
+import { ProgressBar, ViewPurpose } from "../../../components/ui";
 import type { CalendarDay } from "../../../lib/dates/date-values";
 import type { Task } from "../model";
 import type { TaskQueryContext } from "../queries";
@@ -51,13 +51,17 @@ export function TaskWeekPlanner({
 }: TaskWeekPlannerProps) {
   return (
     <div className="task-week-planner">
+      <ViewPurpose
+        period={`${formatCalendarDay(plan.from)} bis ${formatCalendarDay(plan.to)}`}
+        purpose="Der Wochenplan ordnet ausschließlich Aufgaben mit Plandatum den sieben Tagen zu. Aufgaben ohne Plandatum bleiben in der Inbox."
+        question="Was habe ich an welchem Tag eingeplant?"
+      />
       <p className="task-week-summary">
         Woche vom {formatCalendarDay(plan.from)} bis{" "}
         {formatCalendarDay(plan.to)}:{" "}
         {plan.planned === 0
           ? "keine Aufgabe mit Plandatum."
-          : `${plan.completed} von ${plan.planned} geplanten Aufgaben erledigt.`}{" "}
-        Aufgaben ohne Plandatum bleiben in der Inbox.
+          : `${plan.completed} von ${plan.planned} geplanten Aufgaben erledigt.`}
       </p>
 
       {/*

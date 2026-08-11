@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { useTimeZone } from "../../../app/settings/settings-context";
-import { Button, MetricTile } from "../../../components/ui";
-import { calendarDayForInstant } from "../../../lib/dates/calendar-days";
+import {
+  useTimeZone,
+  useWeekStartsOn,
+} from "../../../app/settings/settings-context";
+import { Button, MetricTile, ViewPurpose } from "../../../components/ui";
+import {
+  calendarDayForInstant,
+  type WeekStartsOn,
+} from "../../../lib/dates/calendar-days";
 import { describePeriod } from "../score-view-model";
 import type { ScorePeriod } from "../score-model";
 import {
@@ -18,6 +24,7 @@ export type WeeklyReviewPageProps = {
   insightService?: InsightService;
   now?: () => Date;
   timeZone?: string;
+  weekStartsOn?: WeekStartsOn;
 };
 
 type FigureKey = "tasks" | "habits" | "journal" | "goals" | "finance";
@@ -40,8 +47,10 @@ export function WeeklyReviewPage({
   insightService = personalOsInsightService,
   now = () => new Date(),
   timeZone: timeZoneOverride,
+  weekStartsOn: weekStartsOnOverride,
 }: WeeklyReviewPageProps) {
   const timeZone = useTimeZone(timeZoneOverride);
+  const weekStartsOn = useWeekStartsOn(weekStartsOnOverride);
   const today = useMemo(
     () => calendarDayForInstant(now(), timeZone),
     [now, timeZone],
@@ -50,7 +59,9 @@ export function WeeklyReviewPage({
   // Das Blättern über Wochen stammt aus `InsightsPage` (dort war es an denselben
   // Wochenblock gebunden, den diese Seite jetzt trägt) und ist hier keine neue
   // Funktion, sondern derselbe, umgezogene Zustand.
-  const [week, setWeek] = useState<ScorePeriod>(() => getWeekPeriod(today));
+  const [week, setWeek] = useState<ScorePeriod>(() =>
+    getWeekPeriod(today, weekStartsOn),
+  );
   const [current, setCurrent] = useState<WeeklyReview>();
   const [previous, setPrevious] = useState<WeeklyReview>();
   const [isLoading, setIsLoading] = useState(true);
@@ -96,13 +107,14 @@ export function WeeklyReviewPage({
     >
       <header className="page-header">
         <div className="page-header-copy">
-          <p className="page-eyebrow">Ohne Bewertung</p>
+          <p className="page-eyebrow">Reflexion · ohne Bewertung</p>
           <h1 id="page-title">Wochenrückblick</h1>
           <p className="page-description">
-            Aufgaben-, Routinen- und Zielentwicklung dieser Woche neben der
-            Vorwoche – als Zahlen mit Zeitraum und Datenbasis, nicht als
-            Bewertung. Aus dem Journal geht nur die Anzahl der Tage mit einem
-            Eintrag ein, kein Freitext.
+            Dieser Rückblick schaut auf eine abgeschlossene oder laufende
+            Kalenderwoche. Er plant nichts neu, sondern stellt Aufgaben,
+            Routinen, Journal, Ziele und Ausgaben derselben Vorwoche gegenüber.
+            Aus dem Journal geht nur die Anzahl der Tage mit einem Eintrag ein,
+            kein Freitext.
           </p>
         </div>
       </header>
@@ -129,6 +141,11 @@ export function WeeklyReviewPage({
           className="page-section weekly-review-week"
         >
           <h2 id="weekly-review-week-title">Woche vom {currentPeriodText}</h2>
+          <ViewPurpose
+            period={currentPeriodText}
+            purpose="Der Wochenrückblick vergleicht dieselben fünf Bereiche mit der Vorwoche. Er zeigt Beobachtungen mit Datenbasis, keine Planung und keine Bewertung."
+            question="Was ist in dieser Woche passiert?"
+          />
           <div className="weekly-review-week-navigation">
             <Button
               onClick={() => setWeek(shiftWeek(week, -1))}

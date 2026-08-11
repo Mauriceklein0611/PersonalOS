@@ -97,6 +97,9 @@ describe("HabitsPage", () => {
     await screen.findByRole("heading", { level: 2, name: "Heute fällig" });
     await user.click(screen.getByRole("tab", { name: /^Woche/ }));
 
+    expect(
+      screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Was war geplant und was habe ich eingecheckt?");
     // Das Wochendiagramm bringt seine Werte als eigene Tabelle mit; gemeint
     // ist hier das Raster.
     const table = await screen.findByRole("table", {
@@ -136,6 +139,24 @@ describe("HabitsPage", () => {
         name: "Rücken dehnen am 3. August 2026: Erledigt. Check-in entfernen",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("shows the configured Sunday-to-Saturday period", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryHabitService([createDailyHabit()]);
+    render(
+      <HabitsPage
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+        weekStartsOn={7}
+      />,
+    );
+
+    await user.click(await screen.findByRole("tab", { name: /^Woche/ }));
+    expect(
+      screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Zeitraum: 02.08.2026 bis 08.08.2026");
   });
 
   it("shows the month grid with derived quotas and an untouched future", async () => {

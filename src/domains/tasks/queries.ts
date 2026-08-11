@@ -1,7 +1,8 @@
 import { type CalendarDay } from "../../lib/dates/date-values";
 import {
   calendarDayForInstant,
-  getIsoWeekBounds,
+  getWeekBounds,
+  type WeekStartsOn,
 } from "../../lib/dates/calendar-days";
 
 export { calendarDayForInstant as formatCalendarDay };
@@ -12,6 +13,7 @@ export type TaskView = "inbox" | "today" | "week" | "completed";
 export type TaskQueryContext = {
   timeZone: string;
   today: CalendarDay;
+  weekStartsOn?: WeekStartsOn;
 };
 
 /** Reihenfolge der Priorität in jeder Planungsansicht. */
@@ -24,8 +26,13 @@ export const taskPriorityRank: Record<Task["priority"], number> = {
 export function createTaskQueryContext(
   now = new Date(),
   timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+  weekStartsOn: WeekStartsOn = 1,
 ): TaskQueryContext {
-  return { timeZone, today: calendarDayForInstant(now, timeZone) };
+  return {
+    timeZone,
+    today: calendarDayForInstant(now, timeZone),
+    weekStartsOn,
+  };
 }
 
 export function queryTasks(
@@ -47,7 +54,10 @@ export function queryTasks(
   }
 
   const open = visible.filter((task) => task.status === "open");
-  const [weekStart, weekEnd] = getIsoWeekBounds(context.today);
+  const [weekStart, weekEnd] = getWeekBounds(
+    context.today,
+    context.weekStartsOn,
+  );
   const matching = open.filter((task) => {
     const dates = getTaskCalendarDays(task, context.timeZone);
     if (view === "inbox") return dates.length === 0;

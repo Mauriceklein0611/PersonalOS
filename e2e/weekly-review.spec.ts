@@ -9,11 +9,7 @@ test("shows the week with its basis and an explicit previous-week comparison", a
   await expect(
     page.getByRole("heading", { level: 1, name: "Wochenrückblick" }),
   ).toBeVisible();
-  await expect(
-    page.getByText(
-      /als Zahlen mit Zeitraum und Datenbasis, nicht als Bewertung/,
-    ),
-  ).toBeVisible();
+  await expect(page.getByText(/Er plant nichts neu/)).toBeVisible();
   await expect(
     page.getByText(
       "Aus dem Journal geht nur die Anzahl der Tage mit einem Eintrag ein, kein Freitext.",
@@ -23,6 +19,9 @@ test("shows the week with its basis and an explicit previous-week comparison", a
   await expect(
     page.getByRole("heading", { level: 2, name: /^Woche vom/ }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("note", { name: "Zweck dieser Ansicht" }),
+  ).toContainText("Was ist in dieser Woche passiert?");
   await expect(
     page.getByRole("button", { name: "Nächste Woche" }),
   ).toBeDisabled();
@@ -86,4 +85,9 @@ test("shows the week with its basis and an explicit previous-week comparison", a
       document.documentElement.clientWidth,
   );
   expect(hasHorizontalOverflow).toBe(false);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(
+    page.getByRole("note", { name: "Zweck dieser Ansicht" }),
+  ).toContainText("Was ist in dieser Woche passiert?");
 });

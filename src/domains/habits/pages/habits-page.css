@@ -241,7 +241,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  margin: var(--space-3) 0 0;
+  margin: 0 0 var(--space-3);
   padding: 0;
   color: var(--text-muted);
   font-size: var(--font-size-sm);
@@ -425,6 +425,28 @@
   right: 1rem;
   bottom: calc(var(--mobile-nav-height) + 1rem + env(safe-area-inset-bottom));
   width: min(38rem, calc(100vw - 2rem));
+}
+
+/*
+ * Im mobilen Wochenstatus ersetzt die konkrete Zweckzeile die allgemeine
+ * Seitenbeschreibung. Doppelte Einordnung und zusätzliche Außenabstände
+ * würden das erste Check-in-Raster unter den sichtbaren Bereich schieben.
+ */
+@media (max-width: 34rem) {
+  .habits-page[data-active-view="week"] .page-description {
+    display: none;
+  }
+
+  .habits-page[data-active-view="week"] .habit-page-actions,
+  .habits-page[data-active-view="week"] .habit-view-tabs,
+  .habits-page[data-active-view="week"] .habit-view-panel {
+    margin-top: 0;
+  }
+
+  .habits-page[data-active-view="week"] .ui-view-purpose {
+    margin-block-end: var(--space-2);
+    padding-block: var(--space-2);
+  }
 }
 
 @media (min-width: 40rem) {

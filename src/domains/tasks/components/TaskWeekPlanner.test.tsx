@@ -82,6 +82,9 @@ describe("TaskWeekPlanner", () => {
     renderPlanner();
 
     expect(
+      screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Was habe ich an welchem Tag eingeplant?");
+    expect(
       screen.getByText(
         /Woche vom 03\.08\.2026 bis 09\.08\.2026: 1 von 2 geplanten Aufgaben erledigt\./,
       ),

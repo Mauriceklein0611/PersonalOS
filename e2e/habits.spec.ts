@@ -33,6 +33,9 @@ test("creates a habit, checks it in and reflects it in the week view", async ({
   await expect(card.getByText("Erledigt", { exact: true })).toBeVisible();
 
   await page.getByRole("tab", { name: /^Woche/ }).click();
+  await expect(
+    page.getByRole("note", { name: "Zweck dieser Ansicht" }),
+  ).toContainText("Was war geplant und was habe ich eingecheckt?");
   // Das Wochendiagramm bringt seine Werte als eigene Tabelle mit; gemeint ist
   // hier das Raster.
   const weekTable = page.getByRole("table", {
@@ -107,6 +110,9 @@ test("puts the check-in grid before the evaluation in the week view", async ({
   await page.getByRole("button", { name: "Routine anlegen" }).click();
 
   await page.getByRole("tab", { name: /^Woche/ }).click();
+  await expect(
+    page.getByRole("note", { name: "Zweck dieser Ansicht" }),
+  ).toContainText("Was war geplant und was habe ich eingecheckt?");
   const grid = page.getByRole("region", {
     name: "Wochenstatus, horizontal scrollbar",
   });
@@ -114,7 +120,7 @@ test("puts the check-in grid before the evaluation in the week view", async ({
 
   // Das Raster beginnt im ersten Bildschirm, ohne an einem Diagramm vorbei.
   const gridBox = await grid.boundingBox();
-  expect(gridBox!.y).toBeLessThan(844);
+  expect(gridBox!.y).toBeLessThan(page.viewportSize()!.height);
 
   const analysis = page.getByText("Auswertung dieser Woche");
   const analysisBox = await analysis.boundingBox();

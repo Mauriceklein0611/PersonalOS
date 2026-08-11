@@ -49,6 +49,22 @@ describe("task queries", () => {
     ]);
   });
 
+  it("uses the configured Sunday week start for the weekly list", () => {
+    const previousSaturday = createTask("11", {
+      plannedDate: "2026-03-28",
+    });
+    const sunday = createTask("12", { plannedDate: "2026-03-29" });
+    const nextSaturday = createTask("13", { plannedDate: "2026-04-04" });
+    const nextSunday = createTask("14", { plannedDate: "2026-04-05" });
+
+    expect(
+      queryTasks([previousSaturday, sunday, nextSaturday, nextSunday], "week", {
+        ...context,
+        weekStartsOn: 7,
+      }),
+    ).toEqual([sunday, nextSaturday]);
+  });
+
   it("sorts overdue and high-priority work deterministically", () => {
     const normal = createTask("08", { priority: "normal" });
     const highLater = createTask("09", {
