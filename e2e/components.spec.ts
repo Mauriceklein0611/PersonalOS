@@ -129,7 +129,7 @@ test("keeps dense rows a full-size target and states readable as text", async ({
  * Prüfung stellt sicher, dass genau das im Browser ankommt — sonst hinge der
  * Kontrast wieder am Nebel darunter, ohne dass eine Prüfung es meldet.
  */
-test("renders the dense panel opaque and without a backdrop filter", async ({
+test("renders work surfaces opaque and without a backdrop filter", async ({
   page,
 }) => {
   await page.goto("/komponenten");
@@ -138,20 +138,22 @@ test("renders the dense panel opaque and without a backdrop filter", async ({
     await page.getByLabel("Farbschema").selectOption(theme);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 
-    const surface = await page
-      .locator(".ui-dense-panel")
-      .first()
-      .evaluate((element) => {
-        const style = getComputedStyle(element);
-        return {
-          backdropFilter: style.backdropFilter,
-          backgroundColor: style.backgroundColor,
-        };
-      });
+    for (const selector of [".ui-dense-panel", ".ui-card", ".ui-metric-tile"]) {
+      const surface = await page
+        .locator(selector)
+        .first()
+        .evaluate((element) => {
+          const style = getComputedStyle(element);
+          return {
+            backdropFilter: style.backdropFilter,
+            backgroundColor: style.backgroundColor,
+          };
+        });
 
-    expect(surface.backdropFilter).toBe("none");
-    // Deckend heißt: keine Alphakomponente, also `rgb(…)` statt `rgba(…)`.
-    expect(surface.backgroundColor).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
+      expect(surface.backdropFilter).toBe("none");
+      // Deckend heißt: keine Alphakomponente, also `rgb(…)` statt `rgba(…)`.
+      expect(surface.backgroundColor).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
+    }
   }
 });
 

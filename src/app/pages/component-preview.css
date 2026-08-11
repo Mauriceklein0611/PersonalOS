@@ -19,6 +19,10 @@
   border-radius: var(--radius-xl);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
+}
+
+.component-preview-header {
+  background: var(--shell-glass);
   backdrop-filter: var(--blur-glass);
 }
 

@@ -1,8 +1,7 @@
 /*
- * Dashboard-Bausteine in Glas-Optik, Issue #55. Farbe ist immer Zusatz zu
- * Zeichen, Muster oder Text. Kennzahl-Kachel, Rangliste und Diagramm liegen
- * als oberste Ebene über dem Seitengrund und tragen deshalb den Blur;
- * Fortschrittsring und -balken sind Inhalte innerhalb einer Karte.
+ * Dashboard-Bausteine in Neo Quiet Density, Issue #150. Farbe ist immer
+ * Zusatz zu Zeichen, Muster oder Text. Die Flächen bleiben ruhig und deckend;
+ * Neon liegt auf Zahl, Fortschritt und Datenserie, nicht auf dem Container.
  */
 
 .ui-dashboard-grid {
@@ -30,7 +29,6 @@
   color: var(--text);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
-  backdrop-filter: var(--blur-glass);
 }
 
 .ui-metric-tile {
@@ -40,7 +38,6 @@
   gap: var(--space-1);
   padding: var(--space-4);
   border-radius: var(--radius-tile);
-  animation: ui-dataviz-appear var(--duration-fast) var(--ease-standard) both;
 }
 
 .ui-metric-tile[data-tone="hero"] {
@@ -51,7 +48,8 @@
 }
 
 .ui-metric-tile[data-tone="hero"] .ui-metric-tile-label,
-.ui-metric-tile[data-tone="hero"] .ui-metric-tile-context {
+.ui-metric-tile[data-tone="hero"] .ui-metric-tile-context,
+.ui-metric-tile[data-tone="hero"] .ui-metric-tile-value {
   color: inherit;
   opacity: 0.82;
 }
@@ -86,6 +84,7 @@
   font-size: var(--font-size-kpi);
   font-weight: var(--font-weight-kpi);
   font-variant-numeric: tabular-nums;
+  color: var(--accent-text);
   letter-spacing: -0.02em;
   line-height: var(--line-height-tight);
 }
@@ -213,7 +212,7 @@
 }
 
 .ui-progress-bar-value {
-  color: var(--text);
+  color: var(--accent-text);
   font-weight: var(--font-weight-bold);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -517,7 +516,6 @@ button.ui-tracker-cell:disabled {
   margin: 0;
   padding: var(--space-4);
   border-radius: var(--radius-xl);
-  animation: ui-dataviz-appear var(--duration-fast) var(--ease-standard) both;
 }
 
 .ui-chart-head {
@@ -581,16 +579,6 @@ button.ui-tracker-cell:disabled {
 
 .ui-chart-legend-marker[data-tone="6"] {
   color: var(--data-6);
-}
-
-@keyframes ui-dataviz-appear {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
 }
 
 @supports not (backdrop-filter: blur(1px)) {

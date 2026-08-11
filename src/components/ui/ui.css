@@ -1,8 +1,7 @@
 /*
- * Basisbausteine in Glas-Optik, Issue #55. `backdrop-filter` steht nur auf
- * Bausteinen, die als oberste Ebene über dem Seitengrund liegen: Karte,
- * Dialog und Toast. Alles, was in einer Karte liegt, ist eine solide
- * Abstufung über `--glass-strong`.
+ * Basisbausteine in Neo Quiet Density, Issue #150. Gemeinsame Flächen sind
+ * deckend; Blur bleibt der Shell und dem Hero vorbehalten. Alles, was in einer
+ * Karte liegt, ist eine ruhige Abstufung über `--glass-strong`.
  */
 
 .ui-button,
@@ -275,7 +274,6 @@
   color: var(--text);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-lg);
-  backdrop-filter: var(--blur-glass);
 }
 
 .ui-dialog::backdrop {
@@ -326,7 +324,6 @@
   border-radius: var(--radius-xl);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-sm);
-  backdrop-filter: var(--blur-glass);
 }
 
 /* Eine Karte in einer Karte bekommt keine zweite Blur-Ebene. */
@@ -376,7 +373,6 @@
   color: var(--text);
   background: var(--glass);
   box-shadow: var(--glass-highlight), var(--shadow-md);
-  backdrop-filter: var(--blur-glass);
 }
 
 .ui-toast-success {
@@ -543,11 +539,9 @@
 }
 
 /*
- * Quiet Density, Issue #117 und ADR 0014. Die dichte Arbeitsfläche für lange
- * Listen, Tracker und Tabellen. Sie ist deckend und trägt deshalb bewusst
- * kein `backdrop-filter`: Nur eine deckende Fläche sieht mit Blur, ohne Blur
- * und bei `prefers-reduced-transparency: reduce` gleich aus. Ein Panel liegt
- * in der Glasschale; ein Panel in einem Panel gibt es nicht.
+ * Quiet Density, Issue #117, erweitert durch Issue #150 und ADR 0015. Die
+ * dichte Arbeitsfläche ist die kompakteste Stufe der gemeinsamen deckenden
+ * Flächenfamilie. Ein Panel in einem Panel gibt es nicht.
  */
 .ui-dense-panel {
   overflow: hidden;
@@ -650,6 +644,7 @@ button.ui-dense-row:hover,
 /* Zahlenspalte: rechtsbündig, tabellarisch, ohne Umbruch. */
 .ui-dense-numeric {
   flex: none;
+  color: var(--accent-text);
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;

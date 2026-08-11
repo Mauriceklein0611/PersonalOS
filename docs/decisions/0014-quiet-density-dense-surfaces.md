@@ -4,6 +4,10 @@
 - Datum: 2026-08-10
 - Bezug: Issue #117, Epic #116, ergänzt Issue #55 und ADR 0007
 
+> [ADR 0015](0015-neo-quiet-density.md) macht Quiet Density zur visuellen
+> Grundsprache. Die Detailregeln dieses ADR für dichte Panels bleiben gültig;
+> nur die frühere Begrenzung auf eine additive Ausnahme ist ersetzt.
+
 ## Kontext
 
 Die Glasregel aus Issue #55 gilt bisher ohne Ausnahme: Jede Fläche ist durchscheinend, die oberste Ebene trägt `backdrop-filter`, innere Flächen sind eine hellere Abstufung desselben Schleiers. Das trägt Übersichten und Formulare gut.

@@ -32,8 +32,8 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         display: "standalone",
-        background_color: "#e8ecf2",
-        theme_color: "#285c3a",
+        background_color: "#05070d",
+        theme_color: "#05070d",
         categories: ["productivity", "lifestyle"],
         icons: [
           {
