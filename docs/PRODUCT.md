@@ -77,6 +77,20 @@ Zielzeit: unter drei Minuten.
 2. Abweichungen als neutrale Hinweise verstehen.
 3. Prioritäten für die nächste Woche anpassen.
 
+Die vier Wochenflächen haben dabei getrennte Aufgaben und bleiben getrennte
+Datenansichten:
+
+| Fläche | Nutzerfrage | Zweck |
+| --- | --- | --- |
+| Aufgaben – Wochenliste | Was muss ich diese Woche im Blick behalten? | Offene Aufgaben mit Plandatum oder Frist im sichtbaren Zeitraum finden. |
+| Aufgaben – Wochenplan | Was habe ich an welchem Tag eingeplant? | Aufgaben ausschließlich über ihr Plandatum den sieben Tagen zuordnen. |
+| Routinen – Wochenstatus | Was war geplant und was habe ich eingecheckt? | Soll, erledigte Check-ins und neutrale Übersprünge gegenüberstellen. |
+| Auswertung – Wochenrückblick | Was ist in dieser Woche passiert? | Fünf Bereiche mit ihrer Vorwoche vergleichen, ohne neu zu planen oder zu bewerten. |
+
+Alle vier Flächen zeigen ihren Zeitraum ausdrücklich und leiten ihn aus
+Zeitzone und konfiguriertem Wochenanfang ab. Sie teilen keine neue persistierte
+„Woche“: Jede Ansicht liest weiterhin ihre fachliche Quelle.
+
 ## 5. MVP-Scope
 
 Der MVP ist nicht die komplette ursprüngliche Modulliste. Er ist ein stabiler, installierbarer Tagesbegleiter mit verlässlicher Datenhoheit.
@@ -223,4 +237,3 @@ Beispiele:
 - mindestens 90 % der täglichen Nutzung ohne Netzwerk möglich;
 - Life Score ist für jeden Teilwert in höchstens zwei Interaktionen erklärbar;
 - keine offenen P0-/P1-Fehler und keine bekannten Datenschutzlecks.
-

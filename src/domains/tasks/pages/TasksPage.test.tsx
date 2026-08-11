@@ -184,6 +184,40 @@ describe("TasksPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("distinguishes the weekly list from the day-by-day plan", async () => {
+    const user = userEvent.setup();
+    const { service } = createMemoryTaskService([
+      createDatedTask("15", "Frist im Blick", {
+        dueAt: "2026-08-05T10:00:00.000Z",
+      }),
+    ]);
+
+    render(
+      <TasksPage
+        now={() => fixedNow}
+        service={service}
+        timeZone="Europe/Berlin"
+        weekStartsOn={7}
+      />,
+    );
+
+    await user.click(await screen.findByRole("tab", { name: /^Wochenliste/ }));
+    expect(
+      screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Was muss ich diese Woche im Blick behalten?");
+    expect(
+      screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Zeitraum: 02.08.2026 bis 08.08.2026");
+
+    await user.click(screen.getByRole("tab", { name: /^Wochenplan/ }));
+    expect(
+      screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Was habe ich an welchem Tag eingeplant?");
+    expect(
+      screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Zeitraum: 02.08.2026 bis 08.08.2026");
+  });
+
   it("plans the week from the planned date and keeps the denominator on completion", async () => {
     const user = userEvent.setup();
     const { service } = createMemoryTaskService([

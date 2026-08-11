@@ -11,6 +11,7 @@ import {
   RankedBarList,
   Select,
   Toast,
+  ViewPurpose,
   ViewTabs,
   viewTabId,
 } from "../../../components/ui";
@@ -20,7 +21,7 @@ import {
   calendarDayForInstant,
   enumerateCalendarDays,
   getCalendarMonth,
-  getIsoWeekBounds,
+  getWeekBounds,
   type WeekStartsOn,
 } from "../../../lib/dates/calendar-days";
 import type { CalendarDay } from "../../../lib/dates/date-values";
@@ -68,7 +69,7 @@ type HabitUndoAction = {
 
 const habitViews: Array<{ id: HabitsView; label: string }> = [
   { id: "today", label: "Heute" },
-  { id: "week", label: "Woche" },
+  { id: "week", label: "Wochenstatus" },
   { id: "month", label: "Monat" },
   { id: "progress", label: "Fortschritt" },
   { id: "archive", label: "Archiv" },
@@ -198,8 +199,9 @@ export function HabitsPage({
     (habit) => getHabitDayState(habit, entriesFor(habit), today) === "not-due",
   );
 
-  const [weekStart, weekEnd] = getIsoWeekBounds(
+  const [weekStart, weekEnd] = getWeekBounds(
     addCalendarDays(today, weekOffset * 7),
+    weekStartsOn,
   );
   const weekDays = enumerateCalendarDays(weekStart, weekEnd);
   const weekHabits = habits.filter(
@@ -526,10 +528,11 @@ export function HabitsPage({
           </>
         ) : activeView === "week" ? (
           <>
-            <h2>
-              Woche vom {formatCalendarDay(weekStart)} bis{" "}
-              {formatCalendarDay(weekEnd)}
-            </h2>
+            <ViewPurpose
+              period={`${formatCalendarDay(weekStart)} bis ${formatCalendarDay(weekEnd)}`}
+              purpose="Der Wochenstatus stellt geplante Routinen ihren Check-ins gegenüber. Übersprungene Einheiten bleiben neutral und zählen nicht als erledigt."
+              question="Was war geplant und was habe ich eingecheckt?"
+            />
             <div className="habit-week-nav">
               <Button
                 onClick={() => setWeekOffset((offset) => offset - 1)}
@@ -547,22 +550,30 @@ export function HabitsPage({
                 Nächste Woche
               </Button>
             </div>
-            <p className="habit-view-hint">
-              Check-ins sind bis einschließlich heute möglich.
-            </p>
             {weekHabits.length === 0 ? (
               <EmptyState
                 description="In dieser Woche war keine Routine aktiv."
-                title="Keine Einträge"
+                title="Keine aktive Routine"
               />
             ) : (
               <>
                 {/*
-                  Erfassen vor Auswerten, Issue #121. Vorher standen Diagramm,
-                  Tageswerte und Serien vor dem Raster; auf Mobil lag das
-                  einzige interaktive Element der Ansicht damit weit unter dem
-                  ersten Bildschirm.
+                  Erfassen vor Auswerten, Issue #121. Das Check-in-Raster steht
+                  direkt hinter Einordnung und Navigation. Tageswerte,
+                  Diagramm und Serien folgen ihm; auf Mobil bleibt die
+                  Arbeitsfläche dadurch im ersten Bildschirm.
                 */}
+                <div className="ui-dense-panel habit-week-panel">
+                  <HabitWeekGrid
+                    busyHabitId={busyHabitId}
+                    days={weekDays}
+                    entriesByHabit={entriesByHabit}
+                    habits={weekHabits}
+                    onToggle={toggleWeekDay}
+                    today={today}
+                  />
+                </div>
+
                 {weekHasPlannedDays ? (
                   <ul className="habit-week-course">
                     {weekCourse.map((entry) => (
@@ -575,17 +586,6 @@ export function HabitsPage({
                     ))}
                   </ul>
                 ) : null}
-
-                <div className="ui-dense-panel habit-week-panel">
-                  <HabitWeekGrid
-                    busyHabitId={busyHabitId}
-                    days={weekDays}
-                    entriesByHabit={entriesByHabit}
-                    habits={weekHabits}
-                    onToggle={toggleWeekDay}
-                    today={today}
-                  />
-                </div>
 
                 {/*
                   Das Diagramm wird erst gerendert, wenn die Auswertung offen
