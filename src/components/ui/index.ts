@@ -36,4 +36,5 @@ export {
   type TrackerCellState,
 } from "./TrackerCell";
 export { viewTabId } from "./view-tab-id";
+export { ViewPurpose, type ViewPurposeProps } from "./ViewPurpose";
 export { ViewTabs, type ViewTabItem, type ViewTabsProps } from "./ViewTabs";

@@ -49,6 +49,13 @@ describe("getWeekPeriod", () => {
     expect(week).toEqual({ from: "2026-08-03", to: "2026-08-09" });
   });
 
+  it("respects a configured Sunday week start", () => {
+    expect(getWeekPeriod("2026-08-09", 7)).toEqual({
+      from: "2026-08-09",
+      to: "2026-08-15",
+    });
+  });
+
   it("steps a whole week in both directions", () => {
     expect(shiftWeek(week, -1)).toEqual({
       from: "2026-07-27",

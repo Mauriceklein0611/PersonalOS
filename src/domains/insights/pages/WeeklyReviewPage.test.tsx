@@ -101,13 +101,14 @@ function createFailingService(): InsightService {
   };
 }
 
-function renderPage(insightService: InsightService) {
+function renderPage(insightService: InsightService, weekStartsOn: 1 | 7 = 1) {
   render(
     <MemoryRouter>
       <WeeklyReviewPage
         insightService={insightService}
         now={() => new Date("2026-08-06T10:00:00.000Z")}
         timeZone={lifeScoreTimeZone}
+        weekStartsOn={weekStartsOn}
       />
     </MemoryRouter>,
   );
@@ -120,16 +121,15 @@ describe("WeeklyReviewPage – Grundgerüst", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Wochenrückblick" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /als Zahlen mit Zeitraum und Datenbasis, nicht als Bewertung/,
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Er plant nichts neu/)).toBeInTheDocument();
     expect(
       screen.getByText(
         /Aus dem Journal geht nur die Anzahl der Tage mit einem Eintrag ein, kein Freitext\./,
       ),
     ).toBeInTheDocument();
+    expect(
+      await screen.findByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Was ist in dieser Woche passiert?");
   });
 
   it("names the running week and marks it as such", async () => {
@@ -149,6 +149,20 @@ describe("WeeklyReviewPage – Grundgerüst", () => {
     expect(
       screen.getByRole("button", { name: "Nächste Woche" }),
     ).toBeDisabled();
+  });
+
+  it("shows the configured Sunday-to-Saturday period", async () => {
+    renderPage(createStubService(), 7);
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 2,
+        name: "Woche vom 02.08.2026 bis 08.08.2026",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("note", { name: "Zweck dieser Ansicht" }),
+    ).toHaveTextContent("Zeitraum: 02.08.2026 bis 08.08.2026");
   });
 
   it("steps back a week and keeps the running-week note off the older week", async () => {

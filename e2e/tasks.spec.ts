@@ -159,7 +159,15 @@ test("plans a week and shows exactly one day on mobile", async ({ page }) => {
   await page.getByLabel("Plandatum").fill(plannedDate);
   await page.getByRole("button", { name: "Änderungen speichern" }).click();
 
+  await page.getByRole("tab", { name: /^Wochenliste/ }).click();
+  await expect(
+    page.getByRole("note", { name: "Zweck dieser Ansicht" }),
+  ).toContainText("Was muss ich diese Woche im Blick behalten?");
+
   await page.getByRole("tab", { name: /^Wochenplan/ }).click();
+  await expect(
+    page.getByRole("note", { name: "Zweck dieser Ansicht" }),
+  ).toContainText("Was habe ich an welchem Tag eingeplant?");
 
   /*
    * Genau ein Tagesbereich steht im Fluss. Die übrigen sind `display: none`
@@ -229,7 +237,7 @@ test("keeps the task views free of the chart library", async ({ page }) => {
     page.getByRole("heading", { level: 2, name: "Unterlagen sortieren" }),
   ).toBeVisible();
 
-  for (const view of [/^Heute/, /^Diese Woche/, /^Wochenplan/, /^Erledigt/]) {
+  for (const view of [/^Heute/, /^Wochenliste/, /^Wochenplan/, /^Erledigt/]) {
     await page.getByRole("tab", { name: view }).click();
   }
   await page.waitForLoadState("networkidle");

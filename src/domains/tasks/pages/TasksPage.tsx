@@ -15,6 +15,7 @@ import {
   Input,
   SearchField,
   Toast,
+  ViewPurpose,
   ViewTabs,
   viewTabId,
 } from "../../../components/ui";
@@ -32,6 +33,7 @@ import { TaskWeekPlanner } from "../components/TaskWeekPlanner";
 import type { Task, TaskDetails } from "../model";
 import { createTaskQueryContext, queryTasks, type TaskView } from "../queries";
 import { personalOsTaskService, type TaskService } from "../service";
+import { formatCalendarDay } from "../view-model";
 import { buildTaskWeekPlan } from "../week-plan";
 import "./tasks-page.css";
 
@@ -58,9 +60,10 @@ const taskViews: Array<{
     label: "Heute",
   },
   {
-    empty: "Für diese Woche ist noch keine offene Aufgabe geplant.",
+    empty:
+      "In diesem Zeitraum gibt es keine offene Aufgabe mit Plandatum oder Frist.",
     id: "week",
-    label: "Diese Woche",
+    label: "Wochenliste",
   },
   { id: "weekPlan", label: "Wochenplan" },
   {
@@ -104,8 +107,8 @@ export function TasksPage({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [undoTask, setUndoTask] = useState<Task>();
   const context = useMemo(
-    () => createTaskQueryContext(now(), timeZone),
-    [now, timeZone],
+    () => createTaskQueryContext(now(), timeZone, weekStartsOn),
+    [now, timeZone, weekStartsOn],
   );
 
   const refreshTasks = useCallback(async () => {
@@ -335,6 +338,13 @@ export function TasksPage({
         id="task-view-panel"
         role="tabpanel"
       >
+        {activeView === "week" ? (
+          <ViewPurpose
+            period={`${formatCalendarDay(weekPlan.from)} bis ${formatCalendarDay(weekPlan.to)}`}
+            purpose="Die Wochenliste bündelt offene Aufgaben, deren Plandatum oder Frist in diesem Zeitraum liegt. Sie ordnet nicht nach einzelnen Tagen."
+            question="Was muss ich diese Woche im Blick behalten?"
+          />
+        ) : null}
         {isLoading ? (
           <p className="task-view-state" role="status">
             Aufgaben werden geladen …

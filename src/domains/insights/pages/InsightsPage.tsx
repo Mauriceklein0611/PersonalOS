@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 
-import { useTimeZone } from "../../../app/settings/settings-context";
+import {
+  useTimeZone,
+  useWeekStartsOn,
+} from "../../../app/settings/settings-context";
 import {
   Button,
   Checkbox,
@@ -12,7 +15,10 @@ import {
   ProgressRing,
   Toast,
 } from "../../../components/ui";
-import { calendarDayForInstant } from "../../../lib/dates/calendar-days";
+import {
+  calendarDayForInstant,
+  type WeekStartsOn,
+} from "../../../lib/dates/calendar-days";
 import { applyScoreWeights } from "../score-engine";
 import { insightStrengthLabels, type Insight } from "../insight-model";
 import { getWeekPeriod } from "../weekly-review";
@@ -45,6 +51,7 @@ export type InsightsPageProps = {
   now?: () => Date;
   service?: ScoreService;
   timeZone?: string;
+  weekStartsOn?: WeekStartsOn;
 };
 
 type WeightDraft = Record<ScoreComponentKey, string>;
@@ -56,8 +63,10 @@ export function InsightsPage({
   now = () => new Date(),
   service = personalOsScoreService,
   timeZone: timeZoneOverride,
+  weekStartsOn: weekStartsOnOverride,
 }: InsightsPageProps) {
   const timeZone = useTimeZone(timeZoneOverride);
+  const weekStartsOn = useWeekStartsOn(weekStartsOnOverride);
   const today = useMemo(
     () => calendarDayForInstant(now(), timeZone),
     [now, timeZone],
@@ -71,7 +80,10 @@ export function InsightsPage({
   // Insights zeigt nur die laufende Woche; das Blättern über Wochen lebt im
   // Wochenrückblick (`/wochenrueckblick`), zusammen mit den Kennzahlen, die
   // es einordnen.
-  const week = useMemo(() => getWeekPeriod(today), [today]);
+  const week = useMemo(
+    () => getWeekPeriod(today, weekStartsOn),
+    [today, weekStartsOn],
+  );
   const [draft, setDraft] = useState<ScoreComponentConfig[]>();
   const [weightText, setWeightText] = useState<WeightDraft>();
   const [weightError, setWeightError] = useState<string>();

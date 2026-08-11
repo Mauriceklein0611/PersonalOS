@@ -513,6 +513,28 @@
   text-align: center;
 }
 
+.ui-view-purpose {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-end: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 3px solid var(--accent-1);
+  color: var(--text-muted);
+  background: var(--glass-strong);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.ui-view-purpose-question {
+  color: var(--text);
+  font-size: var(--font-size-md);
+}
+
+.ui-view-purpose-period {
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Farbe ist Zusatz; ausgewählt ist der Reiter auch über `aria-selected`. */
 .ui-view-tab[aria-selected="true"] {
   border-color: var(--accent-1);
