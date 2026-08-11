@@ -23,18 +23,20 @@ const exportedAt = "2026-08-20T10:00:00.000Z";
  * Ein Export im Format 1 kennt `hiddenInsights` nicht — weder in den Daten
  * noch in den Zahlen. Er muss weiterhin lesbar bleiben, siehe
  * [ADR 0010](../../../docs/decisions/0010-deterministic-insights-v1.md).
+ *
+ * Er kennt außerdem keine der später ergänzten Verknüpfungen. Ein alter
+ * Export wird deshalb aus der Fixture **abgebaut** statt sie unverändert zu
+ * übernehmen: Sonst prüfte der Test einen Stand, den es nie gab.
  */
 function createVersionOneBackup() {
+  const source = withoutContributionLinks(withoutTemplates());
   const data = Object.fromEntries(
-    personalOsTableNamesV1.map((tableName) => [
-      tableName,
-      backupDataFixture[tableName],
-    ]),
+    personalOsTableNamesV1.map((tableName) => [tableName, source[tableName]]),
   );
   const counts = Object.fromEntries(
     personalOsTableNamesV1.map((tableName) => [
       tableName,
-      backupDataFixture[tableName].length,
+      source[tableName].length,
     ]),
   );
 
@@ -55,7 +57,10 @@ function createVersionOneBackup() {
  * [ADR 0011](../../../docs/decisions/0011-savings-contribution-links-a-transaction.md).
  */
 function createVersionTwoBackup() {
-  const envelope = createBackupEnvelope(exportedAt, withoutTemplates());
+  const envelope = createBackupEnvelope(
+    exportedAt,
+    withoutContributionLinks(withoutTemplates()),
+  );
   return {
     ...envelope,
     counts: withoutTemplateCount(envelope.counts),
@@ -65,11 +70,36 @@ function createVersionTwoBackup() {
 
 /**
  * Ein Export vor Format 4 kennt die Vorlagen nicht — weder in den Daten noch
- * in den Zahlen. Siehe
+ * in den Zahlen, und deshalb auch keine Buchung, die auf eine verweist. Siehe
  * [ADR 0013](../../../docs/decisions/0013-recurring-transactions-are-confirmed-templates.md).
  */
-function withoutTemplates() {
-  return { ...backupDataFixture, recurringTransactions: [] };
+function withoutTemplates(data = backupDataFixture) {
+  return {
+    ...data,
+    recurringTransactions: [],
+    transactions: data.transactions.map(
+      ({ recurringTransactionId, ...transaction }) => {
+        void recurringTransactionId;
+        return transaction;
+      },
+    ),
+  };
+}
+
+/**
+ * Ein Export vor Format 3 kennt `sourceTransactionId` nicht. Siehe
+ * [ADR 0011](../../../docs/decisions/0011-savings-contribution-links-a-transaction.md).
+ */
+function withoutContributionLinks(data = backupDataFixture) {
+  return {
+    ...data,
+    savingsContributions: data.savingsContributions.map(
+      ({ sourceTransactionId, ...contribution }) => {
+        void sourceTransactionId;
+        return contribution;
+      },
+    ),
+  };
 }
 
 function withoutTemplateCount(counts: Record<string, number | undefined>) {
@@ -131,7 +161,9 @@ describe("Backup-Format", () => {
 
     await service.replace(preview, () => undefined);
 
-    expect(await database.table("transactions").count()).toBe(1);
+    expect(await database.table("transactions").count()).toBe(
+      backupDataFixture.transactions.length,
+    );
     expect(await database.table("recurringTransactions").count()).toBe(0);
   });
 

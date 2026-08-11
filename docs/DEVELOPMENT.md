@@ -36,7 +36,44 @@ pnpm check:bundle
 
 `pnpm check:privacy` prüft getrackte und noch nicht ignorierte Dateien auf typische Provider-Secrets, private Schlüssel, vollständige PersonalOS-Exporte, rohe Konsolenausgaben in App-Code und ungeprüftes HTML-Rendering. Treffer nennen nur Datei und Regel, niemals den gefundenen Wert. `pnpm test` führt Unit- und Komponententests mit Vitest und Testing Library aus. `pnpm test:e2e` erstellt immer einen Produktions-Build, startet `vite preview` und prüft den Kern-Smoke-Test in Chromium. Nur so sind Manifest, CSP, Service Worker, Precache und der echte Offline-Start aktiv. Die GitHub-Action führt Privacy-Check, Formatprüfung, Lint, Typecheck, Tests, Build, Bundle-Budget-Prüfung und E2E-Smoke auf Pull Requests sowie auf `main` aus.
 
-`pnpm check:bundle` misst die gebauten Chunks gegen die in [ADR 0008](decisions/0008-echarts-for-charts.md) dokumentierten Budgets und setzt einen Build voraus. Die Prüfung schlägt auch dann fehl, wenn zu einem Budget keine passende Datei existiert — eine umbenannte Datei würde sonst still ungeprüft bleiben. Stand 07.08.2026: Startroute 154,35 kB von 165 kB gzip, Diagramm-Chunk 177,17 kB von 190 kB gzip.
+`pnpm check:bundle` misst die gebauten Chunks gegen die in [ADR 0008](decisions/0008-echarts-for-charts.md) dokumentierten Budgets und setzt einen Build voraus. Die Prüfung schlägt auch dann fehl, wenn zu einem Budget keine passende Datei existiert — eine umbenannte Datei würde sonst still ungeprüft bleiben. Stand 11.08.2026: Startroute 156,86 kB von 165 kB gzip, Diagramm-Chunk 177,25 kB von 190 kB gzip, größter einzelner Routen-Chunk 12,89 kB von 25 kB gzip.
+
+## Regressionssuite
+
+Jeder MVP-Kernfluss hat einen benannten Ort. Die Tabelle ist die Prüfliste für Issue #26; eine neue Ansicht ohne Zeile darin ist nicht abgedeckt.
+
+| Kernfluss | Ort |
+| --- | --- |
+| Tagesablauf, offline und per Tastatur | `e2e/daily-loop.spec.ts` |
+| Tagesübersicht, Schnellerfassung, Signale | `e2e/today.spec.ts` |
+| Aufgaben: Liste, Zeilenaktionen, Wochenplan | `e2e/tasks.spec.ts` |
+| Routinen: Check-in, Woche, Monat | `e2e/habits.spec.ts` |
+| Journal | `e2e/journal.spec.ts` |
+| Ziele und ihre Verknüpfungen | `e2e/goals.spec.ts`, `e2e/goal-links.spec.ts` |
+| Geld: Buchungen, Kategorien, Sparziele | `e2e/finance.spec.ts` |
+| Life Score und Auswertung | `e2e/insights.spec.ts`, `e2e/weekly-review.spec.ts` |
+| Einstellungen: Währung, Zeitzone, Tagesbudget | `e2e/settings.spec.ts` |
+| Export, Import, Sicherungskopie | `e2e/backup.spec.ts`, `src/db/backup/*.test.ts` |
+| Datenschutz: CSP, lokale Daten löschen | `e2e/privacy.spec.ts` |
+| Offline-Start, Manifest, Precache | `e2e/pwa.spec.ts` |
+| Recovery bei blockierter IndexedDB | `e2e/recovery.spec.ts` |
+| Navigation, Lesezeichen, Reiter | `e2e/navigation.spec.ts`, `e2e/app.spec.ts` |
+| Designsystem-Zustände | `e2e/components.spec.ts` |
+
+Datenseitig gilt dieselbe Vollständigkeit:
+
+- **Migration:** Für jede unterstützte Vorgängerversion existiert eine Fixture (`src/test/fixtures/database-v1.ts`, `-v3`, `-v4`, `-v5`) und ein Test, der den Aufstieg auf die aktuelle Version prüft. Version 2 wird über eine Alt-Routine direkt im Migrationstest abgedeckt.
+- **Exportformat:** `format-compatibility.test.ts` baut ältere Exportformate aus der aktuellen Fixture **ab**, statt sie unverändert zu übernehmen. Ein Export der Version 2 ohne verknüpfte Beiträge muss auch wirklich keine tragen, sonst prüft der Test einen Stand, den es nie gab.
+- **Roundtrip:** `service.test.ts` vergleicht nach Export, Löschung und Import nicht nur Anzahlen, sondern jeden Verweis zwischen zwei Tabellen. Kommt eine Referenz ins Datenmodell, gehört sie in die Liste `crossTableReferences` **und** in die Backup-Fixture; der Test verlangt für jede aufgeführte Referenz auch einen belegten Fall.
+
+### Unzuverlässige Tests
+
+Ein Test, der ohne Änderung am Code mal grün und mal rot ist, wird nicht wiederholt, bis er passt. Er wird entweder repariert oder mit einem verantwortlichen Folge-Issue stillgelegt — ein Test, der jeden beliebigen PR rot färben kann, wird ignoriert und schützt dann auch dort nicht mehr, wo er soll.
+
+Zwei Muster sind im Projekt aufgetreten und in ihrer Ursache behoben:
+
+- **Zeitmessung gegen eine feste Grenze.** Unter paralleler Last streuen Laufzeiten um eine Größenordnung. Wo möglich zählen die Tests deshalb deterministische Zugriffe statt Millisekunden (siehe `src/test/access-counter.ts` und die Messungen in `docs/KNOWN_LIMITATIONS.md`); wo eine Zeitgrenze bleibt, ist sie bewusst grob und gegen die beobachtete Streuung gesetzt, nicht gegen die reine Rechenzeit.
+- **Geometrie auf einem anderen Renderer.** Der Linux-Runner setzt Schrift breiter als Windows. Prüfungen auf Überlauf oder auf die erste Bildschirmhöhe können lokal bestehen und auf CI fallen. Wer ein Layout an einer solchen Grenze ändert, lässt sich die tatsächlichen Werte ausgeben, statt sich auf ein grünes lokales Ergebnis zu verlassen.
 
 Der PWA-Smoke lädt die App zunächst online, wartet auf den aktiven Service Worker und schaltet den Browser danach vollständig offline. Er prüft den erneuten Start, eine lokale Exportaktion und die Cache-Grenze. Ein Test darf deshalb keinen bereits laufenden Entwicklungsserver auf Port 4173 wiederverwenden.
 
@@ -156,7 +193,7 @@ Die Begründung gehört in den PR. Lockfile und Paketmanager-Metadaten werden im
 ### Aktuelle Abhängigkeiten
 
 - React, React DOM und React Router bilden UI sowie clientseitiges Lazy-Routing.
-- Dexie (Apache-2.0) kapselt die browserseitige IndexedDB-API; Zod (MIT) validiert IDs, Datums-/Geldwerte und persistierte Records an den Repository-Grenzen. Beide arbeiten vollständig lokal und übertragen keine Daten. Weil die App die Datenbank vor dem Router öffnet, umfasst die Startroute inklusive App-Code, Persistenzschicht und Token-Ebene 154,35 kB gzip (gemessen am 07.08.2026 mit `pnpm check:bundle`); das dokumentierte Budget liegt bei 165 kB gzip.
+- Dexie (Apache-2.0) kapselt die browserseitige IndexedDB-API; Zod (MIT) validiert IDs, Datums-/Geldwerte und persistierte Records an den Repository-Grenzen. Beide arbeiten vollständig lokal und übertragen keine Daten. Weil die App die Datenbank vor dem Router öffnet, umfasst die Startroute inklusive App-Code, Persistenzschicht und Token-Ebene 156,86 kB gzip (gemessen am 11.08.2026 mit `pnpm check:bundle`); das dokumentierte Budget liegt bei 165 kB gzip.
 - Vite und das React-Plugin übernehmen Entwicklung und Build; TypeScript erzwingt den strikten Typvertrag.
 - `vite-plugin-pwa` und sein MIT-lizenziertes Workbox-Buildwerkzeug erzeugen ausschließlich beim Produktions-Build Manifest und Service Worker. Es gibt keine Laufzeit-Telemetrie und kein Cache-Routing für Nutzerdaten. Die statischen Icons unter `public/` werden bewusst ohne den optionalen, nativen Asset-Generator gepflegt.
 - ESLint, typescript-eslint und die React-Regeln prüfen Codefehler; Prettier stellt ein konsistentes Format sicher.

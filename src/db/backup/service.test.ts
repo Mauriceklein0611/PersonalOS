@@ -11,6 +11,36 @@ import { createBackupService } from "./service";
 const exportInstant = "2026-08-04T08:30:00.000Z";
 let database: PersonalOsDatabase;
 
+/**
+ * Jeder Verweis zwischen zwei Tabellen des Datenmodells. Kommt ein neuer
+ * hinzu, gehört er hierher **und** in die Backup-Fixture; der Test besteht
+ * sonst nicht, weil er jede aufgeführte Referenz auch belegt sehen will.
+ */
+const crossTableReferences = [
+  { field: "goalId", from: "tasks", to: "goals" },
+  { field: "goalId", from: "habits", to: "goals" },
+  { field: "habitId", from: "habitEntries", to: "habits" },
+  { field: "goalId", from: "goalMilestones", to: "goals" },
+  { field: "categoryId", from: "transactions", to: "financeCategories" },
+  {
+    field: "recurringTransactionId",
+    from: "transactions",
+    to: "recurringTransactions",
+  },
+  { field: "categoryId", from: "monthlyBudgets", to: "financeCategories" },
+  { field: "savingsGoalId", from: "savingsContributions", to: "savingsGoals" },
+  {
+    field: "sourceTransactionId",
+    from: "savingsContributions",
+    to: "transactions",
+  },
+  {
+    field: "categoryId",
+    from: "recurringTransactions",
+    to: "financeCategories",
+  },
+] as const;
+
 beforeEach(async () => {
   database = await createTestDatabase();
 });
@@ -57,6 +87,45 @@ describe("backup service", () => {
     const restored = await service.create();
     expect(restored.data).toEqual(backupDataFixture);
     expect(safetyBackupRecordCount).toBe(0);
+  });
+
+  /*
+   * Zählen genügt nicht: Ein Roundtrip, der jede Tabelle wieder gleich lang
+   * macht, kann trotzdem jeden Verweis zwischen den Tabellen verloren haben.
+   * Geprüft wird deshalb jede Referenz des Datenmodells einzeln — und dass
+   * die Fixture jede davon überhaupt trägt.
+   */
+  it("keeps every cross-table reference pointing at a restored record", async () => {
+    await seedDatabase(database, backupDataFixture);
+    const service = createBackupService(database);
+    const backup = await service.create();
+
+    await clearDatabase(database);
+    await service.replace(
+      service.parse(JSON.stringify(backup)),
+      () => undefined,
+    );
+
+    const covered = new Set<string>();
+    for (const reference of crossTableReferences) {
+      const rows = (await database.table(reference.from).toArray()) as Array<
+        Record<string, unknown>
+      >;
+      for (const row of rows) {
+        const value = row[reference.field];
+        if (value === undefined) continue;
+        expect(
+          await database.table(reference.to).get(value as string),
+        ).toBeDefined();
+        covered.add(`${reference.from}.${reference.field}`);
+      }
+    }
+
+    expect([...covered].sort()).toEqual(
+      crossTableReferences
+        .map((reference) => `${reference.from}.${reference.field}`)
+        .sort(),
+    );
   });
 
   it("creates a complete safety backup before replacing existing data", async () => {
