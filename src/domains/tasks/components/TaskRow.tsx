@@ -1,12 +1,17 @@
 import { Button, IconButton } from "../../../components/ui";
 import { getTaskCategoryLabel, taskPriorityLabels, type Task } from "../model";
 import { type TaskQueryContext } from "../queries";
-import { describeTaskTiming } from "../view-model";
+import { describeTaskTiming, formatCalendarDay } from "../view-model";
 import { TaskRowActions } from "./TaskRowActions";
 
 type TaskRowProps = {
   busy: boolean;
   context: TaskQueryContext;
+  /**
+   * Die Ebene des Titels. In einer Liste unter der Seitenüberschrift ist das
+   * die zweite; steht die Zeile unter einer Tagesüberschrift, die dritte.
+   */
+  headingLevel?: 2 | 3;
   /**
    * Der Titel des verknüpften Ziels. Die Aufgabendomain löst die Kennung
    * nicht selbst auf — der Titel kommt über den Link-Service der Zieldomain
@@ -33,6 +38,7 @@ export function TaskRow({
   busy,
   context,
   goalTitle,
+  headingLevel = 2,
   onArchive,
   onCancel,
   onComplete,
@@ -43,6 +49,7 @@ export function TaskRow({
   const headingId = `task-${task.id}`;
   const timing = describeTaskTiming(task, context);
   const isOpen = task.status === "open";
+  const Title = headingLevel === 3 ? "h3" : "h2";
 
   /*
    * Eine Zeile Metadaten in fester Reihenfolge. Plandatum und Frist stehen
@@ -93,9 +100,9 @@ export function TaskRow({
       </IconButton>
 
       <div className="ui-dense-row-main">
-        <h2 className="ui-dense-row-title task-row-title" id={headingId}>
+        <Title className="ui-dense-row-title task-row-title" id={headingId}>
           {task.title}
-        </h2>
+        </Title>
         <p className="ui-dense-row-meta task-row-facts">
           {/*
             Der verstrichene Zeitpunkt wird benannt, nicht nur markiert, und
@@ -149,13 +156,6 @@ export function TaskRow({
       </TaskRowActions>
     </li>
   );
-}
-
-function formatCalendarDay(value: string): string {
-  return new Intl.DateTimeFormat("de-DE", {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(`${value}T00:00:00.000Z`));
 }
 
 function formatInstant(value: string, timeZone: string): string {

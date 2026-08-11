@@ -135,6 +135,85 @@ test("opens the secondary task actions from the keyboard", async ({ page }) => {
   await expect(toggle).toBeFocused();
 });
 
+/*
+ * #123: Der Wochenplan zeigt geplante Aufgaben je Tag. Auf Mobil steht genau
+ * ein Tag im Fluss, erreichbar über den Wochentagsstreifen; bei 1280 px
+ * stehen alle sieben nebeneinander, ohne das Dokument breiter zu machen.
+ */
+test("plans a week and shows exactly one day on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/planen/aufgaben");
+
+  await page
+    .getByRole("textbox", { name: "Neue Aufgabe" })
+    .fill("Unterlagen sortieren");
+  await page.getByRole("button", { name: "Aufgabe hinzufügen" }).click();
+
+  // Das Plandatum entsteht in der Bearbeitung; der Plan liest es nur.
+  await page.getByLabel("Weitere Aktionen für „Unterlagen sortieren“").click();
+  await page
+    .getByRole("button", { name: "„Unterlagen sortieren“ bearbeiten" })
+    .click();
+  const today = new Date();
+  const plannedDate = isoDay(today);
+  await page.getByLabel("Plandatum").fill(plannedDate);
+  await page.getByRole("button", { name: "Änderungen speichern" }).click();
+
+  await page.getByRole("tab", { name: /^Wochenplan/ }).click();
+
+  /*
+   * Genau ein Tagesbereich steht im Fluss. Die übrigen sind `display: none`
+   * und damit auch für assistive Technik nicht vorhanden — kein verstecktes
+   * Bedienelement, das man nur nicht sieht.
+   */
+  // Wochentag und Datum; „Mittwoch“ endet nicht auf „tag“.
+  const sections = page.getByRole("region", {
+    name: /^\w+, \d{2}\.\d{2}\.\d{4}/,
+  });
+  await expect(sections).toHaveCount(1);
+
+  const strip = page.getByRole("list", { name: "Wochentag wählen" });
+  await expect(strip.getByRole("button")).toHaveCount(7);
+  const otherDay = strip
+    .getByRole("button", { name: /nichts geplant/ })
+    .first();
+  const otherDayName = (await otherDay.getAttribute("aria-label")) ?? "";
+  await otherDay.click();
+  const selected = page.getByRole("region", {
+    name: otherDayName.split(":")[0],
+  });
+  await expect(selected).toBeVisible();
+  await expect(sections).toHaveCount(1);
+  await expect(
+    selected.getByText("Für diesen Tag ist nichts geplant."),
+  ).toBeVisible();
+
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+
+  // Bei 1280 px steht die ganze Woche nebeneinander, ohne Streifen.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(sections).toHaveCount(7);
+  await expect(strip).toBeHidden();
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
+});
+
+/** Der Kalendertag von heute als `YYYY-MM-DD` für ein Datumsfeld. */
+function isoDay(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 test("keeps three task rows recognisable at 390 pixels", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/planen/aufgaben");

@@ -6,7 +6,10 @@ import {
   type FormEvent,
 } from "react";
 
-import { useTimeZone } from "../../../app/settings/settings-context";
+import {
+  useTimeZone,
+  useWeekStartsOn,
+} from "../../../app/settings/settings-context";
 import {
   Button,
   Input,
@@ -15,6 +18,8 @@ import {
   ViewTabs,
   viewTabId,
 } from "../../../components/ui";
+import type { WeekStartsOn } from "../../../lib/dates/calendar-days";
+import type { CalendarDay } from "../../../lib/dates/date-values";
 import { createSearchMatcher } from "../../../lib/text/search-terms";
 import {
   personalOsGoalLinkService,
@@ -23,14 +28,23 @@ import {
 } from "../../goals/link-service";
 import { TaskRow } from "../components/TaskRow";
 import { TaskEditor } from "../components/TaskEditor";
+import { TaskWeekPlanner } from "../components/TaskWeekPlanner";
 import type { Task, TaskDetails } from "../model";
 import { createTaskQueryContext, queryTasks, type TaskView } from "../queries";
 import { personalOsTaskService, type TaskService } from "../service";
+import { buildTaskWeekPlan } from "../week-plan";
 import "./tasks-page.css";
 
+/**
+ * Der Wochenplan ist eine zusätzliche Sicht auf dieselben Aufgaben und keine
+ * Abfrage über `queryTasks`: Er zeigt geplante Tage, nicht eine gefilterte
+ * Liste.
+ */
+type TasksPageView = TaskView | "weekPlan";
+
 const taskViews: Array<{
-  empty: string;
-  id: TaskView;
+  empty?: string;
+  id: TasksPageView;
   label: string;
 }> = [
   {
@@ -48,6 +62,7 @@ const taskViews: Array<{
     id: "week",
     label: "Diese Woche",
   },
+  { id: "weekPlan", label: "Wochenplan" },
   {
     empty: "Es gibt noch keine erledigten oder abgebrochenen Aufgaben.",
     id: "completed",
@@ -60,6 +75,7 @@ export type TasksPageProps = {
   now?: () => Date;
   service?: TaskService;
   timeZone?: string;
+  weekStartsOn?: WeekStartsOn;
 };
 
 export function TasksPage({
@@ -67,9 +83,12 @@ export function TasksPage({
   now = systemNow,
   service = personalOsTaskService,
   timeZone: timeZoneOverride,
+  weekStartsOn: weekStartsOnOverride,
 }: TasksPageProps) {
   const timeZone = useTimeZone(timeZoneOverride);
-  const [activeView, setActiveView] = useState<TaskView>("inbox");
+  const weekStartsOn = useWeekStartsOn(weekStartsOnOverride);
+  const [activeView, setActiveView] = useState<TasksPageView>("inbox");
+  const [selectedDay, setSelectedDay] = useState<CalendarDay>();
   const [goalOptions, setGoalOptions] = useState<GoalOption[]>([]);
   const [goalTitles, setGoalTitles] = useState<ReadonlyMap<string, string>>(
     new Map(),
@@ -145,10 +164,24 @@ export function TasksPage({
         : tasks,
     [matcher, tasks],
   );
-  const visibleTasks = queryTasks(matchingTasks, activeView, context);
-  const searchResultLabel = matcher.isActive
-    ? `${visibleTasks.length} von ${queryTasks(tasks, activeView, context).length} Aufgaben in dieser Ansicht`
-    : undefined;
+  const listView = activeView === "weekPlan" ? undefined : activeView;
+  const visibleTasks = listView
+    ? queryTasks(matchingTasks, listView, context)
+    : [];
+  const weekPlan = useMemo(
+    () =>
+      buildTaskWeekPlan({
+        tasks: matchingTasks,
+        today: context.today,
+        weekStartsOn,
+      }),
+    [context.today, matchingTasks, weekStartsOn],
+  );
+  const searchResultLabel = !matcher.isActive
+    ? undefined
+    : listView
+      ? `${visibleTasks.length} von ${queryTasks(tasks, listView, context).length} Aufgaben in dieser Ansicht`
+      : `${weekPlan.planned} von ${buildTaskWeekPlan({ tasks, today: context.today, weekStartsOn }).planned} Aufgaben in dieser Ansicht`;
 
   async function quickCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -283,7 +316,10 @@ export function TasksPage({
         onChange={setActiveView}
         panelId="task-view-panel"
         tabs={taskViews.map((view) => {
-          const count = queryTasks(matchingTasks, view.id, context).length;
+          const count =
+            view.id === "weekPlan"
+              ? weekPlan.planned
+              : queryTasks(matchingTasks, view.id, context).length;
           return {
             count: { label: `${count} Aufgaben`, value: count },
             id: view.id,
@@ -303,6 +339,47 @@ export function TasksPage({
           <p className="task-view-state" role="status">
             Aufgaben werden geladen …
           </p>
+        ) : listView === undefined &&
+          !(matcher.isActive && weekPlan.planned === 0) ? (
+          <TaskWeekPlanner
+            busyTaskId={busyTaskId}
+            context={context}
+            goalTitles={goalTitles}
+            onArchive={(selectedTask) => void archiveTask(selectedTask)}
+            onCancel={(selectedTask) =>
+              void runTaskAction(
+                selectedTask,
+                () => service.cancel(selectedTask.id),
+                "Die Aufgabe wurde abgebrochen.",
+              )
+            }
+            onComplete={(selectedTask) =>
+              void runTaskAction(
+                selectedTask,
+                () => service.complete(selectedTask.id),
+                "Die Aufgabe wurde abgeschlossen.",
+              )
+            }
+            onEdit={setEditingTask}
+            onReopen={(selectedTask) =>
+              void runTaskAction(
+                selectedTask,
+                () => service.reopen(selectedTask.id),
+                "Die Aufgabe ist wieder offen.",
+              )
+            }
+            onSelectDay={setSelectedDay}
+            plan={weekPlan}
+            /* Ein Tageswechsel über Mitternacht darf keine Auswahl außerhalb
+               der Woche stehen lassen. */
+            selectedDay={
+              selectedDay !== undefined &&
+              selectedDay >= weekPlan.from &&
+              selectedDay <= weekPlan.to
+                ? selectedDay
+                : context.today
+            }
+          />
         ) : visibleTasks.length === 0 ? (
           <div className="task-view-state" role="note">
             <strong>

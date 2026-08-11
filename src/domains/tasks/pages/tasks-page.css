@@ -158,6 +158,97 @@
   box-shadow: var(--shadow-md);
 }
 
+/*
+ * Wochenplan, Issue #123. Auf Mobil steht der Wochentagsstreifen über genau
+ * einem Tagesbereich; sieben schmale Spalten nebeneinander wären auf 390 px
+ * weder lesbar noch bedienbar.
+ */
+.task-week-planner {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+}
+
+.task-week-summary {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+.task-week-strip {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  gap: var(--space-1);
+  list-style: none;
+}
+
+.task-week-strip li {
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.task-week-strip-day {
+  display: grid;
+  width: 100%;
+  min-height: var(--control-height);
+  place-items: center;
+  padding: var(--space-1);
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  color: var(--text);
+  background: var(--dense-row);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+/* Der heutige Tag trägt zusätzlich zur Fläche eine kräftigere Kante. */
+.task-week-strip-day[data-today="true"] {
+  border-color: var(--edge-strong);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Die Auswahl steht zusätzlich in `aria-current`, nicht nur in der Farbe. */
+.task-week-strip-day[aria-current] {
+  border-color: var(--accent-1);
+  color: var(--accent-1);
+  background: var(--accent-soft);
+}
+
+.task-week-days {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3);
+}
+
+.task-week-day {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+/* Auf Mobil ist genau ein Tag sichtbar; die übrigen sind nicht im Fluss. */
+.task-week-day[data-selected="false"] {
+  display: none;
+}
+
+.task-week-day-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.task-week-day-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
 .task-editor-form,
 .task-editor-grid {
   display: grid;
@@ -180,6 +271,59 @@
 
   .task-editor-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /*
+   * Ab hier stehen mehrere Tage nebeneinander. Der Streifen entfällt: Wer
+   * jeden Tag sieht, braucht keine Auswahl, um zu einem zu gelangen.
+   */
+  .task-week-strip {
+    display: none;
+  }
+
+  .task-week-day[data-selected="false"] {
+    display: grid;
+  }
+
+  .task-week-days {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .task-week-days {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Erst hier ist eine Woche als Ganzes lesbar. Eine von sieben Spalten ist
+ * schmaler als zwei 44-px-Ziele neben einem Titel, deshalb bricht die Zeile
+ * dort um: Titel oben, die Aktionen darunter. Die Ziele bleiben 44 px groß —
+ * Dichte spart Fläche, nicht Trefferfläche.
+ */
+@media (min-width: 75rem) {
+  .task-week-days {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  /*
+   * Der Innenabstand weicht, nicht die Trefferfläche: Ohne ihn stehen die
+   * beiden 44-px-Ziele nebeneinander statt übereinander.
+   */
+  .task-week-day {
+    padding: var(--space-2);
+  }
+
+  .task-week-day .task-row {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-2) 0;
+  }
+
+  .task-week-day .ui-dense-row-main {
+    order: -1;
+    flex-basis: 100%;
   }
 }
 

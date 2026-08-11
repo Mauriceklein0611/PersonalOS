@@ -115,7 +115,9 @@ for (const width of [320, 375, 390]) {
     await page.setViewportSize({ height: 720, width });
 
     for (const [path, listName, tabCount] of [
-      ["/planen/aufgaben", "Aufgabenansicht", 4],
+      // Seit dem Wochenplan (#123) fünf Reiter: Inbox, Heute, Diese Woche,
+      // Wochenplan, Erledigt.
+      ["/planen/aufgaben", "Aufgabenansicht", 5],
       // Seit dem Monatsraster (#122) fünf Reiter: Heute, Woche, Monat,
       // Fortschritt, Archiv. Die Reihe bricht um, statt zu scrollen.
       ["/routinen/uebersicht", "Routinenansicht", 5],

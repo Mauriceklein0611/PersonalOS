@@ -14,7 +14,8 @@ export type TaskQueryContext = {
   today: CalendarDay;
 };
 
-const priorityRank: Record<Task["priority"], number> = {
+/** Reihenfolge der Priorität in jeder Planungsansicht. */
+export const taskPriorityRank: Record<Task["priority"], number> = {
   high: 0,
   normal: 1,
   low: 2,
@@ -92,7 +93,7 @@ function comparePlanningTasks(
   if (overdueDifference !== 0) return overdueDifference;
 
   const priorityDifference =
-    priorityRank[left.priority] - priorityRank[right.priority];
+    taskPriorityRank[left.priority] - taskPriorityRank[right.priority];
   if (priorityDifference !== 0) return priorityDifference;
 
   const leftDate =
