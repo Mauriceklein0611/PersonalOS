@@ -187,7 +187,7 @@ test("loads the dashboard without the chart library", async ({ page }) => {
    * Datengrundlage im Leerzustand bleibt und gar nicht erst lädt.
    */
   await page.goto("/geld");
-  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("42,00");
+  await page.getByRole("textbox", { name: /Betrag in EUR/ }).fill("42,00");
   await page
     .getByRole("combobox", { name: /Kategorie der Buchung/ })
     .selectOption({ label: "Lebensmittel" });

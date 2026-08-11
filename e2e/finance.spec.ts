@@ -14,7 +14,7 @@ test("records income and expenses and protects used categories", async ({
   ).toBeVisible();
 
   // Eine unlesbare Eingabe nennt das Problem und die erwartete Korrektur.
-  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("12,345");
+  await page.getByRole("textbox", { name: /Betrag in EUR/ }).fill("12,345");
   await page.getByRole("button", { name: "Buchung speichern" }).click();
   await expect(
     page.getByText(
@@ -22,7 +22,7 @@ test("records income and expenses and protects used categories", async ({
     ),
   ).toBeVisible();
 
-  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("12,50");
+  await page.getByRole("textbox", { name: /Betrag in EUR/ }).fill("12,50");
   await page
     .getByRole("combobox", { name: /Kategorie der Buchung/ })
     .selectOption({ label: "Lebensmittel" });
@@ -41,7 +41,7 @@ test("records income and expenses and protects used categories", async ({
   await page
     .getByRole("combobox", { exact: true, name: "Art" })
     .selectOption("income");
-  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("20,00");
+  await page.getByRole("textbox", { name: /Betrag in EUR/ }).fill("20,00");
   await page
     .getByRole("combobox", { name: /Kategorie der Buchung/ })
     .selectOption({ label: "Einkommen" });
@@ -131,7 +131,7 @@ test("counts a linked contribution once and names the bound amount", async ({
   await page.goto("/geld");
 
   // Eine Ausgabe, die eine Sparbewegung ist: Sie verlässt das Konto einmal.
-  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("250,00");
+  await page.getByRole("textbox", { name: /Betrag in EUR/ }).fill("250,00");
   await page
     .getByRole("combobox", { name: /Kategorie der Buchung/ })
     .selectOption({ label: "Sonstige Ausgaben" });
@@ -278,7 +278,7 @@ test("stays operable while two charts are drawn at once", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await page.goto("/geld");
 
-  await page.getByRole("textbox", { name: /Betrag in Euro/ }).fill("250,00");
+  await page.getByRole("textbox", { name: /Betrag in EUR/ }).fill("250,00");
   await page
     .getByRole("combobox", { name: /Kategorie der Buchung/ })
     .selectOption({ label: "Lebensmittel" });

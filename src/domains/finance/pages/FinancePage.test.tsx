@@ -9,9 +9,10 @@ import { FinancePage } from "./FinancePage";
 
 const fixedNow = new Date("2026-08-04T10:00:00.000Z");
 
-function renderPage(service: FinanceService) {
+function renderPage(service: FinanceService, currency?: string) {
   return render(
     <FinancePage
+      currency={currency}
       now={() => fixedNow}
       savingsService={createMemorySavingsService()}
       service={service}
@@ -26,7 +27,7 @@ async function addExpense(amount: string, category: string, note?: string) {
     "expense",
   ]);
   await user.type(
-    screen.getByRole("textbox", { name: /Betrag in Euro/ }),
+    screen.getByRole("textbox", { name: /Betrag in EUR/ }),
     amount,
   );
   await user.selectOptions(
@@ -157,6 +158,34 @@ describe("FinancePage", () => {
     expect(screen.getByText(/Budgets für Juli 2026/)).toBeVisible();
   });
 
+  // Die Beschriftung muss die Währung nennen, in der tatsächlich gebucht wird.
+  it("labels the amount with the configured overview currency", async () => {
+    const user = userEvent.setup();
+    const service = createMemoryFinanceService();
+    renderPage(service, "CHF");
+    await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
+
+    expect(
+      screen.queryByRole("textbox", { name: /Betrag in Euro/ }),
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Art" }), [
+      "expense",
+    ]);
+    await user.type(
+      screen.getByRole("textbox", { name: /Betrag in CHF/ }),
+      "12,50",
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: /Kategorie der Buchung/ }),
+      ["Lebensmittel"],
+    );
+    await user.click(screen.getByRole("button", { name: "Buchung speichern" }));
+
+    const [transaction] = await service.listTransactions();
+    expect(transaction?.money).toEqual({ amountMinor: 1250, currency: "CHF" });
+  });
+
   it("rejects an unreadable amount with a correction hint", async () => {
     const user = userEvent.setup();
     const service = createMemoryFinanceService();
@@ -164,7 +193,7 @@ describe("FinancePage", () => {
     await screen.findByRole("heading", { level: 2, name: "Buchung erfassen" });
 
     await user.type(
-      screen.getByRole("textbox", { name: /Betrag in Euro/ }),
+      screen.getByRole("textbox", { name: /Betrag in EUR/ }),
       "-5",
     );
     await user.click(screen.getByRole("button", { name: "Buchung speichern" }));
