@@ -48,6 +48,31 @@ test("keeps the component preview usable in dark mode at 320 pixels", async ({
   expect(hasHorizontalOverflow).toBe(false);
 });
 
+test("keeps dialogs fully reachable at 320 pixels", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/komponenten");
+  await page.getByRole("button", { name: "Dialog öffnen" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Änderung bestätigen" });
+  await expect(dialog).toBeVisible();
+  const bounds = await dialog.boundingBox();
+  expect(bounds?.x ?? -1).toBeGreaterThanOrEqual(0);
+  expect((bounds?.x ?? 0) + (bounds?.width ?? 0)).toBeLessThanOrEqual(320);
+  expect(bounds?.y ?? -1).toBeGreaterThanOrEqual(0);
+  expect((bounds?.y ?? 0) + (bounds?.height ?? 0)).toBeLessThanOrEqual(568);
+  await expect(dialog.getByRole("button", { name: "Abbrechen" })).toBeVisible();
+  await expect(
+    dialog.getByRole("button", { name: "Bestätigen" }),
+  ).toBeVisible();
+
+  const hasHorizontalOverflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth,
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+});
+
 test("shows one compact toolbar contract for all four page surfaces", async ({
   page,
 }) => {

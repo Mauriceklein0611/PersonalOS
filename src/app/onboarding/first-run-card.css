@@ -2,12 +2,11 @@
   display: grid;
   min-width: 0;
   grid-column: 1 / -1;
-  gap: var(--space-4);
+  gap: var(--space-3);
   padding: var(--space-4);
-  border: 1px solid var(--accent-1);
-  border-radius: var(--radius-lg);
-  background: var(--glass);
-  box-shadow: var(--glass-highlight), var(--shadow-sm);
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-panel);
 }
 
 .first-run-heading {

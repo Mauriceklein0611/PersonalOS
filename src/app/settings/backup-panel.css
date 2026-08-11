@@ -34,8 +34,12 @@
 .backup-counts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: var(--space-2);
+  gap: 1px;
   margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-edge);
 }
 
 .backup-counts > div {
@@ -43,8 +47,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  background: var(--glass-strong);
+  background: var(--dense-row);
 }
 
 .backup-counts dd {
