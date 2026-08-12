@@ -50,7 +50,11 @@ test("guides, skips and completes the local first run", async ({ page }) => {
     .getByRole("dialog", { name: "Routine anlegen" })
     .getByRole("button", { name: "Routine anlegen" })
     .click();
-  await expect(page.getByText("Morgenroutine", { exact: true })).toBeVisible();
+  await expect(
+    page
+      .getByRole("region", { name: "Routinen-Monatsübersicht" })
+      .getByText("Morgenroutine", { exact: true }),
+  ).toBeVisible();
   await page.goto("/");
 
   await expect(guide.getByText("2 von 2 Grundlagen")).toBeVisible();

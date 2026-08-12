@@ -6,11 +6,15 @@ import {
 } from "../../../app/settings/settings-context";
 import {
   Button,
+  Chart,
   EmptyState,
+  Input,
+  MetricTile,
   PageToolbar,
   RankedBarList,
   Select,
   Toast,
+  type DataSeriesTone,
 } from "../../../components/ui";
 import {
   addCalendarMonths,
@@ -82,7 +86,6 @@ export function HabitsPage({
   >(new Map());
   const [error, setError] = useState<string>();
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
@@ -94,6 +97,7 @@ export function HabitsPage({
     () => calendarDayForInstant(now(), timeZone),
     [now, timeZone],
   );
+  const [requestedDay, setRequestedDay] = useState<CalendarDay>(today);
 
   const load = useCallback(async () => {
     const snapshot = await readHabitSnapshot(service);
@@ -179,6 +183,12 @@ export function HabitsPage({
     ],
   );
 
+  const latestSelectableDay = monthView.countedTo ?? monthView.from;
+  const selectedDay =
+    requestedDay >= monthView.from && requestedDay <= latestSelectableDay
+      ? requestedDay
+      : latestSelectableDay;
+
   const streaks = useMemo(
     () =>
       new Map(
@@ -205,6 +215,35 @@ export function HabitsPage({
     })
     .filter((entry) => entry.value > 0)
     .sort((first, second) => second.value - first.value);
+
+  const monthRanking = monthView.rows
+    .filter(
+      (row) => row.fulfillment !== undefined && row.fulfillment.counted > 0,
+    )
+    .sort(
+      (first, second) =>
+        (second.fulfillment?.rate ?? 0) - (first.fulfillment?.rate ?? 0),
+    )
+    .map((row, index) => ({
+      id: row.habit.id,
+      label: row.habit.name,
+      tone: ((index % 6) + 1) as DataSeriesTone,
+      value: Math.round((row.fulfillment?.rate ?? 0) * 100),
+      valueText: formatHabitRate(row.fulfillment?.rate ?? null),
+    }));
+
+  const chartTo = monthView.countedTo ?? monthView.from;
+  const chartDays = monthView.days.filter((day) => day.day <= chartTo);
+  const dailyRateSeries = [
+    {
+      id: "daily-rate",
+      label: "Tagesquote",
+      tone: 1 as const,
+      values: chartDays.map((day) =>
+        day.rate === null ? null : Math.round(day.rate * 100),
+      ),
+    },
+  ];
 
   async function runHabitAction(
     habit: Habit,
@@ -370,7 +409,7 @@ export function HabitsPage({
             <Button onClick={() => setEditor({})}>Neue Routine</Button>
           </>
         }
-        description="Check-ins, Zeitverlauf und Fortschritt in einer zusammenhängenden Arbeitsfläche."
+        description="Monat, Check-ins und Verlauf in einer zusammenhängenden Arbeitsfläche."
         eyebrow="Routinen"
         period={formatCalendarMonth(month)}
         surface="work"
@@ -399,19 +438,17 @@ export function HabitsPage({
           <option value="active">Aktive Routinen</option>
           <option value="archived">Archiv</option>
         </Select>
-
-        {visibility === "active" && monthView.summary.counted > 0 ? (
-          <p className="habit-month-summary" role="status">
-            <strong>{formatHabitRate(monthView.summary.rate)}</strong>
-            <span>
-              {monthView.summary.done} von {monthView.summary.counted} im
-              sichtbaren Zeitraum erledigt
-              {monthView.summary.skipped > 0
-                ? ` · ${monthView.summary.skipped} übersprungen`
-                : ""}
-            </span>
-          </p>
-        ) : null}
+        <Input
+          className="habit-selected-day-control"
+          label="Check-in-Tag"
+          max={monthView.countedTo ?? monthView.from}
+          min={monthView.from}
+          onChange={(event) =>
+            setRequestedDay(event.currentTarget.value as CalendarDay)
+          }
+          type="date"
+          value={selectedDay}
+        />
       </div>
 
       <div aria-live="polite" className="habit-workspace">
@@ -441,7 +478,7 @@ export function HabitsPage({
             }
           />
         ) : (
-          <div className="ui-dense-panel habit-month-panel">
+          <div className="ui-dense-panel habit-dashboard">
             <HabitMonthGrid
               busyHabitId={busyHabitId}
               goalTitles={goalTitles}
@@ -450,10 +487,65 @@ export function HabitsPage({
               onRestore={(habit) => void restoreHabit(habit)}
               onSkipToday={toggleTodaySkip}
               onToggle={toggleMonthDay}
+              selectedDay={selectedDay}
               streaks={streaks}
               today={today}
               view={monthView}
             />
+
+            <div className="habit-dashboard-metrics">
+              <MetricTile
+                context={`${monthView.summary.done} von ${monthView.summary.counted} zählenden Einheiten`}
+                label="Monatsquote"
+                value={
+                  monthView.summary.rate === null
+                    ? null
+                    : formatHabitRate(monthView.summary.rate)
+                }
+              />
+              <MetricTile
+                context="Check-ins im gewählten Monat"
+                label="Erledigt"
+                value={
+                  monthView.summary.counted === 0
+                    ? null
+                    : String(monthView.summary.done)
+                }
+              />
+              <MetricTile
+                context="Bleibt außerhalb des Nenners"
+                label="Übersprungen"
+                value={String(monthView.summary.skipped)}
+              />
+              <MetricTile
+                context="Serien mit mindestens einer Einheit"
+                label="Aktive Serien"
+                value={
+                  visibility === "active" ? String(streakRanking.length) : null
+                }
+              />
+            </div>
+
+            <div className="habit-dashboard-analysis">
+              <Chart
+                categories={chartDays.map((day) => formatCalendarDay(day.day))}
+                className="habit-rhythm-chart"
+                emptyMessage="Für diesen Monat gibt es noch keine zählende Tagesbasis."
+                formatValue={(value) => `${Math.round(value)} %`}
+                period={`${formatCalendarDay(monthView.from)} bis ${formatCalendarDay(monthView.countedTo ?? monthView.to)}`}
+                series={dailyRateSeries}
+                source="Erledigte Einheiten geteilt durch zählende fällige Einheiten je Tag; Überspringen bleibt neutral."
+                title="Rhythmus im Monat"
+                type="line"
+              />
+              <RankedBarList
+                caption="Monatsquote je Routine; übersprungene Einheiten bleiben neutral."
+                className="habit-month-ranking"
+                emptyMessage="Noch keine Routine mit zählender Monatsbasis."
+                items={monthRanking}
+                label="Routinen im Vergleich"
+              />
+            </div>
           </div>
         )}
       </div>
@@ -480,25 +572,6 @@ export function HabitsPage({
             onEdit={(habit) => setEditor({ habit })}
             title="Pausiert"
           />
-        </details>
-      ) : null}
-
-      {visibility === "active" && trackedHabits.length > 0 ? (
-        <details
-          className="habit-period-analysis"
-          onToggle={(event) => setIsAnalysisOpen(event.currentTarget.open)}
-          open={isAnalysisOpen}
-        >
-          <summary>Auswertung des sichtbaren Zeitraums</summary>
-          {isAnalysisOpen ? (
-            <RankedBarList
-              caption="Orientierung, keine Rangordnung. Serien verwenden weiterhin den gespeicherten Rhythmus."
-              emptyMessage="Noch keine laufende Serie."
-              items={streakRanking}
-              label="Aktive Serien"
-              tone={2}
-            />
-          ) : null}
         </details>
       ) : null}
 

@@ -6,6 +6,8 @@ import { noDataText, type DataSeriesTone } from "./data-series";
 export type RankedBarItem = {
   id: string;
   label: string;
+  /** Optionale individuelle Datenfarbe für vergleichbare Einträge. */
+  tone?: DataSeriesTone;
   value: number;
   /** Ersetzt die formatierte Zahl, zum Beispiel „12 von 20“. */
   valueText?: string;
@@ -55,7 +57,7 @@ export function RankedBarList({
               <span
                 aria-hidden="true"
                 className="ui-ranked-bar-list-bar"
-                data-tone={tone}
+                data-tone={item.tone ?? tone}
                 style={
                   {
                     "--ranked-bar-width": `${toWidth(item.value, reference)}%`,
