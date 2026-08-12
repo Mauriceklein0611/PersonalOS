@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildHabitMonthView } from "../month-view";
 import { createHabit, createHabitEntry, habitId } from "../test-factories";
@@ -8,7 +8,10 @@ import { HabitMonthGrid } from "./HabitMonthGrid";
 
 const habit = createHabit({ name: "Rücken dehnen", startDate: "2026-08-02" });
 
-function renderGrid(onToggle = vi.fn()) {
+function renderGrid(
+  selectedDay: "2026-08-02" | "2026-08-04" = "2026-08-04",
+  onToggle = vi.fn(),
+) {
   const view = buildHabitMonthView({
     entriesByHabit: new Map([
       [
@@ -30,6 +33,7 @@ function renderGrid(onToggle = vi.fn()) {
       onRestore={vi.fn()}
       onSkipToday={vi.fn()}
       onToggle={onToggle}
+      selectedDay={selectedDay}
       today="2026-08-05"
       view={view}
     />,
@@ -38,6 +42,24 @@ function renderGrid(onToggle = vi.fn()) {
 }
 
 describe("HabitMonthGrid", () => {
+  beforeEach(() => {
+    vi.spyOn(window, "matchMedia").mockImplementation(
+      (query) =>
+        ({
+          addEventListener: () => undefined,
+          addListener: () => undefined,
+          dispatchEvent: () => false,
+          matches: query === "(min-width: 64rem)",
+          media: query,
+          onchange: null,
+          removeEventListener: () => undefined,
+          removeListener: () => undefined,
+        }) as MediaQueryList,
+    );
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
   it("names every cell state as text next to its sign", () => {
     renderGrid();
     const grid = screen.getByRole("table");
@@ -49,14 +71,10 @@ describe("HabitMonthGrid", () => {
       ),
     ).toBeInTheDocument();
     expect(
-      within(grid).getByRole("button", {
-        name: "Rücken dehnen am 2. August 2026: Erledigt. Check-in entfernen",
-      }),
+      within(grid).getByText("Rücken dehnen am 2. August 2026: Erledigt"),
     ).toBeInTheDocument();
     expect(
-      within(grid).getByRole("button", {
-        name: "Rücken dehnen am 3. August 2026: Übersprungen. Als erledigt eintragen",
-      }),
+      within(grid).getByText("Rücken dehnen am 3. August 2026: Übersprungen"),
     ).toBeInTheDocument();
     expect(
       within(grid).getByRole("button", {
@@ -107,6 +125,7 @@ describe("HabitMonthGrid", () => {
         onRestore={vi.fn()}
         onSkipToday={vi.fn()}
         onToggle={vi.fn()}
+        selectedDay="2026-08-04"
         today="2026-08-04"
         view={view}
       />,
@@ -120,7 +139,7 @@ describe("HabitMonthGrid", () => {
 
   it("reports a click with the state of the day", async () => {
     const user = userEvent.setup();
-    const { onToggle } = renderGrid();
+    const { onToggle } = renderGrid("2026-08-04");
 
     await user.click(
       screen.getByRole("button", {
@@ -129,19 +148,31 @@ describe("HabitMonthGrid", () => {
     );
     expect(onToggle).toHaveBeenCalledWith(habit, "2026-08-04", false);
 
+    expect(onToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it("moves the full-size check-in target to the selected day", async () => {
+    const user = userEvent.setup();
+    const onToggle = vi.fn();
+    renderGrid("2026-08-02", onToggle);
+
     await user.click(
       screen.getByRole("button", {
         name: "Rücken dehnen am 2. August 2026: Erledigt. Check-in entfernen",
       }),
     );
-    expect(onToggle).toHaveBeenLastCalledWith(habit, "2026-08-02", true);
+    expect(onToggle).toHaveBeenCalledWith(habit, "2026-08-02", true);
   });
 
   it("groups the columns into weeks", () => {
     renderGrid();
 
-    expect(screen.getByText("Woche ab 27. Juli 2026")).toBeInTheDocument();
-    expect(screen.getByText("Woche ab 3. August 2026")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Woche ab 27. Juli 2026").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("Woche ab 3. August 2026").length,
+    ).toBeGreaterThan(0);
     // Der erste Spaltenkopf einer Woche trägt die Grenze auch strukturell.
     expect(
       document.querySelectorAll('.habit-month-table [data-week-start="true"]')

@@ -1,4 +1,10 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -63,7 +69,9 @@ describe("HabitsPage – eine Arbeitsfläche", () => {
       ),
     );
 
-    expect(await screen.findByText("Wasser trinken")).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText("Wasser trinken")).length,
+    ).toBeGreaterThan(0);
     expect(service.create).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Wasser trinken",
@@ -115,8 +123,12 @@ describe("HabitsPage – eine Arbeitsfläche", () => {
       within(table).queryByRole("button", { name: /4\. August 2026/ }),
     ).not.toBeInTheDocument();
 
+    fireEvent.change(screen.getByLabelText("Check-in-Tag"), {
+      target: { value: "2026-08-03" },
+    });
+
     await user.click(
-      within(table).getByRole("button", {
+      await screen.findByRole("button", {
         name: "Rücken dehnen am 3. August 2026: Offen. Als erledigt eintragen",
       }),
     );
@@ -140,7 +152,7 @@ describe("HabitsPage – eine Arbeitsfläche", () => {
     );
 
     expect((await screen.findAllByText("33 %")).length).toBeGreaterThan(0);
-    expect(screen.getByText("1 von 3")).toBeInTheDocument();
+    expect(screen.getByText(/1 von 3 zählenden Einheiten/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Vorheriger Monat" }));
     expect(screen.getByText("Juli 2026")).toBeInTheDocument();
@@ -186,7 +198,9 @@ describe("HabitsPage – eine Arbeitsfläche", () => {
     expect(screen.queryByText("Morgenroutine")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Rückgängig" }));
-    expect(await screen.findByText("Morgenroutine")).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText("Morgenroutine")).length,
+    ).toBeGreaterThan(0);
     expect(service.restore).toHaveBeenCalledWith(dailyHabitId);
   });
 
@@ -200,7 +214,9 @@ describe("HabitsPage – eine Arbeitsfläche", () => {
       await screen.findByRole("combobox", { name: /Routinen anzeigen/ }),
       "archived",
     );
-    expect(await screen.findByText("Morgenroutine")).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText("Morgenroutine")).length,
+    ).toBeGreaterThan(0);
     await user.click(
       screen.getByRole("button", { name: "„Morgenroutine“ verwalten" }),
     );

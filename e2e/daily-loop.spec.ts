@@ -35,7 +35,9 @@ test("completes the whole daily loop offline after the first load", async ({
     .getByRole("button", { name: "Routine anlegen" })
     .click();
   await expect(
-    page.getByText("Abendspaziergang", { exact: true }),
+    page
+      .getByRole("region", { name: "Routinen-Monatsübersicht" })
+      .getByText("Abendspaziergang", { exact: true }),
   ).toBeVisible();
 
   await page.goto("/");

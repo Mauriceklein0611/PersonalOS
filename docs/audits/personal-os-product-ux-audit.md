@@ -163,7 +163,7 @@ Basiskomponenten in `src/components/ui/`: Button, Card, Checkbox, Dialog, EmptyS
 
 ### B.7 Bekannte funktionale Grenzen
 
-Aus `KNOWN_LIMITATIONS.md` und Code bestätigt: Import ersetzt vollständig (kein Merge), Journaltage nicht löschbar, Check-in an nicht mehr geplantem Tag nicht entfernbar, Tab-Leisten ohne Pfeiltastennavigation, Habit-Wochenansicht scrollt horizontal, keine Listenvirtualisierung, E2E nur gegen Chromium.
+Aus `KNOWN_LIMITATIONS.md` und Code bestätigt: Import ersetzt vollständig (kein Merge), Journaltage nicht löschbar, Check-in an nicht mehr geplantem Tag nicht entfernbar, Tab-Leisten ohne Pfeiltastennavigation, mobil wird im Routinen-Tracker nur die ausgewählte Woche gezeigt, keine Listenvirtualisierung, E2E nur gegen Chromium.
 
 ---
 
@@ -572,7 +572,7 @@ Die Trefferfläche selbst ist ausreichend (`--mobile-nav-height: 4.5rem`).
 
 **Beobachtung:** `KNOWN_LIMITATIONS.md` dokumentiert eine Messung: rund 3.000 Aufgaben, 40 Gewohnheiten, 730 Journaleinträge, Verdichtung in etwa 33 Millisekunden. Das ist eine echte Messung, und sie ist beruhigend – für die **Berechnung**.
 
-Nicht abgesichert ist das **Rendern**: keine Virtualisierung (bewusst zurückgestellt, ADR-konform), und die Habit-Wochenansicht scrollt bei vielen Gewohnheiten horizontal in ihrem eigenen Bereich.
+Nicht vollständig abgesichert ist das **Rendern**: keine Virtualisierung (bewusst zurückgestellt, ADR-konform). Der Routinen-Tracker vermeidet zwar horizontalen Überlauf, aber sehr viele Routinen verlängern die Seite weiterhin vertikal.
 
 Ebenfalls ungeprüft: sehr lange Aufgabentitel. Das Schema erlaubt 500 Zeichen; `.today-list-copy` setzt `min-width: 0` (verhindert Grid-Überlauf), aber ob der Titel umbricht oder abgeschnitten wird, ist ohne Browser nicht feststellbar.
 

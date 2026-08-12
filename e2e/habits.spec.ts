@@ -15,7 +15,7 @@ test("creates, checks in, skips and restores a routine on one surface", async ({
 
   await expect(page.getByRole("tablist")).toHaveCount(0);
   const grid = page.getByRole("region", {
-    name: "Routinen-Tracker, horizontal scrollbar",
+    name: "Routinen-Monatsübersicht",
   });
   await expect(grid).toBeVisible();
 
@@ -69,7 +69,7 @@ test("creates, checks in, skips and restores a routine on one surface", async ({
   ).toBe(false);
 });
 
-test("centers today inside the full-surface tracker without loading charts", async ({
+test("shows the selected week and the monthly chart without horizontal scrolling", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -89,20 +89,18 @@ test("centers today inside the full-surface tracker without loading charts", asy
     .click();
 
   const grid = page.getByRole("region", {
-    name: "Routinen-Tracker, horizontal scrollbar",
+    name: "Routinen-Monatsübersicht",
   });
   await expect(grid).toBeVisible();
   const gridBox = await grid.boundingBox();
   expect(gridBox!.y).toBeLessThan(page.viewportSize()!.height);
   expect(
     await grid.evaluate((element) => element.scrollWidth > element.clientWidth),
-  ).toBe(true);
-  expect(await grid.evaluate((element) => element.scrollLeft)).toBeGreaterThan(
-    0,
-  );
-  await grid.focus();
-  await expect(grid).toBeFocused();
-  expect(chartRequests).toHaveLength(0);
+  ).toBe(false);
+  await expect(grid.locator(".habit-month-table-week")).toBeVisible();
+  await expect(grid.locator('thead th[scope="colgroup"]')).toHaveCount(1);
+  await expect(page.locator(".habit-rhythm-chart")).toBeVisible();
+  await expect.poll(() => chartRequests.length).toBeGreaterThan(0);
 
   const todayHeader = grid.locator('thead [data-today="true"]');
   await expect(todayHeader).toBeVisible();
@@ -111,30 +109,61 @@ test("centers today inside the full-surface tracker without loading charts", asy
   ).toBeTruthy();
 });
 
-test("keeps the tracker wide on desktop and restores from the archive offline", async ({
+test("fits the full month on desktop and restores from the archive offline", async ({
   context,
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/routinen/uebersicht");
-  await page.getByRole("button", { name: "Neue Routine" }).click();
-  await page.getByRole("textbox", { name: /Name/ }).fill("Lesen");
-  await page
-    .getByRole("dialog", { name: "Routine anlegen" })
-    .getByRole("button", { name: "Routine anlegen" })
-    .click();
+  await page.getByRole("combobox", { name: "Farbschema" }).selectOption("dark");
+
+  for (const name of ["Lesen", "Bewegung", "Morgenfokus"]) {
+    await page.getByRole("button", { name: "Neue Routine" }).click();
+    const dialog = page.getByRole("dialog", { name: "Routine anlegen" });
+    await dialog.getByRole("textbox", { name: /Name/ }).fill(name);
+    await dialog.getByLabel("Startdatum").fill("2026-08-01");
+    await dialog.getByRole("button", { name: "Routine anlegen" }).click();
+  }
+
+  for (const [day, habits] of [
+    ["08", ["Lesen", "Bewegung"]],
+    ["09", ["Lesen", "Morgenfokus"]],
+    ["10", ["Lesen", "Bewegung", "Morgenfokus"]],
+    ["11", ["Lesen", "Morgenfokus"]],
+    ["12", ["Lesen", "Bewegung"]],
+  ] as const) {
+    await page.getByLabel("Check-in-Tag").fill(`2026-08-${day}`);
+    for (const habit of habits) {
+      await page
+        .getByRole("button", {
+          name: new RegExp(`^${habit} am .*: Offen\\.`),
+        })
+        .click();
+    }
+  }
 
   const routeWidth = await page
     .locator(".habits-page")
     .evaluate((element) => element.getBoundingClientRect().width);
   expect(routeWidth).toBeGreaterThan(900);
+  const grid = page.getByRole("region", {
+    name: "Routinen-Monatsübersicht",
+  });
+  await expect(grid.locator(".habit-month-table-month")).toBeVisible();
+  expect(
+    await grid.evaluate((element) => element.scrollWidth > element.clientWidth),
+  ).toBe(false);
+  await expect(
+    grid.locator(".habit-month-table-month thead tr").nth(1).locator("th"),
+  ).toHaveCount(33);
+  await expect(page.locator(".habit-rhythm-chart svg")).toBeVisible();
 
   await page.getByRole("button", { name: "„Lesen“ verwalten" }).click();
   await page.getByRole("button", { name: "Archivieren" }).click();
   await page
     .getByRole("combobox", { name: /Routinen anzeigen/ })
     .selectOption("archived");
-  await expect(page.getByText("Lesen", { exact: true })).toBeVisible();
+  await expect(grid.getByText("Lesen", { exact: true })).toBeVisible();
 
   await waitForServiceWorker(page);
   await context.setOffline(true);
@@ -143,7 +172,7 @@ test("keeps the tracker wide on desktop and restores from the archive offline", 
     await page
       .getByRole("combobox", { name: /Routinen anzeigen/ })
       .selectOption("archived");
-    await expect(page.getByText("Lesen", { exact: true })).toBeVisible();
+    await expect(grid.getByText("Lesen", { exact: true })).toBeVisible();
   } finally {
     await context.setOffline(false);
   }

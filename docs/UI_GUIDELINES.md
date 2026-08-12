@@ -219,7 +219,10 @@ und erzeugt weder eine neue Route noch persistierten Zustand.
 
 - Zeilen sind Einträge, Spalten sind Tage — wie unter „Tracker-Raster“. Innerhalb eines dichten Panels gilt zusätzlich: keine Fläche je Zelle außer für Zustand, kein eigener Radius über `--radius-cell` hinaus.
 - Fehlende oder zukünftige Tage bleiben `Keine Angabe`. Ein Nenner aus Kalendertagen erzeugt sonst ein `0 %`, das niemand erfasst hat.
-- Das Raster scrollt in seinem eigenen Container. Auf Mobil stehen nie sieben schmale Spalten nebeneinander, nur weil die Woche sieben Tage hat.
+- Operative Raster mit gleich großen bedienbaren Zellen scrollen in ihrem
+  eigenen Container. Die Routinen-Monatsmatrix ist die Ausnahme: Kompakte
+  passive Zustandszeichen zeigen den Kontext, während nur die ausgewählte
+  Datumsspalte 44-px-Check-in-Ziele trägt.
 - `TrackerCell` kennt `outside` für Tage außerhalb des Zeitraums eines Eintrags. Die Zelle bleibt dort ohne Zeichen und ohne Rahmen: Es gab nichts zu tun, und ein weiteres Zeichen würde eine Erwartung andeuten, die nie bestand. Der Text der Zelle nennt den Zustand trotzdem.
 
 ### Monatsraster
@@ -227,22 +230,28 @@ und erzeugt weder eine neue Route noch persistierten Zustand.
 Ein Monatsraster zeigt Einträge × reale Kalendertage des gewählten Monats. Im
 Routinenbereich ist es die einzige primäre Arbeitsfläche: Heute, Woche,
 Monatsübersicht, Fortschritt und Archiv werden nicht als getrennte Reiter
-wiederholt. Der Tracker trägt deshalb kein Diagramm.
+wiederholt. Eine dauerhaft sichtbare Verlaufskurve ergänzt denselben Bestand;
+sie ist keine zweite Ansicht und kein ausklappbarer Primärinhalt.
 
 - Sechs Zustände je Zelle: erledigt, offen (vergangener fälliger Tag ohne Eintrag), übersprungen, nicht fällig, später fällig und außerhalb des Zeitraums. `offen` und `später fällig` bleiben getrennt — nur der vergangene Tag geht in eine Quote ein.
 - Der Nenner bleibt `counted = max(done, target − skipped)` aus der Fachlogik. `Einträge × Kalendertage` gibt es nicht, und die Quote endet am heutigen Tag, nicht am Monatsende.
 - Der Wochenanfang folgt `settings.weekStartsOn`. Die Woche ist zusätzlich strukturell markiert: ein Wochenkopf über den Spalten und eine Linie an der Grenze, nicht nur eine Farbe.
-- Ein ganzer Monat passt auf keiner Breite ohne Scroller. Die stehende erste
-  Spalte trägt Name und Rhythmus; eine ebenfalls stehende Abschlussspalte zeigt
-  Quote, Zähler, aktuelle Serie und Zielbezug direkt in derselben Zeile.
-- Beim Öffnen wird der heutige Tag automatisch in den sichtbaren Ausschnitt
-  gerückt. Die aktuelle Spalte bleibt zusätzlich textlich und farblich
-  gekennzeichnet.
-- Monat, aktive oder archivierte Routinen und sekundäre Auswertung sind
-  Steuerungen derselben Arbeitsfläche. Archivieren und Wiederherstellen liegen
-  als benannte Zeilenaktionen am jeweiligen Datensatz.
+- Ab 64 rem passt der vollständige Monat in die verfügbare Breite. Passive
+  Zustandszeichen dürfen dafür kleiner sein; der über ein Datumsfeld gewählte
+  Check-in-Tag bleibt als einzige bedienbare Spalte mindestens 44 px breit.
+  Unterhalb davon zeigt dieselbe Fläche die vollständige ausgewählte Woche und
+  erzeugt keinen horizontalen Tracker-Scroller.
+- Beim Öffnen ist heute ausgewählt. Historische Tage bleiben über das
+  beschriftete Datumsfeld erreichbar. Die ausgewählte Spalte ist textlich,
+  farblich und mit `aria-current="date"` gekennzeichnet.
+- Monat, aktive oder archivierte Routinen und Check-in-Tag sind Steuerungen
+  derselben Arbeitsfläche. Archivieren und Wiederherstellen liegen als benannte
+  Zeilenaktionen am jeweiligen Datensatz.
 - Die Tageszusammenfassung steht als Fußzeile unter ihren Spalten und nennt Zähler und Nenner. Ohne zählende Einheit steht dort `Keine Angabe`.
 - Eine kompakte Legende steht **hinter** dem Raster: Sie erklärt, was dort schon zu sehen ist.
+- Die Verlaufskurve zeigt `done / counted` je Tag und lässt Tage ohne Nenner
+  als `Keine Angabe` aus. Monatskennzahlen und Routinevergleich stehen als Text
+  direkt daneben; das Diagramm bleibt Ergänzung.
 
 ### Wochenplan
 

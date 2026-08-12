@@ -145,6 +145,22 @@ describe("RankedBarList", () => {
     expect(within(list).queryByText("Nicht sichtbar")).not.toBeInTheDocument();
   });
 
+  it("can give each bar its own neon tone", () => {
+    const { container } = render(
+      <RankedBarList
+        items={[
+          { id: "a", label: "Lesen", tone: 2, value: 21 },
+          { id: "b", label: "Sport", tone: 5, value: 18 },
+        ]}
+        label="Routinen im Vergleich"
+      />,
+    );
+
+    const bars = container.querySelectorAll(".ui-ranked-bar-list-bar");
+    expect(bars[0]).toHaveAttribute("data-tone", "2");
+    expect(bars[1]).toHaveAttribute("data-tone", "5");
+  });
+
   it("explains the empty state instead of showing bars", () => {
     render(
       <RankedBarList

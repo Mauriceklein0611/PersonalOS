@@ -11,7 +11,7 @@ aus #159 bis #165. Sie ist eine prüfbare Ergänzung zu den normativen
 | Heute `/` | Übersicht | Was braucht heute Aufmerksamkeit? | Aufgabe schnell erfassen | höchstens drei Kennzahlen, Fortschritt, Fokus | ruhige Übersicht; mobil einspaltig | Ersteinrichtung, leer, Fehler, offline; `today`, `onboarding`, `pwa` |
 | Aufgaben `/planen/aufgaben` | Arbeitsfläche | Was ist offen oder für einen Tag geplant? | Aufgabe anlegen | Auswahl, Fristbezug, Fokus | dichte Liste; Wochenplan mobil mit einem Tag | Filter, leer, Fehler, Tastatur; `tasks`, `daily-loop` |
 | Ziele `/planen/ziele` | Arbeitsfläche | Woran arbeite ich und was ist der nächste Meilenstein? | Ziel anlegen | Auswahl und Fortschritt | Hierarchiezeilen; Detail mobil darunter | leer, Fehler, Löschen/Recovery; `goals`, `goal-links` |
-| Routinen `/routinen/uebersicht` | Arbeitsfläche | Was war geplant und was habe ich eingecheckt? | Routine anlegen oder Check-in setzen | Trackerzellen, Rate, Serie, Auswahl | voller Monat; mobil eigener horizontaler Raster-Scroller | aktiv/archiviert, leer, Fehler, offline; `habits`, `daily-loop` |
+| Routinen `/routinen/uebersicht` | Arbeitsfläche | Was war geplant und was habe ich eingecheckt? | Routine anlegen oder Check-in setzen | Wochenbänder, Trackerzellen, Neon-Verlauf, Rate und Serie | Desktop voller Monat ohne Scroller; mobil ausgewählte Woche | aktiv/archiviert, leer, Fehler, offline; `habits`, `daily-loop` |
 | Journal `/routinen/journal` | Editor | Was möchte ich für diesen Tag festhalten? | Eintrag speichern | Skalauswahl, Fokus, Speicherstatus | begrenzte Textzeile; mobil einspaltig | leer, Laden, Fehler, ungespeichert; `journal` |
 | Geld `/geld` | Arbeitsfläche | Was ist geflossen und wie steht der Plan? | Buchung erfassen | Beträge, Budget- und Sparbalken | dichte Bestände; Formulare brechen mobil um | leer, gemischte Währung, Fehler, Recovery; `finance`, `backup` |
 | Auswertung `/auswertung/ueberblick` | Übersicht | Was lässt sich aus meinen Einträgen nachvollziehbar ableiten? | Wochenrückblick oder Datenbasis öffnen | große Werte und Balken | Text/Tabelle vor Diagramm; mobil gestapelt | unvollständig, ausgeblendet, Fehler; `insights` |
@@ -25,7 +25,8 @@ aus #159 bis #165. Sie ist eine prüfbare Ergänzung zu den normativen
   Arbeitsmodi bleiben getrennt; der Routinen-Tracker hat keine Unteransichten.
 - Listen verwenden gemeinsame dichte Flächen statt einer Karte pro Datensatz.
 - Die Dokumentbreite bleibt bei 320, 375, 390, 768, 1280 und 1440 Pixeln
-  stabil. Breite Tracker scrollen ausschließlich in ihrem eigenen Bereich.
+  stabil. Der Routinen-Tracker passt Desktopmonat oder Mobilwoche ohne eigenen
+  horizontalen Scrollbereich in die Fläche ein.
 - Eigenständige Schaltflächen bleiben mindestens 44 mal 44 CSS-Pixel groß;
   Fokusrahmen und Sticky-Spalten werden nicht abgeschnitten.
 - Farbe, Glow, Balken und Diagramme ergänzen immer Text, Zeichen oder Tabellen.
