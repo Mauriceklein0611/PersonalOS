@@ -48,6 +48,45 @@ test("keeps the component preview usable in dark mode at 320 pixels", async ({
   expect(hasHorizontalOverflow).toBe(false);
 });
 
+test("shows one compact toolbar contract for all four page surfaces", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/komponenten");
+
+  for (const surface of ["work", "overview", "editor", "settings"]) {
+    const toolbar = page.locator(`.ui-page-toolbar[data-surface="${surface}"]`);
+    await expect(toolbar).toBeVisible();
+
+    const style = await toolbar.evaluate((element) => {
+      const computed = getComputedStyle(element);
+      return {
+        backdropFilter: computed.backdropFilter,
+        backgroundColor: computed.backgroundColor,
+      };
+    });
+    expect(style.backdropFilter).toBe("none");
+    expect(style.backgroundColor).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
+  }
+
+  const actions = page
+    .locator('.ui-page-toolbar[data-surface="work"]')
+    .getByRole("group", { name: "Seitenaktionen" })
+    .getByRole("button");
+  await expect(actions).toHaveCount(2);
+  for (const action of await actions.all()) {
+    const box = await action.boundingBox();
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
+
+  const hasHorizontalOverflow = await page.evaluate(
+    () =>
+      document.documentElement.scrollWidth >
+      document.documentElement.clientWidth,
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+});
+
 test("shows every dashboard value as text and keeps the tracker scrollable", async ({
   page,
 }) => {

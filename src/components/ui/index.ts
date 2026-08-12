@@ -17,6 +17,11 @@ export { ExternalLink, type ExternalLinkProps } from "./ExternalLink";
 export { IconButton, type IconButtonProps } from "./IconButton";
 export { Input, type InputProps } from "./Input";
 export { MetricTile, type MetricTileProps } from "./MetricTile";
+export {
+  PageToolbar,
+  type PageSurface,
+  type PageToolbarProps,
+} from "./PageToolbar";
 export { ProgressBar, type ProgressBarProps } from "./ProgressBar";
 export { ProgressRing, type ProgressRingProps } from "./ProgressRing";
 export {

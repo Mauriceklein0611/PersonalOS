@@ -535,6 +535,103 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Gemeinsamer Einstieg fÃ¼r die vier FlÃ¤chentypen aus ADR 0018. Anders als
+ * der frÃ¼here Hero erzeugt die Werkzeugleiste keinen dekorativen Vorlauf:
+ * Titel, Zeitraum und Aktionen stehen in einer kompakten deckenden FlÃ¤che.
+ */
+.ui-page-toolbar {
+  display: grid;
+  min-width: 0;
+  align-items: end;
+  gap: var(--space-3);
+  padding: clamp(var(--space-3), 2vw, var(--space-5));
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-panel);
+  box-shadow: var(--glass-highlight);
+}
+
+.ui-page-toolbar-copy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.ui-page-toolbar-copy h1,
+.ui-page-toolbar-copy h2 {
+  max-width: 24ch;
+  margin: 0;
+  font-size: clamp(var(--font-size-xl), 3vw, var(--font-size-display));
+  font-weight: var(--font-weight-kpi);
+  letter-spacing: -0.03em;
+  line-height: var(--line-height-tight);
+  overflow-wrap: anywhere;
+}
+
+.ui-page-toolbar-description {
+  max-width: 54rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  overflow-wrap: anywhere;
+}
+
+.ui-page-toolbar-tools {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-2) var(--space-4);
+}
+
+.ui-page-toolbar-period {
+  display: grid;
+  min-height: var(--control-height);
+  align-content: center;
+  gap: 0.1rem;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-page-toolbar-period span {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.ui-page-toolbar-period strong {
+  color: var(--data-2);
+  overflow-wrap: anywhere;
+}
+
+.ui-page-toolbar-actions {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--space-2);
+}
+
+.ui-page-toolbar-actions > * {
+  min-width: 0;
+}
+
+@media (min-width: 48rem) {
+  .ui-page-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .ui-page-toolbar-tools,
+  .ui-page-toolbar-actions {
+    justify-content: flex-end;
+  }
+}
+
 /* Farbe ist Zusatz; ausgewählt ist der Reiter auch über `aria-selected`. */
 .ui-view-tab[aria-selected="true"] {
   border-color: var(--accent-1);

@@ -108,7 +108,7 @@ Ein Hinweis mit „Rückgängig“ verschwindet erst, wenn er geschlossen wird o
 
 ## Gemeinsame Bausteine sind verbindlich
 
-Domainseiten bauen keine eigenen Kennzahl-, Fortschritts-, Tracker-, Such-, Signal-, Reiter- oder Diagramm-Bausteine. Sie verwenden `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell`, `SearchField`, `SignalRow`, `ViewTabs` und `Chart` aus `src/components/ui`.
+Domainseiten bauen keine eigenen Seitenkopf-, Kennzahl-, Fortschritts-, Tracker-, Such-, Signal-, Reiter- oder Diagramm-Bausteine. Sie verwenden `PageToolbar`, `MetricTile`, `ProgressRing`, `ProgressBar`, `RankedBarList`, `TrackerCell`, `SearchField`, `SignalRow`, `ViewTabs` und `Chart` aus `src/components/ui`.
 
 Fehlt eine Variante, wird der gemeinsame Baustein erweitert. Ein lokaler Nachbau wirkt zunächst kleiner, entkoppelt die Seite aber von Tokens, Kontrasttests und Leerzuständen und muss später erneut angefasst werden.
 
@@ -158,6 +158,26 @@ Alle Ansichten folgen einer gemeinsamen dunklen, ruhigen Arbeitsfläche mit prä
 - Farbe bleibt Zusatz. Label, Zahl, Zeichen, Muster, Position und ARIA tragen jeden Zustand auch ohne Farbwahrnehmung.
 
 Der Grundgedanke in einem Satz: **Die Fläche bleibt leise, die relevante Zahl darf leuchten.**
+
+### Vier Flächentypen
+
+Jede Kernroute benennt über `data-surface` genau einen Flächentyp aus
+[ADR 0018](decisions/0018-full-surface-page-patterns.md):
+
+- `work` für Listen, Tabellen, Tracker und Planungsraster; nutzt die volle
+  verfügbare Inhaltsbreite;
+- `overview` für wenige priorisierte Signale und Kennzahlen;
+- `editor` für Journal und konzentrierte Eingaben mit begrenzter Textzeile;
+- `settings` für Konfiguration und Stammdaten mit begrenzter Lesebreite.
+
+`PageToolbar` ordnet Seitentitel, optionalen Zeitraum und wenige Aktionen. Sie
+ist deckend und kompakt; sie ist kein zweiter Hero. Filter bleiben direkt bei
+der zugehörigen Liste oder Arbeitsfläche. Auf Mobil brechen Zeitraum und
+Aktionen um, bevor ein Ziel schmaler als 44 px wird.
+
+Bestehende Routen ohne `data-surface` behalten bis zu ihrem zuständigen
+Domainumbau die frühere Breite. Der Flächentyp ist eine Darstellungsentscheidung
+und erzeugt weder eine neue Route noch persistierten Zustand.
 
 ### Die dichte Fläche
 
@@ -244,7 +264,12 @@ Wochenentität gibt es nicht.
 
 ### Tabs
 
-Die Ansichten einer Domainseite stehen in `ViewTabs`. Die Bereichsreiter der Kopfzeile bleiben davon unberührt; sie sind Navigation (`AreaLayout`), keine Reiter im ARIA-Sinn.
+`ViewTabs` stehen nur zwischen fachlich verschiedenen Aufgaben derselben
+Domainseite. Ein anderer Zeitraum, Filter oder eine Aggregation desselben
+Bestands begründet allein keinen Reiter; diese Steuerung steht in der
+`PageToolbar` oder direkt an der Arbeitsfläche. Die Bereichsreiter der
+Kopfzeile bleiben davon unberührt: Sie sind Navigation (`AreaLayout`), keine
+Reiter im ARIA-Sinn.
 
 - Reiter laufen nicht waagerecht aus dem Viewport. Die Reihe bricht um: bis 34 rem höchstens zwei nebeneinander, darüber alle in einer Zeile. Eine seitlich scrollende Reihe versteckt genau die Ansichten, die hinten stehen.
 - Ein Reiter darf schmaler werden als seine Beschriftung; `hyphens: auto` trennt sie. Ein langes Wort schiebt die Reihe sonst wieder über den Rand.

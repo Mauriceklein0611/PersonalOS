@@ -10,6 +10,7 @@ import {
   IconButton,
   Input,
   MetricTile,
+  PageToolbar,
   ProgressBar,
   ProgressRing,
   RankedBarList,
@@ -89,6 +90,60 @@ export function Component() {
           Zuständen und stabilen Tastaturpfaden.
         </p>
       </header>
+
+      <section className="preview-section">
+        <h2>Seitenmuster</h2>
+        <p className="preview-note">
+          Derselbe kompakte Einstieg ordnet vier unterschiedliche Flächentypen.
+          Die Arbeitsfläche darf breit werden; Editor und Einstellungen
+          begrenzen die Textzeile. Zeitraum und Aktionen ersetzen keine
+          fachlichen Filter und erzeugen keine Ansichtsreiter.
+        </p>
+        <div className="preview-surface-patterns">
+          <PageToolbar
+            actions={
+              <>
+                <Button variant="secondary">Heute</Button>
+                <Button>Neue Routine</Button>
+              </>
+            }
+            description="Check-ins und Fortschritt auf einer Zeitachse."
+            eyebrow="Arbeitsfläche"
+            headingId="preview-work-title"
+            headingLevel={2}
+            period="August 2026"
+            surface="work"
+            title="Routinen"
+          />
+          <PageToolbar
+            description="Priorisierte Signale und höchstens drei Kennzahlen."
+            eyebrow="Übersicht"
+            headingId="preview-overview-title"
+            headingLevel={2}
+            period="Heute"
+            surface="overview"
+            title="Guten Morgen"
+          />
+          <PageToolbar
+            actions={<Button variant="secondary">Speichern</Button>}
+            description="Eine ruhige Schreibfläche mit explizitem Speichern."
+            eyebrow="Editor"
+            headingId="preview-editor-title"
+            headingLevel={2}
+            period="11. August 2026"
+            surface="editor"
+            title="Journal"
+          />
+          <PageToolbar
+            description="Zusammengehörende Optionen in klaren Abschnitten."
+            eyebrow="Konfiguration"
+            headingId="preview-settings-title"
+            headingLevel={2}
+            surface="settings"
+            title="Einstellungen"
+          />
+        </div>
+      </section>
 
       <PreviewSection title="Buttons und Zustände">
         <PreviewItem label="Normal">
