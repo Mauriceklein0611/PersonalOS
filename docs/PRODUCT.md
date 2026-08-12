@@ -84,7 +84,7 @@ Datenansichten:
 | --- | --- | --- |
 | Aufgaben – Wochenliste | Was muss ich diese Woche im Blick behalten? | Offene Aufgaben mit Plandatum oder Frist im sichtbaren Zeitraum finden. |
 | Aufgaben – Wochenplan | Was habe ich an welchem Tag eingeplant? | Aufgaben ausschließlich über ihr Plandatum den sieben Tagen zuordnen. |
-| Routinen – Wochenstatus | Was war geplant und was habe ich eingecheckt? | Soll, erledigte Check-ins und neutrale Übersprünge gegenüberstellen. |
+| Routinen – Monatstracker | Was war geplant und was habe ich eingecheckt? | Geplante Routinen, erledigte Check-ins und neutrale Übersprünge im Monat gegenüberstellen; Wochengrenzen strukturieren nur das Raster. |
 | Auswertung – Wochenrückblick | Was ist in dieser Woche passiert? | Fünf Bereiche mit ihrer Vorwoche vergleichen, ohne neu zu planen oder zu bewerten. |
 
 Alle vier Flächen zeigen ihren Zeitraum ausdrücklich und leiten ihn aus
