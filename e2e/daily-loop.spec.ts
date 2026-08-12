@@ -30,9 +30,12 @@ test("completes the whole daily loop offline after the first load", async ({
   await page.goto("/routinen");
   await page.getByRole("button", { name: "Neue Routine" }).click();
   await page.getByRole("textbox", { name: /Name/ }).fill("Abendspaziergang");
-  await page.getByRole("button", { name: "Routine anlegen" }).click();
+  await page
+    .getByRole("dialog", { name: "Routine anlegen" })
+    .getByRole("button", { name: "Routine anlegen" })
+    .click();
   await expect(
-    page.getByRole("article", { name: "Abendspaziergang" }),
+    page.getByText("Abendspaziergang", { exact: true }),
   ).toBeVisible();
 
   await page.goto("/");

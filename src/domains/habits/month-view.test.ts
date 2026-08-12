@@ -241,6 +241,30 @@ describe("buildHabitMonthView", () => {
     expect(view.rows).toHaveLength(0);
   });
 
+  it("shows archived history only when the archive filter requests it", () => {
+    const archived = createHabit({
+      archivedAt: "2026-08-05T08:00:00.000Z",
+      startDate: "2026-08-01",
+    });
+    const hidden = buildHabitMonthView({
+      entriesByHabit: new Map(),
+      habits: [archived],
+      month: "2026-08",
+      today: "2026-08-05",
+    });
+    const visible = buildHabitMonthView({
+      entriesByHabit: new Map(),
+      habits: [archived],
+      includeArchived: true,
+      month: "2026-08",
+      today: "2026-08-05",
+    });
+
+    expect(hidden.rows).toHaveLength(0);
+    expect(visible.rows).toHaveLength(1);
+    expect(visible.rows[0].cells.every((cell) => !cell.interactive)).toBe(true);
+  });
+
   it("allows a check-in only where the week view allows one", () => {
     const habit = createHabit({
       schedule: { days: [1], kind: "weekdays" },

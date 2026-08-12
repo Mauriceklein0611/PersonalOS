@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 
 import { findRepositoryHygieneIssues } from "./repository-hygiene.mjs";
 
@@ -10,7 +10,7 @@ const paths = execFileSync(
   { encoding: "utf8" },
 )
   .split("\0")
-  .filter(Boolean);
+  .filter((path) => path && existsSync(path));
 
 const files = paths.map((path) => {
   if (statSync(path).size > maximumTextFileBytes) {

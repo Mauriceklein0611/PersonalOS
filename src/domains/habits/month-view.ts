@@ -81,6 +81,7 @@ export type HabitMonthView = {
 export type HabitMonthViewInput = {
   entriesByHabit: ReadonlyMap<string, readonly HabitEntry[]>;
   habits: readonly Habit[];
+  includeArchived?: boolean;
   month: CalendarMonth;
   today: CalendarDay;
   weekStartsOn?: WeekStartsOn;
@@ -116,6 +117,7 @@ export const habitMonthActionLabels: Partial<
 export function buildHabitMonthView({
   entriesByHabit,
   habits,
+  includeArchived = false,
   month,
   today,
   weekStartsOn = 1,
@@ -135,7 +137,7 @@ export function buildHabitMonthView({
   const rows = habits
     .filter(
       (habit) =>
-        habit.archivedAt === undefined &&
+        (includeArchived || habit.archivedAt === undefined) &&
         habit.startDate <= to &&
         (habit.endDate === undefined || habit.endDate >= from),
     )
@@ -149,7 +151,10 @@ export function buildHabitMonthView({
       return {
         cells: days.map((day) => ({
           day,
-          interactive: isHabitEligibleOn(habit, day) && day <= today,
+          interactive:
+            habit.archivedAt === undefined &&
+            isHabitEligibleOn(habit, day) &&
+            day <= today,
           state: getHabitMonthCellState(habit, entries, day, today),
         })),
         fulfillment:

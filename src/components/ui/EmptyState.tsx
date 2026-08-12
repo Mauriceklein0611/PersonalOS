@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 export type EmptyStateProps = {
   action?: ReactNode;
   description: string;
+  headingLevel?: 2 | 3;
   title: string;
   visual?: ReactNode;
 };
@@ -10,9 +11,11 @@ export type EmptyStateProps = {
 export function EmptyState({
   action,
   description,
+  headingLevel = 3,
   title,
   visual,
 }: EmptyStateProps) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <div className="ui-empty-state" role="note">
       {visual ? (
@@ -21,7 +24,7 @@ export function EmptyState({
         </span>
       ) : null}
       <div>
-        <h3>{title}</h3>
+        <Heading>{title}</Heading>
         <p>{description}</p>
       </div>
       {action ? <div className="ui-empty-state-action">{action}</div> : null}
