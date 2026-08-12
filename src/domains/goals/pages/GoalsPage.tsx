@@ -14,6 +14,7 @@ import {
   EmptyState,
   IconButton,
   Input,
+  PageToolbar,
   ProgressBar,
   Select,
   Textarea,
@@ -71,6 +72,7 @@ export function GoalsPage({
   const [milestones, setMilestones] = useState<GoalMilestone[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
   const [undo, setUndo] = useState<GoalUndoAction>();
@@ -135,6 +137,7 @@ export function GoalsPage({
       .then(async (stored) => {
         if (!isCurrent) return;
         setGoals(stored);
+        setIsCreateOpen(stored.length === 0);
         const firstId = stored[0]?.id;
         setSelectedId(firstId);
         if (firstId) setMilestones(await service.listMilestones(firstId));
@@ -187,6 +190,7 @@ export function GoalsPage({
       setTitle("");
       setDescription("");
       setTargetDate("");
+      setIsCreateOpen(false);
       setNotice("Das Ziel wurde angelegt.");
       setUndo(undefined);
     }
@@ -340,17 +344,25 @@ export function GoalsPage({
   const deadline = selected ? describeDeadline(selected, today) : undefined;
 
   return (
-    <section aria-labelledby="page-title" className="route-page goals-page">
-      <header className="page-header">
-        <div className="page-header-copy">
-          <p className="page-eyebrow">Ausrichtung</p>
-          <h1 id="page-title">Ziele</h1>
-          <p className="page-description">
-            Zerlege ein Vorhaben in überprüfbare Schritte. Ein Ziel beschreibt
-            eine Absicht, keine Bewertung.
-          </p>
-        </div>
-      </header>
+    <section
+      aria-labelledby="page-title"
+      className="route-page goals-page"
+      data-surface="work"
+    >
+      <PageToolbar
+        actions={
+          <Button
+            aria-expanded={isCreateOpen}
+            onClick={() => setIsCreateOpen((open) => !open)}
+          >
+            {isCreateOpen ? "Erfassung schließen" : "Neues Ziel"}
+          </Button>
+        }
+        description="Ziele und Meilensteine bilden eine scanbare Hierarchie mit Fortschritt direkt am ausgewählten Vorhaben."
+        eyebrow="Ausrichtung"
+        surface="work"
+        title="Ziele"
+      />
 
       {error ? (
         <p className="page-alert goal-error" role="alert">
@@ -364,51 +376,59 @@ export function GoalsPage({
         </p>
       ) : (
         <>
-          <h2>Neues Ziel</h2>
-          <form
-            className="goal-form"
-            noValidate
-            onSubmit={(event) => void submitGoal(event)}
-          >
-            <Input
-              error={titleError}
-              label="Titel"
-              onChange={(event) => {
-                setTitle(event.currentTarget.value);
-                setTitleError(undefined);
-              }}
-              required
-              value={title}
-            />
-            <Input
-              hint="Optional. Ohne Datum bleibt das Ziel offen."
-              label="Zieldatum"
-              onChange={(event) => setTargetDate(event.currentTarget.value)}
-              type="date"
-              value={targetDate}
-            />
-            <Select
-              hint="Meilensteine rechnen aus Schritten, manuell erfasst du selbst."
-              label="Fortschritt"
-              onChange={(event) =>
-                setProgressMode(event.currentTarget.value as GoalProgressMode)
-              }
-              value={progressMode}
-            >
-              {(["milestones", "manual"] as const).map((mode) => (
-                <option key={mode} value={mode}>
-                  {goalProgressModeLabels[mode]}
-                </option>
-              ))}
-            </Select>
-            <Textarea
-              hint="Optional, zum Beispiel warum dir das wichtig ist."
-              label="Beschreibung"
-              onChange={(event) => setDescription(event.currentTarget.value)}
-              value={description}
-            />
-            <Button type="submit">Ziel anlegen</Button>
-          </form>
+          {isCreateOpen ? (
+            <section aria-labelledby="new-goal-title" className="goal-create">
+              <h2 id="new-goal-title">Neues Ziel</h2>
+              <form
+                className="goal-form"
+                noValidate
+                onSubmit={(event) => void submitGoal(event)}
+              >
+                <Input
+                  error={titleError}
+                  label="Titel"
+                  onChange={(event) => {
+                    setTitle(event.currentTarget.value);
+                    setTitleError(undefined);
+                  }}
+                  required
+                  value={title}
+                />
+                <Input
+                  hint="Optional. Ohne Datum bleibt das Ziel offen."
+                  label="Zieldatum"
+                  onChange={(event) => setTargetDate(event.currentTarget.value)}
+                  type="date"
+                  value={targetDate}
+                />
+                <Select
+                  hint="Meilensteine rechnen aus Schritten, manuell erfasst du selbst."
+                  label="Fortschritt"
+                  onChange={(event) =>
+                    setProgressMode(
+                      event.currentTarget.value as GoalProgressMode,
+                    )
+                  }
+                  value={progressMode}
+                >
+                  {(["milestones", "manual"] as const).map((mode) => (
+                    <option key={mode} value={mode}>
+                      {goalProgressModeLabels[mode]}
+                    </option>
+                  ))}
+                </Select>
+                <Textarea
+                  hint="Optional, zum Beispiel warum dir das wichtig ist."
+                  label="Beschreibung"
+                  onChange={(event) =>
+                    setDescription(event.currentTarget.value)
+                  }
+                  value={description}
+                />
+                <Button type="submit">Ziel anlegen</Button>
+              </form>
+            </section>
+          ) : null}
 
           <h2>Deine Ziele</h2>
           {goals.length === 0 ? (
@@ -417,12 +437,12 @@ export function GoalsPage({
               title="Noch kein Ziel"
             />
           ) : (
-            <ul className="goal-list">
+            <ul className="goal-list ui-dense-panel ui-dense-list">
               {goals.map((goal) => {
                 const goalDeadline = describeDeadline(goal, today);
                 return (
                   <li
-                    className="goal-card"
+                    className="goal-card ui-dense-row"
                     data-selected={goal.id === selectedId}
                     key={goal.id}
                   >

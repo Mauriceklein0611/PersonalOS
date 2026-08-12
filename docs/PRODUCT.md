@@ -112,8 +112,9 @@ Der MVP ist nicht die komplette ursprüngliche Modulliste. Er ist ein stabiler, 
 - lokale Datenbank, Schema-Migrationen und Repository-Schicht;
 - Offline-PWA und verständlicher Speicherstatus;
 - versionierter Komplett-Export, validierter Import und Wiederherstellung;
-- Dashboard/Heute mit offenen Aufgaben, Habits und Quick Actions;
-- Aufgaben mit Inbox, Heute, Woche und Erledigt;
+- Dashboard/Heute mit priorisierten Tagesaktionen und höchstens drei
+  handlungsnahen Kennzahlen;
+- Aufgaben als dichte Liste mit kompakten Filtern sowie getrenntem Wochenplan;
 - Routinen als durchgehender Monatstracker mit Tagesstatus, Rhythmus, Serie,
   Fortschritt und Archivfilter auf einer Arbeitsfläche;
 - tägliches Journal mit Stimmung, Stress, Energie, Highlight und Freitext;

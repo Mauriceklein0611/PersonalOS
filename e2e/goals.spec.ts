@@ -70,3 +70,36 @@ test("takes a goal from creation through milestones to completion", async ({
   );
   expect(hasHorizontalOverflow).toBe(false);
 });
+
+test("keeps a manual goal dense and readable from 320 to 1280 pixels", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/planen/ziele");
+  await page
+    .getByRole("combobox", { name: "Fortschritt" })
+    .selectOption("manual");
+  await page.getByRole("textbox", { name: /Titel/ }).fill("Lernprojekt");
+  await page.getByRole("button", { name: "Ziel anlegen" }).click();
+
+  const detail = page.getByRole("region", { name: "Lernprojekt" });
+  await detail
+    .getByRole("spinbutton", { name: "Fortschritt in Prozent" })
+    .fill("25");
+  await expect(
+    detail.getByRole("progressbar", { name: "Fortschritt" }),
+  ).toHaveJSProperty("value", 25);
+  await expect(detail.getByText("Manuell erfasster Wert.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Neues Ziel" })).toBeVisible();
+
+  for (const width of [320, 390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(false);
+  }
+});

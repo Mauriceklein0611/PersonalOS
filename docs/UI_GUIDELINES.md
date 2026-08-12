@@ -290,6 +290,21 @@ Reiter im ARIA-Sinn.
 - Der Zähler eines Reiters steht ausdrücklich im zugänglichen Namen („Inbox: 3 Aufgaben“). Aus benachbarten Elementen zusammengesetzt wird daraus je nach Umsetzung „Inbox3 Aufgaben“ — der Zähler ist eine Aussage und darf nicht am Zusammenfügen hängen.
 - Das Panel verweist mit `aria-labelledby` über `viewTabId` auf den ausgewählten Reiter zurück.
 
+### Aufgaben und Ziele als Arbeitsflächen
+
+- Aufgaben trennen nur die fachlich verschiedene Liste vom Wochenplan. Inbox,
+  Heute, Wochenliste und Erledigt sind Filter derselben Liste und stehen in
+  einem beschrifteten Auswahlfeld statt in einer Reiterreihe.
+- Der Wochenplan bleibt eine eigene Arbeitsfläche mit sichtbarer Nutzerfrage.
+  Mobil zeigt er genau einen wählbaren Tag, Desktop erweitert die Zahl der
+  gleichzeitig sichtbaren Tagesbereiche progressiv.
+- Gleichartige Aufgaben, Ziele und Meilensteine stehen in dichten Zeilen einer
+  gemeinsamen Fläche. Nur die Auswahl trägt einen Akzentbalken; Container
+  erhalten keinen dekorativen Neonrahmen.
+- Zielerfassung ist eine primäre Seitenaktion und darf nach erfolgreichem
+  Speichern wieder schließen. Der ausgewählte Zielknoten zeigt Fortschrittswert,
+  Datenbasis, Termin und seine Meilensteine zusammenhängend.
+
 ### Diagramme
 
 - In einer Ansicht mit Check-in-Raster steht das Raster **vor** der Auswertung. Das Diagramm erklärt, was bereits erfasst wurde; es ist nie der Einstieg.

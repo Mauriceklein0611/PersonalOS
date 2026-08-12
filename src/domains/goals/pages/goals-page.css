@@ -62,18 +62,24 @@
   list-style: none;
 }
 
+.goal-list {
+  gap: 0;
+}
+
 .goal-card {
   display: grid;
   min-width: 0;
   gap: var(--space-2);
-  padding: var(--space-4);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-lg);
-  background: var(--glass-strong);
+  padding: var(--space-3);
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 0;
+  background: var(--dense-row);
 }
 
 .goal-card[data-selected="true"] {
-  border-color: var(--accent-1);
+  border-left-color: var(--accent-1);
+  background: var(--dense-row-active);
 }
 
 .goal-card-head {
@@ -107,9 +113,8 @@
   gap: var(--space-2);
   grid-template-columns: minmax(0, 1fr) auto;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--glass-strong);
+  border-bottom: 1px solid var(--dense-edge);
+  background: var(--dense-row);
 }
 
 .goal-actions {

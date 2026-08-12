@@ -195,12 +195,12 @@ describe("TodayPage", () => {
   });
 
   /*
-   * Genau vier Kennzahlen. Der Abendreflexion und der geplanten Zeit ist mit
+   * Maximal drei Kennzahlen. Der Abendreflexion und der geplanten Zeit ist mit
    * dem Umbau je eine Ebene zugewiesen: die Reflexion als Karte und als
    * Signal am Abend, die geplante Zeit als Signal, sobald sie über dem
    * Tagesbudget liegt. Als Dauerkachel sagten beide jeden Tag dasselbe.
    */
-  it("shows exactly the four agreed metrics", async () => {
+  it("shows no more than the three agreed metrics", async () => {
     renderPage(createServices());
 
     await screen.findByText("Life Score");
@@ -210,8 +210,7 @@ describe("TodayPage", () => {
       )
       .map((element) => element.textContent);
 
-    // Ohne gesetztes Budget bleibt die vierte Kachel weg: Ein übriges Budget ohne
-    // Budget wäre keine Zahl, sondern eine Behauptung.
+    // Ohne gesetztes Budget bleibt der erklärbare Life Score die dritte Kachel.
     expect(labels).toEqual(["Aufgaben heute", "Routinen heute", "Life Score"]);
   });
 
