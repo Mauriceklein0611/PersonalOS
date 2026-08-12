@@ -5,6 +5,7 @@ import {
   Button,
   EmptyState,
   Input,
+  PageToolbar,
   SearchField,
   Textarea,
 } from "../../../components/ui";
@@ -187,43 +188,46 @@ export function JournalPage({
   }
 
   return (
-    <section aria-labelledby="page-title" className="route-page journal-page">
-      <header className="page-header">
-        <div className="page-header-copy">
-          <p className="page-eyebrow">Reflexion</p>
-          <h1 id="page-title">Journal</h1>
-          <p className="page-description">
-            Halte deinen Tag in wenigen Minuten fest. Jedes Feld ist freiwillig,
-            und ein ausgelassener Wert bedeutet nicht null.
-          </p>
-        </div>
-      </header>
-
-      <div className="journal-day-picker">
-        <Button
-          disabled={isDirty}
-          onClick={() => selectDate(addCalendarDays(selectedDate, -1))}
-          variant="secondary"
-        >
-          Vorheriger Tag
-        </Button>
-        <Input
-          disabled={isDirty}
-          error={errors.localDate}
-          label="Tag der Reflexion"
-          max={today}
-          onChange={(event) => selectDate(event.currentTarget.value)}
-          type="date"
-          value={selectedDate}
-        />
-        <Button
-          disabled={isDirty || selectedDate >= today}
-          onClick={() => selectDate(addCalendarDays(selectedDate, 1))}
-          variant="secondary"
-        >
-          Nächster Tag
-        </Button>
-      </div>
+    <section
+      aria-labelledby="page-title"
+      className="route-page journal-page"
+      data-surface="editor"
+    >
+      <PageToolbar
+        actions={
+          <>
+            <Button
+              disabled={isDirty}
+              onClick={() => selectDate(addCalendarDays(selectedDate, -1))}
+              variant="secondary"
+            >
+              Vorheriger Tag
+            </Button>
+            <Input
+              disabled={isDirty}
+              error={errors.localDate}
+              label="Tag der Reflexion"
+              max={today}
+              onChange={(event) => selectDate(event.currentTarget.value)}
+              type="date"
+              value={selectedDate}
+            />
+            <Button
+              disabled={isDirty || selectedDate >= today}
+              onClick={() => selectDate(addCalendarDays(selectedDate, 1))}
+              variant="secondary"
+            >
+              Nächster Tag
+            </Button>
+          </>
+        }
+        description="Halte deinen Tag in wenigen Minuten fest. Jedes Feld ist freiwillig; ein ausgelassener Wert bedeutet nicht null."
+        eyebrow="Reflexion"
+        period={formatDay(selectedDate)}
+        periodLabel="Eintrag für"
+        surface="editor"
+        title="Journal"
+      />
 
       {isDirty ? (
         <p className="journal-day-hint">
@@ -368,6 +372,13 @@ function formatTime(instant: Date, timeZone: string): string {
     minute: "2-digit",
     timeZone,
   }).format(instant);
+}
+
+function formatDay(day: CalendarDay): string {
+  return new Intl.DateTimeFormat("de-DE", {
+    dateStyle: "full",
+    timeZone: "UTC",
+  }).format(new Date(`${day}T00:00:00.000Z`));
 }
 
 export function Component() {

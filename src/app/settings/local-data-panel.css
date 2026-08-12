@@ -1,16 +1,19 @@
 .local-data-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
-  gap: var(--space-2);
+  gap: 1px;
   margin: 0 0 var(--space-5);
+  overflow: hidden;
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-edge);
 }
 
 .local-data-summary > div {
   display: grid;
   gap: var(--space-1);
   padding: var(--space-3);
-  border-radius: var(--radius-sm);
-  background: var(--glass-strong);
+  background: var(--dense-row);
 }
 
 .local-data-summary dt {
@@ -48,10 +51,8 @@
 
 .local-privacy-note {
   margin-bottom: var(--space-5);
-  padding: var(--space-4);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-md);
-  background: var(--glass-strong);
+  padding: var(--space-4) 0 0;
+  border-top: 1px solid var(--dense-edge);
 }
 
 .local-privacy-note h4,

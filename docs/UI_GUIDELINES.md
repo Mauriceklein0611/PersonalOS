@@ -322,6 +322,23 @@ Reiter im ARIA-Sinn.
   Wochenrückblick ein. Beide Ansichten bleiben Beobachtung und Vergleich,
   keine Bewertung oder neue Planung.
 
+### Journal, Einstellungen und unterstützende Flächen
+
+- Das Journal ist eine deckende Editorfläche mit begrenzter Textzeile. Datum,
+  Tagesnavigation und Speicherzustand stehen am gemeinsamen Seiteneinstieg;
+  der Editor erhält keine zusätzliche Dashboard-Auswertung.
+- Skalen bleiben native Radio-Gruppen. Auswahl und Fokus dürfen eine
+  Datenfarbe tragen, Zahl und Beschriftung benennen den Zustand zusätzlich.
+- Einstellungen sind wenige fachliche Abschnitte in einer gemeinsamen Fläche,
+  keine Karte pro Feld. Backup, Import und lokale Löschung bleiben klar
+  voneinander getrennt; Gefahr-Aktionen stehen erst am Ende ihres Abschnitts.
+- Dialoge sind deckend, innerhalb der sichtbaren Höhe scrollbar und bei
+  320 Pixeln vollständig erreichbar. Aktionen folgen überall derselben
+  Reihenfolge und Gewichtung.
+- Die Ersteinrichtung bleibt eine kompakte Liste vor dem ersten Fachinhalt.
+  Sie erklärt ausdrücklich: Eine bereitgestellte Domain hostet die App, sie
+  synchronisiert keine lokalen Einträge zwischen Geräten.
+
 ### Diagramme
 
 - In einer Ansicht mit Check-in-Raster steht das Raster **vor** der Auswertung. Das Diagramm erklärt, was bereits erfasst wurde; es ist nie der Einstieg.

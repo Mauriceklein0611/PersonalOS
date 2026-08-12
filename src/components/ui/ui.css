@@ -265,15 +265,16 @@
 }
 
 .ui-dialog {
-  width: min(34rem, calc(100vw - 2rem));
-  max-height: min(42rem, calc(100vh - 2rem));
+  width: min(34rem, calc(100vw - 1rem));
+  max-height: min(42rem, calc(100dvh - 1rem));
   padding: 0;
   overflow: auto;
   border: 1px solid var(--edge);
   border-radius: var(--radius-xl);
   color: var(--text);
-  background: var(--glass);
-  box-shadow: var(--glass-highlight), var(--shadow-lg);
+  background: var(--glass-opaque);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: none;
 }
 
 .ui-dialog::backdrop {
@@ -811,6 +812,15 @@ button.ui-dense-row:hover,
 
   .ui-dialog-actions > * {
     flex: 1 1 auto;
+  }
+
+  .ui-dialog-header,
+  .ui-dialog-content {
+    padding: var(--space-4);
+  }
+
+  .ui-dialog-actions {
+    padding: var(--space-3) var(--space-4);
   }
 }
 

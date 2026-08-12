@@ -1,7 +1,11 @@
 .settings-grid {
   display: grid;
-  gap: var(--space-5);
-  margin-top: clamp(2rem, 8vw, 5rem);
+  gap: 0;
+  margin-top: var(--space-5);
+  overflow: hidden;
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-xl);
+  background: var(--dense-panel);
 }
 
 .settings-grid > * {
@@ -10,4 +14,22 @@
 
 .settings-grid .empty-state {
   margin-top: 0;
+}
+
+.settings-grid > .ui-card,
+.settings-grid > .empty-state {
+  border: 0;
+  border-bottom: 1px solid var(--dense-edge);
+  border-radius: 0;
+  background: var(--dense-row);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.settings-grid > :last-child {
+  border-bottom: 0;
+}
+
+.settings-preview-link {
+  width: fit-content;
 }
