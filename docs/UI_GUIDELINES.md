@@ -305,6 +305,23 @@ Reiter im ARIA-Sinn.
   Speichern wieder schließen. Der ausgewählte Zielknoten zeigt Fortschrittswert,
   Datenbasis, Termin und seine Meilensteine zusammenhängend.
 
+### Finanzen und Auswertungen als Datenflächen
+
+- Buchungen, Kategorien, Budgets, Sparziele und Vergleichsbereiche bilden je
+  Bestand eine gemeinsame dichte Fläche mit getrennten Zeilen. Einzelne
+  Datensätze werden nicht als frei schwebende Karten wiederholt.
+- Beträge stehen rechtsbündig mit tabellarischen Ziffern. Einnahme, Ausgabe
+  und Vorzeichen werden zusätzlich als Text oder Zeichen benannt; Farbe allein
+  trägt keine finanzielle Aussage.
+- Budget- und Sparfortschritt zeigt immer Betrag, Währung, Zeitraum und
+  Berechnungsgrundlage. Ohne Datenbasis erscheint `Keine Angabe`, nicht `0 %`.
+- Auswertungen beginnen mit Textwerten oder einer Tabelle. Diagramme ergänzen
+  diese Werte, verwenden höchstens drei Reihen und nennen Zeitraum,
+  Vollständigkeit sowie Datenbasis direkt an der Darstellung.
+- Journal-Freitext fließt weder in den Life Score noch in den
+  Wochenrückblick ein. Beide Ansichten bleiben Beobachtung und Vergleich,
+  keine Bewertung oder neue Planung.
+
 ### Diagramme
 
 - In einer Ansicht mit Check-in-Raster steht das Raster **vor** der Auswertung. Das Diagramm erklärt, was bereits erfasst wurde; es ist nie der Einstieg.

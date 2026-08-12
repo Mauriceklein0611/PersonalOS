@@ -24,7 +24,11 @@
 
 .weekly-review-comparison-list {
   display: grid;
-  gap: var(--space-3);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--dense-edge);
+  border-radius: var(--radius-dense);
+  background: var(--dense-panel);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -34,9 +38,12 @@
   display: grid;
   gap: var(--space-3);
   padding: var(--space-3);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-tile);
-  background: var(--glass-strong);
+  border-bottom: 1px solid var(--dense-edge);
+  background: var(--dense-row);
+}
+
+.weekly-review-comparison-list li:last-child .weekly-review-comparison {
+  border-bottom: 0;
 }
 
 .weekly-review-comparison h3 {

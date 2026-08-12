@@ -1,4 +1,4 @@
-import { Toast } from "../../../components/ui";
+import { PageToolbar, Toast } from "../../../components/ui";
 import { monthOf } from "../repository";
 import type { SavingsService } from "../savings-service";
 import type { FinanceService } from "../service";
@@ -30,17 +30,18 @@ export function FinancePage(props: FinancePageProps) {
   const undo = page.undo;
 
   return (
-    <section aria-labelledby="page-title" className="route-page finance-page">
-      <header className="page-header">
-        <div className="page-header-copy">
-          <p className="page-eyebrow">Überblick</p>
-          <h1 id="page-title">Geld</h1>
-          <p className="page-description">
-            Erfasse Einnahmen und Ausgaben manuell und vollständig lokal. Diese
-            Ansicht ist keine Buchhaltung und keine Finanzberatung.
-          </p>
-        </div>
-      </header>
+    <section
+      aria-labelledby="page-title"
+      className="route-page finance-page"
+      data-surface="work"
+    >
+      <PageToolbar
+        description="Erfasse Einnahmen und Ausgaben lokal; Beträge, Budgets und Sparziele bleiben mit Zeitraum und Basis nachvollziehbar."
+        eyebrow="Überblick"
+        period={formatMonth(page.budgetMonth)}
+        surface="work"
+        title="Geld"
+      />
 
       {page.error ? (
         <p className="page-alert finance-error" role="alert">
