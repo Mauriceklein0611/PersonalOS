@@ -32,6 +32,7 @@ Node.js 24 LTS und pnpm 11.20.0 sind die aktuell unterstützte Toolchain. Abhän
 - [Produkt und Scope](docs/PRODUCT.md)
 - [Schritt-für-Schritt-Roadmap](docs/ROADMAP.md)
 - [Architektur](docs/ARCHITECTURE.md)
+- [Schnittstellen und Systemgrenzen](docs/INTERFACES.md)
 - [Datenmodell](docs/DATA_MODEL.md)
 - [UI- und Textleitlinien](docs/UI_GUIDELINES.md)
 - [Entwicklungsablauf](docs/DEVELOPMENT.md)
