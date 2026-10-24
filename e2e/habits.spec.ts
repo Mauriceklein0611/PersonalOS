@@ -113,6 +113,8 @@ test("fits the full month on desktop and restores from the archive offline", asy
   context,
   page,
 }) => {
+  // Keep the visible month aligned with the August check-in fixtures.
+  await page.clock.setFixedTime(new Date("2026-08-13T12:00:00"));
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/routinen/uebersicht");
   await page.getByRole("combobox", { name: "Farbschema" }).selectOption("dark");
