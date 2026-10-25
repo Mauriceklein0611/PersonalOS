@@ -117,7 +117,9 @@ describe("App shell", () => {
     renderRoute("/");
 
     await screen.findByRole("heading", { level: 1, name: "Heute" });
-    expect(document.title).toBe("Heute – PersonalOS");
+    await waitFor(() => {
+      expect(document.title).toBe("Heute – PersonalOS");
+    });
 
     const tasksLink = screen.getAllByRole("link", { name: "Aufgaben" })[0];
     tasksLink?.focus();
