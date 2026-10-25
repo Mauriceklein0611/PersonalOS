@@ -2,17 +2,41 @@
 
 ## Status und Grenzen
 
-Das Repository ist für ein statisches Cloudflare-Pages-Deployment vorbereitet.
-Die tatsächliche Inbetriebnahme bleibt offen, bis
+Die Produktions-PWA ist unter `https://me.exerivo.com` erreichbar. Der
+öffentliche Auslieferungsstand wurde am 25.10.2026 gegen einen lokalen Build
+der Quellrevision `acfda97` geprüft. Production-URL, direkte App-Routen,
+Sicherheitsheader, Manifest und Service Worker antworteten über HTTPS. Die
+gehashten Hauptdateien für JavaScript, React-Laufzeit und CSS sowie das Manifest
+waren bytegleich mit dem lokalen Build. Der Service Worker enthielt dieselben
+Precache-Einträge in anderer Reihenfolge.
 
-- die endgültige Exerivo-Subdomain festgelegt ist,
-- Zugriff auf das passende Cloudflare-Konto und die DNS-Zone besteht und
-- ein erster Production- und Preview-Build dort geprüft wurde.
+Die Prüfung belegt den ausgelieferten statischen Stand. Eine Pull-Request-
+Preview, Installation und Updatewechsel auf der echten Domain, ein manueller
+Offline-Neustart sowie ein Rollback im Pages-Dashboard wurden dabei nicht
+ausgeführt und bleiben eigene Betriebsnachweise.
 
 Cloudflare liefert nur die App-Dateien aus. IndexedDB, Einstellungen, Journal,
 Aufgaben und Finanzdaten bleiben im jeweiligen Browserprofil. Ein Aufruf auf
 einem anderen Gerät beginnt daher mit einer eigenen leeren Datenbank. Analytics,
 Pages Functions, Worker und serverseitige Speicherung werden nicht aktiviert.
+
+## Geprüfter Produktionsstand vom 25.10.2026
+
+- `https://me.exerivo.com/` und alle in der Abnahmeliste genannten direkten
+  Routen lieferten HTTP 200 und die App-Shell.
+- `manifest.webmanifest` und `sw.js` wurden erfolgreich ausgeliefert.
+- CSP, Permissions Policy, Referrer Policy, HSTS, `nosniff` und
+  `X-Frame-Options: DENY` entsprachen `public/_headers`.
+- Der lokale Qualitätslauf auf Node 24 und pnpm 11.20.0 bestand
+  Datenschutzprüfung, Formatierung, ESLint, TypeScript, 937 Unit- und
+  Komponententests, Produktionsbuild, Bundle-Budgets und 99 E2E-Tests.
+- Die E2E-Suite belegte mit synthetischen Daten unter anderem Offline-Start,
+  lokale Aktionen ohne Fachinhaltsübertragung sowie Export, Löschen und Import.
+
+Dies ist kein Restore-Nachweis für Maurices tatsächliches Browserprofil und
+kein Nachweis einer unabhängig aufbewahrten Exportdatei. Der 14-tägige
+Dogfood-Versuch, zwei manuelle Wiederherstellungsübungen im frischen Profil,
+Preview-Abnahme, Updatewechsel und Rollback bleiben offen.
 
 ## Pages-Projekt anlegen
 

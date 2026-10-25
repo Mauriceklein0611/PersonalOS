@@ -96,9 +96,12 @@ außerhalb der App und müssen vom Nutzer gesondert sichergestellt werden.
 | Monitoring | CI-Prüfungen und manuelle Production-/Preview-Abnahme; kein belegtes externes Laufzeitmonitoring |
 | Owner und Begründung | Maurice; statisches Hosting wahrt die Local-first-Grenze ohne Functions, Analytics oder serverseitige Fachdatenspeicherung |
 
-Die Projektkonfiguration ist vorhanden. Domain, erster Production-Build und
-Preview-Abnahme bleiben laut `DEPLOYMENT.md` offen, bis sie mit Datum und
-Ergebnis nachgewiesen wurden.
+Die Produktions-Domain `https://me.exerivo.com` und der statische Stand wurden
+am 25.10.2026 gegen einen lokalen Build der Quellrevision `acfda97` geprüft.
+Direkte Routen, Sicherheitsheader, Manifest und Service Worker wurden
+ausgeliefert; die gehashten Hauptdateien und das Manifest waren bytegleich.
+Preview-Abnahme, Installation und Updatewechsel auf der echten Domain sowie ein
+Rollback im Pages-Dashboard bleiben laut `DEPLOYMENT.md` offen.
 
 ## Änderungsregel
 
