@@ -95,7 +95,7 @@ test("keeps 44 pixel targets across the band and the header", async ({
   // Jedes Bedienelement der Kopfzeile und des Bandes hält die eigene
   // Mindestgröße von 44 CSS-Pixeln.
   const controls = [
-    page.getByRole("link", { name: "PersonalOS – Heute" }),
+    page.getByRole("link", { name: "PersonalOS" }),
     page.getByLabel("Farbschema"),
     mobileNavigation.getByRole("link", { name: "Routinen" }),
     mobileNavigation.getByRole("link", { name: "Geld" }),

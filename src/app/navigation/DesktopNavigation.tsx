@@ -15,7 +15,7 @@ import {
 export function DesktopNavigation() {
   return (
     <aside className="desktop-sidebar">
-      <Link className="brand-link" to="/" aria-label="PersonalOS – Heute">
+      <Link className="brand-link" to="/">
         <span className="brand-mark" aria-hidden="true">
           P
         </span>
